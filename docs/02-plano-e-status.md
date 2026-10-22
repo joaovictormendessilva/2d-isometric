@@ -150,7 +150,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   Passo 3 ✅ coluna Equipamento no inventário (dourado onde o item da mão cabe, "Equipar" no
   menu, dica com bônus), receitas com rolagem e 4 itens de bancada (escudo de madeira, elmo de
   cobre, mochila simples, anel magnético). Correções do teste do João: trocar equipamento não
-  cura mais e a defesa pequena agora reduz dano (96 testes). Aguardando validação do João.
+  cura nem fere (vida atual não muda) e a defesa pequena agora reduz dano (97 testes).
+  Aguardando validação do João.
 
 ## Funcionalidades
 
@@ -230,6 +231,8 @@ Ideias do João para considerar nas etapas certas — não são compromissos ain
 - **Escolher em que mão segurar** (escudo/tomo à direita ou à esquerda, mudando a animação):
   adiado (ADR-018) — com o personagem espelhado ao virar, dobraria a arte de combate por 2–3 px
   de diferença. Reavaliar se os sprites crescerem.
+- **Cura do jogador** (E4): hoje a vida só volta ao renascer. Vestir item de vida deixa a
+  diferença para curar — poções, regeneração fora de combate etc. entram com consumíveis/NPCs.
 - **Dano final e tela de atributos** (pergunta do João, E4): hoje o dano é o da arma (espada
   10, soco 5). Quando houver atributos de dano e buffs (habilidades/Etapa G), o dano final vira
   fórmula em `CombatRules` (base da arma × modificadores) e uma tela de atributos mostra os

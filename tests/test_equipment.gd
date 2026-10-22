@@ -132,7 +132,7 @@ func test_bonuses_change_stats_and_come_off() -> void:
 	character.apply_equipment(_equipment)
 	check(character.health.max_health == base_health + 20 and character.health.defense == 3,
 		"elmo: +20 de vida máxima e +3 de defesa")
-	check(character.health.current == character.health.max_health, "cheio continua cheio")
+	check(character.health.current == base_health, "vestir não cura: 100/120 (a diferença é curada depois)")
 	check_near(character.move_speed(), base_speed * 1.1, 0.01, "anel: +10% de velocidade")
 	check_near(character.pickup_radius(), base_radius + 10.0, 0.01, "anel: ímã maior")
 	check(character.stats.max_health == base_health, "o recurso compartilhado não mudou")
@@ -233,8 +233,8 @@ func test_equipment_screen() -> void:
 		"clicar no espaço vestiu o anel")
 
 
-## Bug relatado pelo João: tirar e pôr o elmo curava. Agora a vida mantém a proporção
-## (arredondando para baixo): trocar nunca cura.
+## Bugs relatados pelo João: tirar e pôr o elmo curava; depois, ia baixando. A vida atual não
+## muda com a troca (só é limitada ao máximo ao tirar).
 func test_toggling_gear_never_heals() -> void:
 	_setup()
 	var character := spawn_character(Vector2(400, 300))
@@ -249,8 +249,8 @@ func test_toggling_gear_never_heals() -> void:
 		character.apply_equipment(_equipment)
 		EquipmentRules.click_slot(_inventory, _equipment, head)  # põe
 		character.apply_equipment(_equipment)
-	check(character.health.current <= hurt,
-		"10 trocas não curaram (%d antes, %d depois)" % [hurt, character.health.current])
+	check(character.health.current == hurt,
+		"10 trocas não curaram nem feriram (%d antes, %d depois)" % [hurt, character.health.current])
 
 
 ## Bug relatado pelo João: o escudo não reduzia dano (defesa pequena sumia no arredondamento).
@@ -269,3 +269,22 @@ func test_shield_reduces_slime_damage() -> void:
 	character.health.apply_damage(DamageInfo.create(slime_damage, Vector2.RIGHT, 0.0, 0, 0))
 	check(before - character.health.current < slime_damage,
 		"escudo + elmo: o golpe de %d tirou %d" % [slime_damage, before - character.health.current])
+
+
+## Os exemplos do João (elmo de teste: +20): 95/100 → 95/120; tirar com 115/120 → 100/100
+## (limitado ao máximo).
+func test_swap_keeps_current_health() -> void:
+	_setup()
+	var character := spawn_character(Vector2(400, 300))
+	var health := character.health
+	health.apply_damage(DamageInfo.create(5, Vector2.RIGHT, 0.0, 0, 0))
+	check(health.current == 95, "95/100")
+	_inventory.add(&"t_helmet", 1)
+	EquipmentRules.equip_from_inventory(_inventory, _equipment, 0)
+	character.apply_equipment(_equipment)
+	check(health.current == 95 and health.max_health == 120, "elmo: 95/120")
+	health.current = 115
+	var head := _equipment.index_of_type(EquipmentData.Slot.HEAD)
+	EquipmentRules.click_slot(_inventory, _equipment, head)
+	character.apply_equipment(_equipment)
+	check(health.current == 100 and health.max_health == 100, "115/120 sem elmo: 100/100")

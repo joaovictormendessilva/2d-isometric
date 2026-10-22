@@ -394,7 +394,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   velocidade, ímã, espaços de mochila, ataque da arma). Visual do equipamento no personagem
   fica para a arte real. Pendência: navegar inventário e equipamento só por teclado/controle
   (hoje é com mouse; vale para toda a janela, não só o equipamento).
-- **Ajustes após o teste do João**: trocar equipamento mantém a PROPORÇÃO da vida (para baixo),
-  em vez de somar o ganho de máximo (tirar e pôr o elmo curava). Defesa: o ponto de "metade
+- **Ajustes após o teste do João**: trocar equipamento **não mexe na vida atual**, só a limita
+  ao novo máximo (escolha do João; sem brecha de cura). Antes, somar o ganho curava e manter a
+  proporção ia baixando a vida no arredondamento. Defesa: o ponto de "metade
   do dano" saiu do código para `data/balance/combat.tres` e caiu de 100 para 20 — com 100, a
   defesa 2 do escudo sumia no arredondamento.
