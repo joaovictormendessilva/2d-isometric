@@ -110,6 +110,11 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - Tile isométrico: **32×16 px** (proporção 2:1).
   - Personagens: **~32 px de altura** (escala próxima da referência
     `docs/referencias/exemplo-de-personagens.png`).
+  - **Personagens e cosméticos** (João, 2026-10-22): `docs/referencias/exemplo-hero-siege.png`
+    é o "exemplo perfeito" de sprites de personagem e cosméticos (Hero Siege): silhueta
+    própria por classe (chapéus, capuzes, chifres, armas grandes), poucas cores fortes por
+    personagem, contorno escuro e leitura clara sobre chão escuro. Referência de intenção, sem
+    copiar personagens nem sprites.
   - Direções de animação: **4 (diagonais) com espelhamento**; avaliar 8 depois.
 - **Motivos**: 640×360 escala perfeitamente para 720p, 1080p e 1440p, mostra área suficiente
   para combate e mantém o custo de arte baixo; 32×16 é o padrão isométrico com mais recursos e
