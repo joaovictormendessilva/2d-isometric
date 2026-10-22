@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 (NPC) a seguir |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a (moedas e loja) aguardando validação |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -173,7 +173,11 @@ Ordem proposta (cada um com validação do João antes do próximo):
   onde quiser e cada cliente só recebe a própria região; viajar recria o personagem lá. 111
   testes. Validado pelo João, inclusive no coop (2026-10-22). Correção do teste dele: os textos
   do mundo (dano, itens, "[E]") sumiam; agora há verificação com imagem (`tests/render_checks.gd`).
-- **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
+- **F3 – NPC** 🟡 (branch `stage-f/npc`, ADR-021): F3a moedas e mercador (compra e venda); F3b
+  poção de vida (cura do jogador); F3c receitas de NPC.
+  F3a 🟡 implementado: carteira separada do inventário (escolha do João), mercador perto da
+  entrada da campina, loja com o inventário ao lado, venda pelo botão direito, moedas no save e
+  no coop pelo host. 120 testes. Aguardando validação do João.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
@@ -201,6 +205,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - Regiões: no fim do caminho de terra na borda leste da campina fica a passagem para a floresta
   (e na borda oeste da floresta, a volta). No coop cada um viaja sozinho; quem volta ao jogo
   começa na região onde estava.
+- Mercador (F3a): perto da entrada da campina (chapéu marrom, túnica verde). Tecla E perto dele
+  abre a loja e o inventário: clique numa oferta compra; botão direito num item do inventário
+  vende ("Vender 1" / "Vender tudo"). Moedas aparecem no inventário e na loja. Preços em
+  `data/npcs/merchant.tres` (compra) e no `sell_price` de cada item (venda).
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

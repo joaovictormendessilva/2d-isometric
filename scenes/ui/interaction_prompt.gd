@@ -1,8 +1,9 @@
 class_name InteractionPrompt
 extends Node2D
-## Rótulo sobre o ponto de coleta ao alcance do jogador LOCAL: "[E] Árvore de lenha", ou o que
-## falta para coletar ("Carvalho antigo: precisa de ferramenta nível 2"). Assim todo ponto
-## coletável se identifica quando o jogador chega perto. Só apresentação.
+## Rótulo sobre o NPC ("[E] Mercador") ou o ponto de coleta ao alcance do jogador LOCAL:
+## "[E] Árvore de lenha", ou o que falta para coletar ("Carvalho antigo: precisa de ferramenta
+## nível 2"). Assim tudo com que se interage se identifica quando o jogador chega perto. Só
+## apresentação.
 
 const READY_COLOR := UiStyle.ACCENT
 const BLOCKED_COLOR := UiStyle.WARNING
@@ -11,6 +12,9 @@ const LABEL_SIZE := Vector2(240, 12)
 const MARGIN := 2.0
 ## Procura o ponto 10 vezes por segundo (busca física), não todo quadro.
 const REFRESH_INTERVAL := 0.1
+
+## Diz qual NPC está ao alcance (sem ela, só pontos de coleta).
+var player_state: PlayerStateSync
 
 var _character: Character
 var _label := Label.new()
@@ -35,18 +39,32 @@ func _physics_process(delta: float) -> void:
 	if _refresh_left > 0.0:
 		return
 	_refresh_left = REFRESH_INTERVAL
-	var gatherer := _character.gatherer if is_instance_valid(_character) else null
-	var node := gatherer.find_node() if gatherer and not gatherer.is_gathering() else null
-	visible = node != null
-	if not visible:
+	visible = false
+	if not is_instance_valid(_character):
 		return
-	var sprite: Sprite2D = node.get_node("Sprite")
-	position = node.position + Vector2(0.0, sprite.get_rect().position.y - MARGIN)
+	# Mesma prioridade da tecla de interagir (LocalPlayerInput): NPC antes da coleta.
+	var npc := player_state.npc_near(_character.player_id) if player_state else null
+	if npc:
+		_show_over(npc, Texts.format(&"PROMPT_TALK",
+			[Texts.action_key(&"interact"), npc.data.get_display_name()]), READY_COLOR)
+		return
+	var gatherer := _character.gatherer
+	var node := gatherer.find_node() if gatherer and not gatherer.is_gathering() else null
+	if node == null:
+		return
 	var refusal := GatheringTexts.refusal(node.data, gatherer.check(node))
 	if refusal.is_empty():
-		_label.text = Texts.format(&"PROMPT_GATHER",
-			[Texts.action_key(&"interact"), node.data.get_display_name()])
-		_label.modulate = READY_COLOR
+		_show_over(node, Texts.format(&"PROMPT_GATHER",
+			[Texts.action_key(&"interact"), node.data.get_display_name()]), READY_COLOR)
 	else:
-		_label.text = Texts.format(&"PROMPT_BLOCKED", [node.data.get_display_name(), refusal])
-		_label.modulate = BLOCKED_COLOR
+		_show_over(node, Texts.format(&"PROMPT_BLOCKED", [node.data.get_display_name(), refusal]),
+			BLOCKED_COLOR)
+
+
+## Rótulo logo acima do desenho de `target` (nó com um filho "Sprite").
+func _show_over(target: Node2D, text: String, color: Color) -> void:
+	var sprite: Sprite2D = target.get_node("Sprite")
+	position = target.position + Vector2(0.0, sprite.get_rect().position.y - MARGIN)
+	_label.text = text
+	_label.modulate = color
+	visible = true

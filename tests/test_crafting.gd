@@ -69,14 +69,14 @@ func test_crafting_list_shows_hand_recipes_and_crafts_on_click() -> void:
 	check(not rows[ids.find(&"copper_axe")]._available, "longe de bancada: a de bancada fica apagada")
 	var axe: RecipeRow = rows[ids.find(&"stone_axe")]
 	check(not axe._available and axe.modulate.a < 1.0, "sem material: apagada")
-	axe._gui_input(_left_click())
+	axe._gui_input(left_click())
 	check(inventory.count(&"stone_axe") == 0, "clicar apagada não faz nada")
 
 	inventory.add(&"wood", 10)
 	inventory.add(&"stone", 10)
 	await physics_frames(1)
 	check(axe._available and axe.modulate.a == 1.0, "com material: acesa")
-	axe._gui_input(_left_click())
+	axe._gui_input(left_click())
 	check(inventory.count(&"stone_axe") == 1, "clicar fabricou")
 
 
@@ -87,7 +87,7 @@ func test_crafting_list_collapses_and_remembers() -> void:
 	panel.set_open(true)
 	var list: CraftingList = panel.find_children("*", "CraftingList", true, false)[0]
 	check(list.is_open(), "começa aberta")
-	list._on_title_input(_left_click())
+	list._on_title_input(left_click())
 	check(not list.is_open() and not list._scroll.visible, "clique no título recolheu")
 	cleanup()
 	game = start_game()
@@ -111,10 +111,3 @@ func test_full_inventory_counts_the_space_ingredients_free() -> void:
 	check(CraftingRules.check(recipe, inventory, HAND) == CraftingRules.Check.INVENTORY_FULL,
 		"sem espaço para o machado")
 	check(inventory.count(&"wood") == 10 and inventory.count(&"stone") == 10, "nada foi gasto")
-
-
-func _left_click() -> InputEventMouseButton:
-	var click := InputEventMouseButton.new()
-	click.button_index = MOUSE_BUTTON_LEFT
-	click.pressed = true
-	return click

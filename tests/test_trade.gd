@@ -181,6 +181,53 @@ func test_client_trades_through_host() -> void:
 	check(host_wallet.coins() == client_wallet.coins(), "carteira igual nos dois lados")
 
 
+## Loja na tela: abre perto do mercador junto com o inventário; oferta sem moedas fica apagada;
+## clicar compra; o menu do botão direito oferece vender; longe, a loja e o inventário fecham.
+func test_shop_window_buys_sells_and_closes_when_far() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var player_id: int = game.local_player_id()
+	var character := session.get_player_entity(player_id) as Character
+	var inventory := session.get_inventory(player_id)
+	var wallet := session.get_wallet(player_id)
+	var shop: ShopPanel = game.get_node("UI/ShopPanel")
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	var merchant := _merchant_node(game)
+	character.position = merchant.position + Iso.ground_to_screen(Vector2(-20, 0))
+	character.reset_physics_interpolation()
+	shop.talk_to(merchant)
+	check(shop.visible and panel.visible, "a loja abre com o inventário")
+	var rows: Array[OfferRow] = []
+	rows.assign(shop.find_children("*", "OfferRow", true, false))
+	check(rows.size() == merchant.data.offers.size(), "uma linha por oferta")
+	var axe: OfferRow = rows.filter(func(row: OfferRow) -> bool: return row.item.id == &"stone_axe")[0]
+	check(not axe._available, "sem moedas: apagada")
+	axe._gui_input(left_click())
+	check(inventory.count(&"stone_axe") == 0, "clicar apagada não compra")
+
+	wallet.add(100)
+	inventory.add(&"gel", 4)
+	await physics_frames(1)
+	check(axe._available, "com moedas: acesa")
+	axe._gui_input(left_click())
+	check(inventory.count(&"stone_axe") == 1, "clicar comprou")
+	var gel_price := shop.sell_price_of(&"gel")
+	check(gel_price > 0, "a loja aberta compra gosma")
+	var menu: SlotMenu = panel.find_children("*", "SlotMenu", true, false)[0]
+	panel._on_menu_requested(_slot_of(inventory, &"gel"))
+	check(menu._sell_one.visible and menu._sell_all.visible, "menu oferece vender 1 e tudo")
+	menu._sell_all.pressed.emit()
+	check(inventory.count(&"gel") == 0 and wallet.coins() == 100
+		- merchant.data.price_of(&"stone_axe") + 4 * gel_price, "vendeu a pilha")
+
+	character.position = (game.region as Region).get_spawn_position()
+	character.reset_physics_interpolation()
+	await physics_frames(2)
+	check(not shop.visible and not panel.visible, "longe, a loja e o inventário fecham")
+	check(shop.sell_price_of(&"gel") == 0, "sem loja aberta, nada de vender")
+
+
 func _merchant() -> NpcData:
 	return DataCatalog.new(NPCS_DIR).get_entry(&"merchant") as NpcData
 

@@ -4,8 +4,8 @@ extends Control
 ## o jogador a arrasta para onde preferir e anda e luta com ela aberta.
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
 ## clicar fora da janela joga no chão (estruturas, como a bancada, são colocadas ali); botão
-## direito abre um menu: dividir (a parte separada vai para a mão), soltar a pilha no chão ou
-## equipar.
+## direito abre um menu: dividir (a parte separada vai para a mão), soltar a pilha no chão,
+## equipar ou, com a loja de um NPC aberta, vender. Embaixo da grade, as moedas.
 ## Fechar com algo na mão devolve aos espaços. Ao lado, as colunas de equipamento
 ## (EquipmentColumn) e de fabricação (CraftingList).
 ## Cada ação é um pedido ao host (PlayerStateSync).
@@ -14,10 +14,11 @@ const COLUMNS := 6
 const SLOT_GAP := UiStyle.GAP
 const COLUMN_GAP := 8
 const SETTINGS_KEY := "inventory"
-const HINT_ALPHA := UiStyle.HINT_ALPHA
 
 ## Prévia de estruturas no mundo: com uma bancada na mão, clicar fora coloca em vez de jogar.
 var placement: PlacementPreview
+## Loja aberta (se houver): o menu do botão direito oferece vender para ela.
+var shop: ShopPanel
 
 var _inventory: Inventory
 var _player_state: PlayerStateSync
@@ -70,18 +71,17 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	items_column.add_child(_grid)
 	_fit_slots()
 	inventory.resized.connect(_fit_slots)
-	var hint := Label.new()
-	# Quebra de linha na largura da grade (sem largura fixa, o texto mede uma palavra por linha).
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.custom_minimum_size.x = _grid.get_combined_minimum_size().x
-	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	hint.modulate = Color(1, 1, 1, HINT_ALPHA)
-	hint.text = Texts.get_text(&"INVENTORY_HINT")
-	items_column.add_child(hint)
+	var coins := CoinLabel.new()
+	coins.setup(player_state.session.get_wallet(player_id))
+	items_column.add_child(coins)
+	# Dica na largura da grade.
+	items_column.add_child(HintLabel.create(Texts.get_text(&"INVENTORY_HINT"),
+		_grid.get_combined_minimum_size().x))
 	_split.confirmed.connect(player_state.request_split)
 	_menu.split_chosen.connect(_on_split_requested)
 	_menu.drop_chosen.connect(player_state.request_drop_slot)
 	_menu.equip_chosen.connect(player_state.request_equip)
+	_menu.sell_chosen.connect(player_state.request_sell)
 	_held.setup(inventory, items)
 	inventory.slot_changed.connect(func(index: int) -> void: _slots[index].refresh())
 
@@ -140,4 +140,5 @@ func _on_split_requested(index: int) -> void:
 func _on_menu_requested(index: int) -> void:
 	_split.hide()
 	var equippable := _equipment.data_of(_inventory.slot_item(index)) != null
-	_menu.open(index, _inventory.slot_amount(index), equippable, get_global_mouse_position())
+	var price := shop.sell_price_of(_inventory.slot_item(index)) if shop else 0
+	_menu.open(index, _inventory.slot_amount(index), equippable, price, get_global_mouse_position())

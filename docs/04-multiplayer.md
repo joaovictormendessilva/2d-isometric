@@ -75,5 +75,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |
 | Fabricação e estruturas | ✅ | ✅ automático (host confere receita, bancada por perto, ponto e item na mão) | ⬜ |
 | Equipamento | ✅ | ✅ automático (host decide; equipamento de cada jogador enviado a todos como lista inteira; cliente pede o de quem aparece, 1 resposta por pedido) | ⬜ |
+| Moedas e loja (F3) | ✅ | ✅ automático (host confere NPC ao alcance, preço dos dados, índices e teto da carteira; moedas só ao dono) | ⬜ |
 | Desconexão/reconexão | — | ✅ automático (desconexão de host e cliente; quem volta com o mesmo perfil recebe o próprio personagem; mesmo perfil duas vezes é recusado) | ⬜ |
 | Salvamento | ✅ automático (personagem, bancada, pontos de coleta; arquivo adulterado ignorado) | ✅ automático (progresso do amigo guardado no save do host) | ⬜ |

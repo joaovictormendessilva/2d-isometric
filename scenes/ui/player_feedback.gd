@@ -1,8 +1,9 @@
 class_name PlayerFeedback
 extends Node
-## Avisos flutuantes do jogador LOCAL: itens ganhos ("+1 Madeira"), nível de coleta subindo e
-## por que não dá para coletar ("Precisa de ferramenta nível 2"). Avisos que chegam juntos
-## (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se sobrepor. Só apresentação.
+## Avisos flutuantes do jogador LOCAL: itens e moedas ganhos ("+1 Madeira"), nível de coleta
+## subindo e por que não dá para coletar ("Precisa de ferramenta nível 2"). Avisos que chegam
+## juntos (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se sobrepor. Só
+## apresentação.
 
 const GAIN_COLOR := UiStyle.TEXT_SOFT
 const LEVEL_COLOR := UiStyle.POSITIVE
@@ -21,13 +22,15 @@ var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
 
 
-## Uma vez: o que é do jogador (itens ganhos, experiência).
-func setup(inventory: Inventory, progress: SkillProgress, items: ItemDatabase,
-		skills: DataCatalog, numbers: DamageNumbers) -> void:
+## Uma vez: o que é do jogador (itens e moedas ganhos, experiência).
+func setup(inventory: Inventory, wallet: Wallet, progress: SkillProgress,
+		items: ItemDatabase, skills: DataCatalog, numbers: DamageNumbers) -> void:
 	_items = items
 	_skills = skills
 	_numbers = numbers
 	inventory.added.connect(_on_item_added)
+	wallet.earned.connect(func(amount: int) -> void:
+		_show(Texts.format(&"FEEDBACK_COINS_GAINED", [amount]), GAIN_COLOR))
 	for skill: GatheringSkillData in skills.entries():
 		_levels[skill.id] = progress.level(skill)
 	progress.changed.connect(_on_xp_changed.bind(progress).unbind(1))

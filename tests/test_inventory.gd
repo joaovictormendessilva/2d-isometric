@@ -130,7 +130,7 @@ func test_inventory_screen_click_split_and_throw_away() -> void:
 	panel._split._slider.value = 1
 	panel._split._confirm()
 	check(inventory.held_item() == &"stone" and inventory.held_amount() == 1, "1 pedra na mão")
-	panel._unhandled_input(_left_click())  # clique fora da janela
+	panel._unhandled_input(left_click())  # clique fora da janela
 	await physics_frames(2)
 	check(not inventory.is_holding() and pickups(game).size() == 1, "clique fora jogou no chão")
 
@@ -153,7 +153,7 @@ func test_right_click_menu_splits_or_drops() -> void:
 	check(panel._menu.visible and not panel._menu._split.visible and panel._menu._drop.visible,
 		"item único: só Soltar")
 	check(panel._menu.captures_mouse(), "menu aberto: o clique fora não ataca")
-	var outside := _left_click()
+	var outside := left_click()
 	outside.position = panel._menu.get_global_rect().end + Vector2(20, 20)  # longe do menu
 	panel._menu._input(outside)
 	await physics_frames(1)
@@ -170,10 +170,3 @@ func test_right_click_menu_splits_or_drops() -> void:
 	check(inventory.count(&"wood") == 0 and not inventory.is_holding(), "Soltar tirou a pilha inteira")
 	check(pickups(game).size() == 1 and (pickups(game)[0] as Pickup).amount == 5,
 		"as 5 madeiras estão no chão")
-
-
-func _left_click() -> InputEventMouseButton:
-	var click := InputEventMouseButton.new()
-	click.button_index = MOUSE_BUTTON_LEFT
-	click.pressed = true
-	return click

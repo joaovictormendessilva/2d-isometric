@@ -169,3 +169,11 @@ func glide_to(character: Character, target: Vector2) -> void:
 		character.position = character.position.move_toward(target, STEP)
 		await tree.physics_frame
 	character.position = target
+
+
+## Clique esquerdo (pressionado) para entregar a controles da interface.
+func left_click() -> InputEventMouseButton:
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	return click

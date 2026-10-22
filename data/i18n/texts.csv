@@ -70,3 +70,12 @@ STAT_DEFENSE,Defesa +%d,Defense +%d
 STAT_MOVE_SPEED,Velocidade +%d%%,Speed +%d%%
 STAT_PICKUP_RADIUS,Ímã de itens +%d,Item magnet +%d
 STAT_INVENTORY_SLOTS,Espaços +%d,Slots +%d
+PROMPT_TALK,[%s] %s,[%s] %s
+COINS,Moedas,Coins
+FEEDBACK_COINS_GAINED,+%d moedas,+%d coins
+SHOP_HINT,Clique: comprar · botão direito num item do inventário: vender,Click: buy · right click an inventory item: sell
+SHOP_NOT_ENOUGH_COINS,Moedas insuficientes,Not enough coins
+SHOP_INVENTORY_FULL,Inventário cheio,Inventory full
+SHOP_NOT_SOLD,Não está à venda,Not for sale
+SLOT_MENU_SELL_ONE,Vender 1 (%d),Sell 1 (%d)
+SLOT_MENU_SELL_ALL,Vender tudo (%d),Sell all (%d)

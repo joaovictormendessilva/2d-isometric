@@ -2,11 +2,13 @@ class_name DraggableWindow
 extends PanelContainer
 ## Janela da interface que o jogador arrasta pela barra de título e que lembra onde ficou
 ## (`UserSettings`). Não bloqueia o jogo: fora dela, mouse e teclado seguem para o mundo.
-## Uso: `setup(título, chave)` e depois `add_content(nó)`.
+## Uso: `setup(título, chave)` e depois `add_content(nó)`. Sem posição guardada, a janela abre em
+## `default_place` (fração do espaço livre da tela: 0,5 x 0,5 = centro).
 
 const SETTINGS_SECTION := "windows"
 
 var _key := ""
+var _default_place := Vector2(0.5, 0.5)
 var _column := VBoxContainer.new()
 var _title := Label.new()
 var _dragging := false
@@ -21,14 +23,21 @@ func _ready() -> void:
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 
 
-func setup(title: String, settings_key: String) -> void:
+func setup(title: String, settings_key: String, default_place := Vector2(0.5, 0.5)) -> void:
 	_key = settings_key
+	_default_place = default_place
 	_title.text = title
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title.mouse_filter = Control.MOUSE_FILTER_STOP  # a barra de título pega o clique
 	_title.mouse_default_cursor_shape = Control.CURSOR_MOVE
 	_title.gui_input.connect(_on_title_input)
 	resized.connect(_place, CONNECT_ONE_SHOT)  # posição só depois de saber o tamanho
+	# Conteúdo que cresce depois (ex.: ofertas da loja) não empurra a janela para fora da tela.
+	resized.connect(func() -> void: position = _clamped(position))
+
+
+func set_title(title: String) -> void:
+	_title.text = title
 
 
 func add_content(node: Control) -> void:
@@ -51,8 +60,8 @@ func captures_mouse() -> bool:
 
 
 func _place() -> void:
-	var centered := (get_viewport_rect().size - size) / 2.0
-	position = _clamped(UserSettings.get_value(SETTINGS_SECTION, _key, centered.round()))
+	var fallback := (get_viewport_rect().size - size) * _default_place
+	position = _clamped(UserSettings.get_value(SETTINGS_SECTION, _key, fallback.round()))
 
 
 func _on_title_input(event: InputEvent) -> void:
