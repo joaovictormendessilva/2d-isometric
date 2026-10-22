@@ -30,6 +30,9 @@ const ROCK_CHANCE := 0.025
 const MONSTER_SPAWN_COUNT := 8
 const MONSTER_SPAWN_DISTANCE := Vector2(220.0, 900.0)
 const MONSTER_SPAWN_SPACING := 150.0
+## Os primeiros pontos ficam perto da entrada, para o combate começar sem longas caminhadas.
+const NEAR_MONSTER_SPAWNS := 2
+const NEAR_MONSTER_DISTANCE := Vector2(150.0, 260.0)
 
 
 func _initialize() -> void:
@@ -208,12 +211,14 @@ func _place_monster_spawns(region: Node2D, ground: TileMapLayer, grass_cells: Ar
 	_add_owned(region, container, region)
 	var candidates := _shuffled(grass_cells, rng)
 	var placed: Array[Vector2] = []
-	for cell: Vector2i in candidates:
+	for cell: Vector2i in candidates + candidates:  # 1ª passada: perto; 2ª: o resto
 		if placed.size() >= MONSTER_SPAWN_COUNT:
 			break
 		var p := ground.map_to_local(cell)
+		var near := placed.size() < NEAR_MONSTER_SPAWNS
+		var limits := NEAR_MONSTER_DISTANCE if near else MONSTER_SPAWN_DISTANCE
 		var from_spawn := Iso.ground_distance(p, spawn)
-		if from_spawn < MONSTER_SPAWN_DISTANCE.x or from_spawn > MONSTER_SPAWN_DISTANCE.y:
+		if from_spawn < limits.x or from_spawn > limits.y:
 			continue
 		if not _surrounded_by_land(ground, cell):
 			continue
