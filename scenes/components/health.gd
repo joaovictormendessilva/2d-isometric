@@ -6,6 +6,8 @@ extends Node
 signal damaged(info: DamageInfo)  ## `info.amount` já é o dano final, depois da defesa.
 signal died(info: DamageInfo)
 signal changed(current: int, maximum: int)
+signal blocked(info: DamageInfo)  ## Golpe recusado por imunidade (ex.: criatura voltando para casa).
+signal immunity_changed(immune: bool)
 
 var max_health := 1
 var current := 1
@@ -13,6 +15,7 @@ var defense := 0
 var invulnerability_time := 0.0
 
 var _invulnerable_left := 0.0
+var _immune := false
 
 
 func setup(p_max_health: int, p_defense: int, p_invulnerability_time: float) -> void:
@@ -30,9 +33,23 @@ func is_invulnerable() -> bool:
 	return _invulnerable_left > 0.0
 
 
-## Retorna se o dano foi aplicado (falha se já morto ou invulnerável).
+## Imunidade por regra de jogo, sem prazo (diferente da invulnerabilidade curta após um golpe).
+func is_immune() -> bool:
+	return _immune
+
+
+func set_immune(value: bool) -> void:
+	if value != _immune:
+		_immune = value
+		immunity_changed.emit(value)
+
+
+## Retorna se o dano foi aplicado (falha se já morto, invulnerável ou imune).
 func apply_damage(info: DamageInfo) -> bool:
 	if is_dead() or is_invulnerable():
+		return false
+	if _immune:
+		blocked.emit(info)
 		return false
 	info.amount = CombatRules.mitigate(info.amount, defense)
 	current = maxi(current - info.amount, 0)

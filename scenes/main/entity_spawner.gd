@@ -12,6 +12,8 @@ const CORPSE_TIME := 0.6
 const DROP_SCATTER := Vector2(8, 4)
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
+const IMMUNE_TEXT := "Imune"
+const IMMUNE_COLOR := Color("a0a0b4")
 
 var session: GameSession
 var region: Region
@@ -77,11 +79,16 @@ func _add_entity(entity: Character) -> void:
 	entity.reset_physics_interpolation()
 	session.register_entity(entity.entity_id, entity)
 	entity.health.damaged.connect(_on_entity_damaged.bind(entity))
+	entity.health.blocked.connect(_on_entity_blocked.unbind(1).bind(entity))
 
 
 func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 	var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
 	damage_numbers.show_number(entity.position, info.amount, color)
+
+
+func _on_entity_blocked(entity: Character) -> void:
+	damage_numbers.show_text(entity.position, IMMUNE_TEXT, IMMUNE_COLOR)
 
 
 func _on_player_died(character: Character) -> void:

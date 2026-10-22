@@ -109,6 +109,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
       corrigidos a oscilação na borda da coleira e o stun-lock ao segurar o ataque (espada
       mais lenta: 0,48 s por golpe; slime resiste 40% do recuo e o bote não é interrompido).
       Valores ainda provisórios: o balanceamento real vem com mais armas e inimigos.
+- [x] Evasão na coleira: criatura que desiste volta imune e recupera a vida em casa
+      (pedido do João: antes dava para matá-la pelas costas enquanto voltava)
 - [ ] Validação de sensação do combate — **João**
 - [ ] Merge na `main` — só após o OK explícito do João
 

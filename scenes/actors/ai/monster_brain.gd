@@ -2,8 +2,8 @@ class_name MonsterBrain
 extends Node
 ## IA simples e reutilizável: percebe o jogador mais próximo dentro do raio de agressão,
 ## persegue, ataca quando no alcance e volta para casa se for longe demais.
-## Ao desistir, volta até casa antes de perceber alguém de novo: sem isso, ela oscila na
-## borda da coleira quando o jogador para logo depois dela.
+## Ao desistir ("evadir"), volta até casa imune e sem perceber ninguém, e lá recupera a vida
+## toda. Sem isso, ela oscila na borda da coleira ou vira alvo fácil enquanto foge.
 ## Gera só INTENÇÕES para o Monster pai — igual a um jogador, mas automatizado.
 ## Sem busca de caminho por enquanto: as pegadas redondas deslizam em volta dos obstáculos.
 
@@ -12,7 +12,8 @@ const THINK_INTERVAL := 0.2
 ## Ataca quando a folga até o alvo for menor que esta fração do alcance.
 const ATTACK_RANGE_FRACTION := 0.8
 const HOME_TOLERANCE := 6.0
-const RETURN_SPEED := 0.6
+## Fração da velocidade ao voltar para casa sem ter desistido (alvo saiu do raio de agressão).
+const IDLE_RETURN_SPEED := 0.6
 
 var session: GameSession
 
@@ -30,7 +31,7 @@ func _ready() -> void:
 	_think_left = randf() * THINK_INTERVAL  # espalha o custo entre quadros
 
 
-## Desistiu da perseguição e está voltando para casa (ignora jogadores até chegar).
+## Desistiu da perseguição e está voltando para casa (imune, ignora jogadores até chegar).
 func is_returning() -> bool:
 	return _returning
 
@@ -55,8 +56,9 @@ func _physics_process(delta: float) -> void:
 
 
 func _think() -> void:
-	if Iso.ground_distance(_body.position, _home) > _body.data.leash_radius:
+	if not _returning and Iso.ground_distance(_body.position, _home) > _body.data.leash_radius:
 		_returning = true
+		_body.health.set_immune(true)
 	_target = null if _returning else _pick_target()
 
 
@@ -77,8 +79,11 @@ func _pick_target() -> Character:
 
 func _return_home() -> void:
 	var to_home := Iso.screen_to_ground(_home - _body.position)
-	if to_home.length() <= HOME_TOLERANCE:
+	if to_home.length() > HOME_TOLERANCE:
+		_body.set_move_intent(to_home.normalized() * (1.0 if _returning else IDLE_RETURN_SPEED))
+		return
+	_body.set_move_intent(Vector2.ZERO)
+	if _returning:
 		_returning = false
-		_body.set_move_intent(Vector2.ZERO)
-	else:
-		_body.set_move_intent(to_home.normalized() * RETURN_SPEED)
+		_body.health.set_immune(false)
+		_body.health.restore_full()

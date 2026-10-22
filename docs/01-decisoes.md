@@ -177,7 +177,11 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Bote comprometido** (`MeleeAttackData.interruptible = false` no slime): levar dano não
     cancela a preparação do inimigo. Sem isso, segurar o ataque travava o slime para sempre
     (stun-lock, apontado pelo João). Teste `test_holding_attack_does_not_stun_lock_slime`.
-  - **Coleira com retorno**: ao passar da coleira, a criatura volta até casa antes de
-    perceber alguém de novo (antes oscilava na borda — apontado pelo João).
+  - **Coleira com evasão** (padrão de MMOs): ao passar da coleira, a criatura volta até casa
+    em velocidade cheia, **imune** (semitransparente; golpes mostram "Imune") e sem perceber
+    ninguém; em casa recupera a vida toda. Evita a oscilação na borda e os dois abusos
+    apontados pelo João: bater nela pelas costas enquanto volta, e puxá-la para a borda para
+    bater sem risco. Alternativas descartadas: perseguir sem limite (arrasta criaturas pelo
+    mapa todo) e voltar a perseguir quem bate (abusável a distância).
 - **Consequências**: criaturas novas = dados + cena herdada + (opcional) outro cérebro.
   Custo medido: ~15 µs por criatura ativa (`docs/03-desempenho.md`).

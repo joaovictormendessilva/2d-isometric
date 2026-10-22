@@ -1,7 +1,7 @@
 class_name DamageNumbers
 extends Node2D
-## Números de dano flutuantes. Usa um conjunto fixo de Labels reaproveitados (pooling):
-## nenhuma criação de nós durante o combate.
+## Números de dano (e avisos curtos, como "Imune") flutuantes. Usa um conjunto fixo de
+## Labels reaproveitados (pooling): nenhuma criação de nós durante o combate.
 
 const POOL_SIZE := 32
 const RISE := 14.0
@@ -31,12 +31,16 @@ func _ready() -> void:
 
 
 func show_number(feet_position: Vector2, amount: int, color: Color) -> void:
+	show_text(feet_position, str(amount), color)
+
+
+func show_text(feet_position: Vector2, text: String, color: Color) -> void:
 	var i := _next
 	_next = (_next + 1) % POOL_SIZE
 	var label := _pool[i]
 	if _tweens[i]:
 		_tweens[i].kill()
-	label.text = str(amount)
+	label.text = text
 	label.modulate = color
 	label.position = feet_position - Vector2(LABEL_SIZE.x / 2.0, HEIGHT_ABOVE_FEET)
 	label.visible = true
