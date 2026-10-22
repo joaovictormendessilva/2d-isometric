@@ -28,17 +28,51 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 
 - [x] Repositório GitHub criado (`joaovictormendessilva/2d-isometric`)
 - [x] Pacote de contexto (`CLAUDE.md`, `docs/`) criado
-- [ ] Godot 4.7.2 instalada no PC do João
-- [ ] Claude Code instalado e logado no VS Code (ou app desktop)
-- [ ] Repositório clonado no PC e aberto no Claude Code
-- [ ] Claude Code consegue executar a Godot pela linha de comando
-- [ ] Projeto Godot criado (estrutura de pastas, renderizador Compatibility, pixel art)
-- [ ] Primeira cena executável aberta pelo João com F5
-- [ ] Primeiro commit do projeto Godot
+- [x] Godot 4.7.2 instalada no PC do João (`C:\Godot`)
+- [x] Claude Code instalado e logado no VS Code (ou app desktop)
+- [x] Repositório clonado no PC e aberto no Claude Code
+- [x] Claude Code consegue executar a Godot pela linha de comando (`--version` → 4.7.2.stable)
+- [x] Projeto Godot criado (estrutura de pastas, renderizador Compatibility, pixel art)
+- [ ] Primeira cena executável aberta pelo João com F5 — **aguardando validação do João**
+- [x] Primeiro commit do projeto Godot
+- [x] Regras de Git: commits em inglês, sem trailers de atribuição (`.claude/settings.json`)
+
+### Configuração do projeto (`project.godot`)
+
+| Item | Valor | Origem |
+|---|---|---|
+| Renderizador | `gl_compatibility` (desktop e mobile) | ADR-003 |
+| Resolução interna | 640×360 | ADR-007 |
+| Janela inicial | 1280×720 (×2) — cabe em monitores pequenos; tela cheia escala ×3 em 1080p | ADR-007 |
+| Stretch | `viewport`, aspecto `keep`, escala `integer` | ADR-007 |
+| Filtro de textura padrão | Nearest | ADR-007 |
+| Snap 2D ao pixel | ligado | pixel art |
+| Aviso de declaração sem tipo | warning | GDScript tipado (ADR-002) |
+
+### Estrutura de pastas
+
+| Pasta | Conteúdo |
+|---|---|
+| `core/` | Lógica e estado de jogo sem nós visuais (IDs, comandos, regras, serviços) |
+| `scenes/` | Cenas e scripts de apresentação, uma subpasta por cena (`scenes/main/`) |
+| `data/` | Itens, receitas, habilidades, monstros, fórmulas, escalas por jogadores |
+| `assets/` | `sprites/`, `tilesets/`, `vfx/`, `fonts/`, `audio/` (registrar em `05-assets-e-licencas.md`) |
+| `shaders/` | Shaders de CanvasItem (brilho, contorno, pulsação…) |
+| `tests/` | Testes e cenas de estresse executados pela linha de comando |
+| `docs/` | Documentação; tem `.gdignore`, então a Godot **não** importa as referências |
+
+### Validação da Etapa B (Claude, 2026-10-21)
+
+- `--headless --path . --import`: sem erros nem avisos.
+- `--headless --path . --quit-after 120`: imprime `[main] ready: viewport 640x360, renderer
+  gl_compatibility`, código de saída 0.
+- Execução com janela (RX 6600, OpenGL 3.3 Compatibility): mesma saída, sem erros.
+- Validação visual (F5 no editor): pendente — João.
 
 ## Funcionalidades
 
-Nenhuma funcionalidade de jogo implementada ainda.
+Nenhuma funcionalidade de jogo implementada ainda. A cena principal (`scenes/main/main.tscn`)
+é só um marcador: texto de status e um losango de tiles 32×16 para conferir a nitidez do pixel.
 
 ## Problemas conhecidos
 
