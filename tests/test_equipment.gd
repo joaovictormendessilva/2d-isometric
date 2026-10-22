@@ -132,7 +132,7 @@ func test_bonuses_change_stats_and_come_off() -> void:
 	character.apply_equipment(_equipment)
 	check(character.health.max_health == base_health + 20 and character.health.defense == 3,
 		"elmo: +20 de vida máxima e +3 de defesa")
-	check(character.health.current == character.health.max_health, "ganho de máximo enche junto")
+	check(character.health.current == character.health.max_health, "cheio continua cheio")
 	check_near(character.move_speed(), base_speed * 1.1, 0.01, "anel: +10% de velocidade")
 	check_near(character.pickup_radius(), base_radius + 10.0, 0.01, "anel: ímã maior")
 	check(character.stats.max_health == base_health, "o recurso compartilhado não mudou")
@@ -231,3 +231,41 @@ func test_equipment_screen() -> void:
 	slots[accessory].clicked.emit(accessory)
 	check(equipment.item_id(accessory) == &"magnet_ring" and not inventory.is_holding(),
 		"clicar no espaço vestiu o anel")
+
+
+## Bug relatado pelo João: tirar e pôr o elmo curava. Agora a vida mantém a proporção
+## (arredondando para baixo): trocar nunca cura.
+func test_toggling_gear_never_heals() -> void:
+	_setup()
+	var character := spawn_character(Vector2(400, 300))
+	_inventory.add(&"t_helmet", 1)
+	EquipmentRules.equip_from_inventory(_inventory, _equipment, 0)
+	character.apply_equipment(_equipment)
+	character.health.apply_damage(DamageInfo.create(37, Vector2.RIGHT, 0.0, 0, 0))
+	var hurt := character.health.current
+	var head := _equipment.index_of_type(EquipmentData.Slot.HEAD)
+	for i in 10:
+		EquipmentRules.click_slot(_inventory, _equipment, head)  # tira
+		character.apply_equipment(_equipment)
+		EquipmentRules.click_slot(_inventory, _equipment, head)  # põe
+		character.apply_equipment(_equipment)
+	check(character.health.current <= hurt,
+		"10 trocas não curaram (%d antes, %d depois)" % [hurt, character.health.current])
+
+
+## Bug relatado pelo João: o escudo não reduzia dano (defesa pequena sumia no arredondamento).
+func test_shield_reduces_slime_damage() -> void:
+	var game := start_game()
+	var player_id: int = game.local_player_id()
+	var inventory := (game.session as GameSession).get_inventory(player_id)
+	var equipment := (game.session as GameSession).get_equipment(player_id)
+	var character := (game.session as GameSession).get_player_entity(player_id) as Character
+	var slime_damage: int = (load("res://data/monsters/slime.tres") as MonsterData).attack.damage
+	inventory.add(&"wooden_shield", 1)
+	inventory.add(&"copper_helmet", 1)
+	EquipmentRules.equip_from_inventory(inventory, equipment, 0)
+	EquipmentRules.equip_from_inventory(inventory, equipment, 1)
+	var before := character.health.current
+	character.health.apply_damage(DamageInfo.create(slime_damage, Vector2.RIGHT, 0.0, 0, 0))
+	check(before - character.health.current < slime_damage,
+		"escudo + elmo: o golpe de %d tirou %d" % [slime_damage, before - character.health.current])

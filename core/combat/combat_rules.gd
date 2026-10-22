@@ -3,9 +3,11 @@ class_name CombatRules
 
 
 ## Dano depois da defesa, com retorno decrescente: cada ponto de defesa vale menos que o
-## anterior (100 de defesa = metade do dano; nunca chega a zero). Mínimo 1.
-static func mitigate(amount: int, defense: int) -> int:
-	return maxi(1, roundi(amount * 100.0 / (100.0 + maxf(defense, 0))))
+## anterior (`defense_for_half_damage` = metade do dano; nunca chega a zero). Mínimo 1.
+static func mitigate(amount: int, defense: int,
+		balance: CombatBalance = null) -> int:
+	var half := (balance if balance else CombatBalance.get_default()).defense_for_half_damage
+	return maxi(1, roundi(amount * half / (half + maxf(defense, 0))))
 
 
 ## Multiplicador da vida das criaturas pelo número de jogadores na sessão.
