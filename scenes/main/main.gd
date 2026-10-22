@@ -47,6 +47,12 @@ func spawn_player_character(player_id: int, at: Vector2) -> Character:
 	return character
 
 
+## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem
+## diretamente por intenções).
+func detach_local_input() -> void:
+	_local_input.target = null
+
+
 func _handle_command_line() -> void:
 	var screenshot_path := ""
 	var move := Vector2.ZERO
@@ -60,10 +66,9 @@ func _handle_command_line() -> void:
 		return
 	var character := session.get_player_entity(LOCAL_PLAYER_ID) as Character
 	if move != Vector2.ZERO:
-		_local_input.target = null
+		detach_local_input()
+		character.set_move_intent(move)
 	for i in SCREENSHOT_FRAMES:
-		if move != Vector2.ZERO:
-			character.set_move_intent(move)
 		await get_tree().physics_frame
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(screenshot_path)

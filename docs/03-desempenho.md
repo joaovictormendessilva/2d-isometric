@@ -42,3 +42,12 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 | Coop | 2 / 4 jogadores na mesma região | ⬜ |
 
 Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
+
+## Resultados
+
+| Data | Teste | Máquina | Resultado |
+|---|---|---|---|
+| 2026-10-21 | `tests/benchmark_region.gd` — região Prado (238 objetos, ~730 nós), personagem andando em círculo, sem vsync, 1200 quadros | PC de dev (RX 6600, Compatibility) | média **0,41 ms** (~2.400 FPS), p95 0,52–0,61 ms, pior 3,4–3,6 ms, 34 draw calls, 39,6 MB de memória estática |
+
+Leitura: com folga de ~10× sobre a meta de 4 ms no PC de dev. Ainda não diz nada sobre o
+hardware modesto nem sobre muitos inimigos/efeitos — esses testes vêm nas próximas etapas.

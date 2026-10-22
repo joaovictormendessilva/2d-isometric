@@ -121,3 +121,19 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   comercial** (preferência: CC0, MIT, CC-BY com atribuição registrada). Todo asset externo
   entra em `docs/05-assets-e-licencas.md` antes de ser commitado.
 - **Ferramenta de pixel art recomendada**: Pixelorama (gratuita, MIT). Aseprite é paga.
+
+## ADR-009 — Colisão por "pegada" no plano do chão e interpolação de física
+
+- **Status**: Hipótese (validar na Etapa C com o João)
+- **Contexto**: ADR-006 pede distâncias justas em todas as direções. Colisões desenhadas em
+  coordenadas de tela ficariam "esticadas" na horizontal.
+- **Decisão**:
+  - Toda entidade colide por uma **pegada**: um círculo no plano do chão (raio em pixels),
+    desenhado na tela como elipse 2:1 (`scenes/components/footprint.gd`). Só o raio muda
+    entre personagem (5), árvore (6) e pedra (8).
+  - Por ser redonda, o personagem **desliza em volta** de obstáculos ao empurrá-los, em vez
+    de travar. Comportamento desejado para RPG de ação; testado em `tests/test_movement.gd`.
+  - Origem dos nós nos **pés/base** (usada pelo Y-sort). Sprites usam `offset` para isso.
+  - **Physics interpolation** ligada (física a 60 Hz, tela suave em monitores de 144 Hz);
+    a câmera é filha do personagem seguido para herdar a posição interpolada.
+- **Consequências**: teleportes precisam chamar `reset_physics_interpolation()`.

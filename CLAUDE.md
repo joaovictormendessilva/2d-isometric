@@ -95,11 +95,16 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   aperta F5 para jogar.
 - Repositório: `github.com/joaovictormendessilva/2d-isometric` (privado).
 - Godot 4.7.2 Standard instalada em `C:\Godot`:
-  - Linha de comando (Claude, testes): `C:\Godot\Godot_v4.7.2-stable_win64_console.exe`
-    (`--version` → `4.7.2.stable.official.ed1daf0bf`).
-  - Editor (João): `C:\Godot\Godot_v4.7.2-stable_win64.exe`.
-  - Validação padrão: `--headless --path . --import` (importação) e
-    `--headless --path . --quit-after 120` (executa a cena principal e sai).
+  - Executável: `C:\Godot\Godot_v4.7.2-stable_win64.exe` (`--version` →
+    `4.7.2.stable.official.ed1daf0bf`). Pelo bash do Claude ele imprime a saída normalmente.
+    O `..._console.exe` existiu na Etapa B mas foi removido da pasta; não é necessário.
+  - Comandos (rodar na raiz do repositório, `G` = executável acima):
+    - Importar recursos: `G --headless --path . --import`
+    - Testes automáticos: `G --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd`
+    - Desempenho (com janela): `G --path . -s res://tests/benchmark_region.gd`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y]`
+    - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
+      importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
 
 ## Mapa da documentação
 
