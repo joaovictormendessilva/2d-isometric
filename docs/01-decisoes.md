@@ -499,7 +499,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-021 — Moedas, NPCs fixos e loja
 
-- **Status**: Hipótese (Etapa F3a, aguardando validação do João)
+- **Status**: Aceita (F3a validada pelo João, 2026-10-22)
 - **Direção do João (2026-10-22)**: moedas numa **carteira separada** do inventário (como a prata
   do Albion e as moedas do Forager): não ocupam espaço nem caem no chão.
 - **Decisões**:

@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a (moedas e loja) aguardando validação |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a ✅; F3b (poção) a seguir |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -175,9 +175,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
   do mundo (dano, itens, "[E]") sumiam; agora há verificação com imagem (`tests/render_checks.gd`).
 - **F3 – NPC** 🟡 (branch `stage-f/npc`, ADR-021): F3a moedas e mercador (compra e venda); F3b
   poção de vida (cura do jogador); F3c receitas de NPC.
-  F3a 🟡 implementado: carteira separada do inventário (escolha do João), mercador perto da
+  F3a ✅ implementado: carteira separada do inventário (escolha do João), mercador perto da
   entrada da campina, loja com o inventário ao lado, venda pelo botão direito, moedas no save e
-  no coop pelo host. 120 testes. Aguardando validação do João.
+  no coop pelo host. Correção do teste dele: mochila depois de viajar. 121 testes. Validado
+  pelo João (2026-10-22).
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
