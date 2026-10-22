@@ -194,3 +194,40 @@ func test_inventory_screen_follows_capacity() -> void:
 ## Como o spawner faz: base + espaços das mochilas vestidas.
 func _fit_inventory(base: int) -> void:
 	_inventory.resize(base + StatBonuses.total(_equipment.equipped()).inventory_slots)
+
+
+## Tela: a espada aparece na mão principal; "Equipar" só no menu de equipamentos; com um item
+## na mão, os espaços onde ele cabe ficam dourados; clicar no espaço veste.
+func test_equipment_screen() -> void:
+	var game := start_game()
+	var player_id: int = game.local_player_id()
+	var inventory := (game.session as GameSession).get_inventory(player_id)
+	var equipment := (game.session as GameSession).get_equipment(player_id)
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
+	var slots: Array[EquipmentSlot] = []
+	slots.assign(panel.find_children("*", "EquipmentSlot", true, false))
+	check(slots.size() == equipment.size(), "um quadrado por espaço de equipamento")
+	var hand := equipment.index_of_type(EquipmentData.Slot.MAIN_HAND)
+	check(slots[hand].tooltip_text.begins_with(Texts.name_of("ITEM", &"sword")),
+		"a espada aparece na mão principal (dica com o nome)")
+
+	inventory.add(&"wood", 3)
+	inventory.add(&"copper_helmet", 1)
+	panel._on_menu_requested(0)
+	check(not panel._menu._equip.visible, "madeira: sem Equipar")
+	panel._menu.hide()
+	panel._on_menu_requested(1)
+	check(panel._menu._equip.visible, "elmo: Equipar aparece")
+	panel._menu._equip.pressed.emit()
+	var head := equipment.index_of_type(EquipmentData.Slot.HEAD)
+	check(equipment.item_id(head) == &"copper_helmet", "Equipar vestiu o elmo")
+
+	inventory.add(&"magnet_ring", 1)
+	inventory.click_slot(1)  # anel na mão
+	var accessory := equipment.index_of_type(EquipmentData.Slot.ACCESSORY)
+	check(slots[accessory].highlighted and not slots[head].highlighted,
+		"anel na mão: só os acessórios ficam dourados")
+	slots[accessory].clicked.emit(accessory)
+	check(equipment.item_id(accessory) == &"magnet_ring" and not inventory.is_holding(),
+		"clicar no espaço vestiu o anel")

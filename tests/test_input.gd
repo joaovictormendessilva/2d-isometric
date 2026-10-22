@@ -47,7 +47,7 @@ func test_window_follows_pointer_exactly() -> void:
 	var grab := title.get_global_rect().get_center().round()
 	var grab_offset := grab - window.position
 	_send(_button_event(grab, true))
-	var target := grab + Vector2(-120, 60)
+	var target := grab + Vector2(-120, -30)  # dentro da tela (na borda a janela para, de propósito)
 	_send(_motion_event(target, target - grab))
 	await physics_frames(1)
 	check(window.position == (target - grab_offset).round(),

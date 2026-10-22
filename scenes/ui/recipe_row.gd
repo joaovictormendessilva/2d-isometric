@@ -28,8 +28,8 @@ var _available := false
 func setup(p_recipe: RecipeData, items: ItemDatabase) -> void:
 	recipe = p_recipe
 	_items = items
-	_style.bg_color = InventorySlot.BACK_COLOR
-	_style.border_color = InventorySlot.BORDER_COLOR
+	_style.bg_color = UiStyle.SLOT_BACK
+	_style.border_color = UiStyle.BORDER
 	_style.set_border_width_all(1)
 	_style.set_content_margin_all(2)
 	add_theme_stylebox_override(&"panel", _style)
@@ -67,7 +67,7 @@ func refresh(inventory: Inventory, stations: Array[RecipeData.Station]) -> void:
 		_amounts[item_id].modulate = Color.WHITE if have >= need else MISSING_COLOR
 		_chips[item_id].tooltip_text = Texts.format(&"CRAFT_INGREDIENT",
 			[_items.get_item(item_id).get_display_name(), have, need])
-	tooltip_text = recipe.result.get_display_name()
+	tooltip_text = ItemTexts.describe(recipe.result)
 	if not _available:
 		tooltip_text += "\n" + Texts.get_text(CHECK_TEXTS[state])
 
@@ -97,5 +97,5 @@ func _ingredient_chip(item_id: StringName, need: int) -> Control:
 
 
 func _set_hovered(value: bool) -> void:
-	_style.border_color = InventorySlot.HOVER_COLOR if value else InventorySlot.BORDER_COLOR
+	_style.border_color = UiStyle.BORDER_HOVER if value else UiStyle.BORDER
 	queue_redraw()

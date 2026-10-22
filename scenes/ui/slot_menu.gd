@@ -1,13 +1,15 @@
 class_name SlotMenu
 extends PanelContainer
-## Menu do botão direito num espaço do inventário: "Dividir" (pilhas de 2 ou mais) e "Soltar"
-## (a pilha inteira cai no chão). Fecha ao escolher, com Esc ou com um clique fora dele; esse
-## clique não vira ataque (o menu está no grupo que segura o mouse).
+## Menu do botão direito num espaço do inventário: "Equipar" (equipamentos), "Dividir" (pilhas
+## de 2 ou mais) e "Soltar" (a pilha inteira cai no chão). Fecha ao escolher, com Esc ou com um
+## clique fora dele; esse clique não vira ataque (o menu está no grupo que segura o mouse).
 
+signal equip_chosen(index: int)
 signal split_chosen(index: int)
 signal drop_chosen(index: int)
 
 var _index := 0
+var _equip := Button.new()
 var _split := Button.new()
 var _drop := Button.new()
 
@@ -17,17 +19,18 @@ func _ready() -> void:
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 	var column := VBoxContainer.new()
 	add_child(column)
-	_split.text = Texts.get_text(&"SLOT_MENU_SPLIT")
-	_split.pressed.connect(_choose.bind(split_chosen))
-	column.add_child(_split)
-	_drop.text = Texts.get_text(&"SLOT_MENU_DROP")
-	_drop.pressed.connect(_choose.bind(drop_chosen))
-	column.add_child(_drop)
+	for entry: Array in [[_equip, &"SLOT_MENU_EQUIP", equip_chosen],
+			[_split, &"SLOT_MENU_SPLIT", split_chosen], [_drop, &"SLOT_MENU_DROP", drop_chosen]]:
+		var button: Button = entry[0]
+		button.text = Texts.get_text(entry[1])
+		button.pressed.connect(_choose.bind(entry[2]))
+		column.add_child(button)
 
 
 ## Abre para o espaço `index` (com `amount` itens), perto de `at` (tela).
-func open(index: int, amount: int, at: Vector2) -> void:
+func open(index: int, amount: int, equippable: bool, at: Vector2) -> void:
 	_index = index
+	_equip.visible = equippable
 	_split.visible = amount > 1
 	visible = true
 	reset_size()

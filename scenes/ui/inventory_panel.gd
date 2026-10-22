@@ -4,8 +4,10 @@ extends Control
 ## o jogador a arrasta para onde preferir e anda e luta com ela aberta.
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
 ## clicar fora da janela joga no chão (estruturas, como a bancada, são colocadas ali); botão
-## direito abre um menu: dividir (a parte separada vai para a mão) ou soltar a pilha no chão.
-## Fechar com algo na mão devolve aos espaços. Ao lado, a coluna de fabricação (CraftingList).
+## direito abre um menu: dividir (a parte separada vai para a mão), soltar a pilha no chão ou
+## equipar.
+## Fechar com algo na mão devolve aos espaços. Ao lado, as colunas de equipamento
+## (EquipmentColumn) e de fabricação (CraftingList).
 ## Cada ação é um pedido ao host (PlayerStateSync).
 
 const COLUMNS := 6
@@ -26,6 +28,7 @@ var _held := HeldItemCursor.new()
 var _slots: Array[InventorySlot] = []
 var _grid: GridContainer
 var _items: ItemDatabase
+var _equipment: Equipment
 
 
 func _ready() -> void:
@@ -45,10 +48,14 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_inventory = inventory
 	_player_state = player_state
 	_window.setup(Texts.get_text(&"INVENTORY_TITLE"), SETTINGS_KEY)
-	# Itens à esquerda, fabricação à direita.
+	# Equipamento, itens e fabricação, da esquerda para a direita.
 	var columns := HBoxContainer.new()
 	columns.add_theme_constant_override(&"separation", COLUMN_GAP)
 	_window.add_content(columns)
+	_equipment = player_state.session.get_equipment(player_id)
+	var equipment_column := EquipmentColumn.new()
+	columns.add_child(equipment_column)
+	equipment_column.setup(_equipment, inventory, player_state)
 	var items_column := VBoxContainer.new()
 	columns.add_child(items_column)
 	var crafting := CraftingList.new()
@@ -74,6 +81,7 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_split.confirmed.connect(player_state.request_split)
 	_menu.split_chosen.connect(_on_split_requested)
 	_menu.drop_chosen.connect(player_state.request_drop_slot)
+	_menu.equip_chosen.connect(player_state.request_equip)
 	_held.setup(inventory, items)
 	inventory.slot_changed.connect(func(index: int) -> void: _slots[index].refresh())
 
@@ -131,4 +139,5 @@ func _on_split_requested(index: int) -> void:
 
 func _on_menu_requested(index: int) -> void:
 	_split.hide()
-	_menu.open(index, _inventory.slot_amount(index), get_global_mouse_position())
+	var equippable := _equipment.data_of(_inventory.slot_item(index)) != null
+	_menu.open(index, _inventory.slot_amount(index), equippable, get_global_mouse_position())

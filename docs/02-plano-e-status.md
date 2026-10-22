@@ -147,7 +147,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   trocas com o inventário, host decide). Passo 2a ✅ bônus de atributos, arma define o golpe
   (espada vestida ao entrar; sem arma, soco, nunca mais rápido que a espada), equipamento
   enviado a todos. Passo 2b ✅ mochila soma espaços; tirar só com eles vazios (93 testes).
-  Passo 3 ⬜ tela de equipamento e itens de exemplo.
+  Passo 3 ✅ coluna Equipamento no inventário (dourado onde o item da mão cabe, "Equipar" no
+  menu, dica com bônus), receitas com rolagem e 4 itens de bancada (escudo de madeira, elmo de
+  cobre, mochila simples, anel magnético). 94 testes. Aguardando validação do João.
 
 ## Funcionalidades
 
@@ -157,7 +159,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 - Inventário: tecla I ou Tab (botão Y), Esc fecha; arraste a janela pelo título; clique pega e
-  põe itens, clique fora joga no chão, botão direito abre um menu (Dividir / Soltar).
+  põe itens, clique fora joga no chão, botão direito abre um menu (Equipar / Dividir / Soltar).
+- Equipamento: coluna à esquerda no inventário; clique num espaço com o item na mão veste, com
+  a mão vazia tira. Começa com espada; sem arma, soco. Bônus aparecem ao passar o mouse.
 - Fabricar: coluna à direita no inventário (clique no título recolhe/abre); clique numa
   receita acesa fabrica (machado e picareta de pedra e bancada, na mão; machado de cobre perto
   de uma bancada). Passar o mouse mostra o que falta.

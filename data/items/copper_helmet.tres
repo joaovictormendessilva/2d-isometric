@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="EquipmentData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/equipment/equipment_data.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_copper_helmet.png" id="2_icon"]
+[ext_resource type="Script" path="res://core/equipment/stat_bonuses.gd" id="3_bonuses"]
+
+[sub_resource type="Resource" id="Bonuses"]
+script = ExtResource("3_bonuses")
+max_health = 10
+defense = 2
+
+[resource]
+script = ExtResource("1_item")
+id = &"copper_helmet"
+icon = ExtResource("2_icon")
+max_stack = 1
+slot = 2
+bonuses = SubResource("Bonuses")

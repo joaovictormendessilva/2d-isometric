@@ -366,7 +366,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-018 — Equipamento: espaços estilo Terraria/Forager e mãos estilo Path of Exile
 
-- **Status**: Hipótese (Etapa E4, em andamento)
+- **Status**: Hipótese (Etapa E4, aguardando validação do João)
 - **Direção do João (2026-10-22)**: espaços como Terraria/Forager, mas com **poucos
   acessórios** (para não exigir muita variedade de itens logo no início); armas de 1 e 2 mãos,
   cajado de 1 mão com tomo, cajado de 2 mãos, arco de 2 mãos com aljava (como Path of Exile).
@@ -392,4 +392,5 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     habilidades, que terá etapa própria.
 - **Consequências**: o equipamento passa a ser a fonte de atributos (passo 2: defesa, vida,
   velocidade, ímã, espaços de mochila, ataque da arma). Visual do equipamento no personagem
-  fica para a arte real.
+  fica para a arte real. Pendência: navegar inventário e equipamento só por teclado/controle
+  (hoje é com mouse; vale para toda a janela, não só o equipamento).

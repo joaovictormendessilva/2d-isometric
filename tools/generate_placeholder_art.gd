@@ -169,6 +169,46 @@ const SWORD := [
 	"oho.o...",
 	"oo......",
 ]
+const SHIELD := [
+	".oooooo.",
+	"owwWwwWo",
+	"owwWwwWo",
+	"owWllWWo",
+	"owwSswWo",
+	".owWwWo.",
+	"..owwo..",
+	"...oo...",
+]
+const HELMET := [
+	"........",
+	"..oooo..",
+	".oCccdo.",
+	"oCccccdo",
+	"ocooooco",
+	"oco..oco",
+	"oo....oo",
+	"........",
+]
+const BACKPACK := [
+	"..oooo..",
+	".o.oo.o.",
+	"oWwwwwWo",
+	"owwrrwwo",
+	"owwwwwWo",
+	"owWWWWWo",
+	".oooooo.",
+	"........",
+]
+const RING := [
+	"...oo...",
+	"..oCco..",
+	"..oooo..",
+	".oc..do.",
+	"oc....do",
+	"oc....do",
+	".od..do.",
+	"..oooo..",
+]
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -180,6 +220,10 @@ const ICONS := {
 	"copper_axe": [AXE, COPPER_SWAP],
 	"workbench": [BENCH, {}],
 	"sword": [SWORD, {}],
+	"wooden_shield": [SHIELD, {}],
+	"copper_helmet": [HELMET, {}],
+	"simple_backpack": [BACKPACK, {}],
+	"magnet_ring": [RING, {}],
 }
 
 
