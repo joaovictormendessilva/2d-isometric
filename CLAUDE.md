@@ -1,0 +1,101 @@
+# CLAUDE.md — Contexto permanente do projeto
+
+Este arquivo é lido automaticamente pelo Claude Code em toda sessão. Ele resume quem somos,
+o que estamos construindo e como trabalhamos. Os detalhes estão em `docs/`.
+
+## O projeto
+
+RPG de ação em fantasia, **2D isométrico em pixel art**, feito na **Godot 4.7.x**.
+Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidade visual):
+- **Forager** — interação simples, exploração, ciclo de coleta → progressão.
+- **Terraria** — variedade de combate, equipamentos, crafting, liberdade de builds.
+- **Grand Fantasia** — auras, brilhos, runas, cosméticos mágicos encantadores.
+
+Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
+arquitetura considera **coop LAN** desde o início e uma possível evolução para online.
+
+Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor criativo).
+
+## Papéis
+
+- **João (usuário)**: idealizador e diretor criativo. Avalia o jogo e decide a direção criativa.
+  É desenvolvedor React/Nest e usa Git/GitHub, mas **não** conhece Godot nem desenvolvimento
+  de jogos e não quer programar o jogo manualmente. Fala português (Brasil).
+- **Claude**: equipe técnica completa — game design, arquitetura, programação, pixel art
+  técnica/procedural, VFX, desempenho, balanceamento, rede, testes e documentação.
+  **Claude escreve, integra, executa e testa a maior parte do código.**
+
+## Como trabalhar (regras do projeto)
+
+1. Responda sempre em **português (Brasil)**.
+2. Transforme descrições naturais ("a magia precisa impressionar mais", "está engasgando")
+   em hipóteses, alterações concretas e testes.
+3. Examine os arquivos existentes antes de propor ou fazer alterações.
+4. Implemente de ponta a ponta: edite, integre, **execute a Godot**, teste e corrija.
+5. Trabalhe em **incrementos pequenos, verificáveis e reversíveis**. Não altere muitos
+   sistemas ao mesmo tempo.
+6. Faça **commit** antes de mudanças arriscadas (ponto de restauração). Nunca apague
+   trabalho existente sem autorização.
+7. Ao relatar, distinga sempre: **implementado** / **executado** / **validado** (e por quem).
+   Validação visual e de "sensação de jogo" é do João.
+8. Não peça decisões técnicas que você pode resolver com segurança. Pergunte sobre
+   preferências criativas ou decisões que mudem o futuro do projeto — **uma pergunta por vez**.
+9. Quando o João precisar agir manualmente (ex.: algo no editor da Godot), dê instruções
+   **numeradas, curtas e exatas**. Não presuma que ele conhece a Godot.
+10. **Orçamento R$ 0**: ferramentas e assets gratuitos. Verifique licença para **uso
+    comercial** (gratuito para uso pessoal ≠ gratuito comercial). Registre tudo em
+    `docs/05-assets-e-licencas.md`.
+11. Não use outras IAs no fluxo, a menos que o João peça.
+12. Registre decisões importantes em `docs/01-decisoes.md` e mantenha
+    `docs/02-plano-e-status.md` atualizado ao final de cada incremento.
+13. Não avance de etapa sem validar os resultados importantes com o João.
+
+## Regras técnicas fixas (resumo — detalhes em `docs/01-decisoes.md`)
+
+- **Engine**: Godot 4.7.x, edição Standard, linguagem **GDScript** (tipada).
+- **Renderizador**: `Compatibility` (OpenGL) como padrão, para rodar em hardware fraco.
+- **Nada de "jogador global"**: toda lógica recebe/usa IDs de jogador e de entidade.
+- **Lógica separada da apresentação**: estado e regras não dependem de nós visuais.
+- **Autoridade do host**: ações de jogo viram comandos validados pela autoridade.
+  Single-player = host com 1 jogador.
+- **Dados fora do código**: itens, receitas, habilidades, monstros, fórmulas e escalas por
+  número de jogadores ficam em arquivos de dados (`data/`), não espalhados pelo código.
+- **Regiões = cenas** carregadas uma por vez; estado persistente salvo à parte.
+- **Efeitos** com parâmetros (cor, intensidade, duração, velocidade), limites de partículas
+  e níveis de qualidade.
+
+## Git
+
+- Mensagens de commit sempre em **inglês** (o resto da documentação continua em pt-BR).
+- Commits e PRs **sem** trailers/linhas de atribuição (`Co-Authored-By`, `Claude-Session`,
+  "Generated with Claude Code"). Configurado também em `.claude/settings.json` (chave
+  `attribution`).
+- Commit antes de mudanças arriscadas; nunca reescrever histórico já enviado ao GitHub
+  (force push) sem autorização do João.
+
+## Ambiente
+
+- Máquina de desenvolvimento do João: Ryzen 5 5500, RX 6600, 16 GB RAM 3200 MHz, NVMe.
+  **Não é o hardware alvo** — ver `docs/03-desempenho.md` para o perfil "modesto" de referência.
+- Fluxo: Claude Code (extensão do VS Code ou app desktop) na pasta do repositório.
+  Claude executa a Godot pela linha de comando para testes; João abre o editor da Godot e
+  aperta F5 para jogar.
+- Repositório: `github.com/joaovictormendessilva/2d-isometric` (privado).
+- Godot 4.7.2 Standard instalada em `C:\Godot`:
+  - Linha de comando (Claude, testes): `C:\Godot\Godot_v4.7.2-stable_win64_console.exe`
+    (`--version` → `4.7.2.stable.official.ed1daf0bf`).
+  - Editor (João): `C:\Godot\Godot_v4.7.2-stable_win64.exe`.
+  - Validação padrão: `--headless --path . --import` (importação) e
+    `--headless --path . --quit-after 120` (executa a cena principal e sai).
+
+## Mapa da documentação
+
+| Arquivo | Conteúdo |
+|---|---|
+| `docs/00-visao.md` | Visão completa do jogo (texto do diretor criativo) |
+| `docs/01-decisoes.md` | Registro de decisões arquiteturais (ADRs) |
+| `docs/02-plano-e-status.md` | Etapas, status atual, pendências, problemas conhecidos |
+| `docs/03-desempenho.md` | Metas (hipóteses), hardware de referência, testes de estresse |
+| `docs/04-multiplayer.md` | Arquitetura de rede e plano de testes coop |
+| `docs/05-assets-e-licencas.md` | Catálogo de assets, ferramentas e licenças |
+| `docs/referencias/` | Imagens de referência visual |
