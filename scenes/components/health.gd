@@ -1,6 +1,7 @@
 class_name Health
 extends Node
-## Vida de uma entidade. Só a autoridade chama `apply_damage`/`restore_full`; os sinais
+## Vida de uma entidade. Só o host chama `apply_damage`/`restore_full`/`set_immune`; na rede,
+## os clientes recebem o resultado pelas funções `replicate_*` (via NetSync). Os sinais
 ## alimentam apresentação (números, flash, HUD) e regras (recuo, morte, drops).
 
 signal damaged(info: DamageInfo)  ## `info.amount` já é o dano final, depois da defesa.
@@ -44,20 +45,16 @@ func set_immune(value: bool) -> void:
 		immunity_changed.emit(value)
 
 
-## Retorna se o dano foi aplicado (falha se já morto, invulnerável ou imune).
+## Retorna se o dano foi aplicado (falha se já morto, invulnerável ou imune). Fora do host
+## não faz nada: cliente nenhum decide dano, nem por engano.
 func apply_damage(info: DamageInfo) -> bool:
-	if is_dead() or is_invulnerable():
+	if not multiplayer.is_server() or is_dead() or is_invulnerable():
 		return false
 	if _immune:
 		blocked.emit(info)
 		return false
 	info.amount = CombatRules.mitigate(info.amount, defense)
-	current = maxi(current - info.amount, 0)
-	_invulnerable_left = invulnerability_time
-	damaged.emit(info)
-	changed.emit(current, max_health)
-	if is_dead():
-		died.emit(info)
+	_take(info)
 	return true
 
 
@@ -65,6 +62,33 @@ func restore_full() -> void:
 	current = max_health
 	_invulnerable_left = 0.0
 	changed.emit(current, max_health)
+
+
+## Cliente: aplica um dano que o host já decidiu (`info.amount` é o valor final).
+func replicate_damage(info: DamageInfo) -> void:
+	if not is_dead():
+		_take(info)
+
+
+## Cliente: o host é a fonte da verdade sobre a vida (corrige qualquer divergência).
+func replicate_current(value: int) -> void:
+	value = clampi(value, 0, max_health)
+	if value != current:
+		current = value
+		changed.emit(current, max_health)
+
+
+func replicate_blocked() -> void:
+	blocked.emit(DamageInfo.new())
+
+
+func _take(info: DamageInfo) -> void:
+	current = maxi(current - info.amount, 0)
+	_invulnerable_left = invulnerability_time
+	damaged.emit(info)
+	changed.emit(current, max_health)
+	if is_dead():
+		died.emit(info)
 
 
 func _physics_process(delta: float) -> void:

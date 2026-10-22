@@ -1,3 +1,4 @@
+class_name CharacterVisual
 extends Node2D
 ## Apresentação do personagem do jogador: quadro frente/costas, espelhamento, balanço ao
 ## andar e o rastro do golpe de espada. Só LÊ o estado do Character pai.
@@ -22,6 +23,12 @@ func _ready() -> void:
 	_slash.modulate.a = 0.0
 	if _character.attacker:
 		_character.attacker.attack_struck.connect(_on_attack_struck)
+
+
+## Cor de identificação (ex.: outros jogadores no coop). Fica no sprite, não no Visual,
+## para não brigar com o flash e o piscar do ActorFeedback.
+func set_tint(color: Color) -> void:
+	_body.self_modulate = color
 
 
 func _process(delta: float) -> void:
