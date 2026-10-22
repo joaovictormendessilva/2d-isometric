@@ -10,12 +10,16 @@ var _entities: Dictionary[int, Node] = {}
 var _player_entities: Dictionary[int, int] = {}  # player_id -> entity_id
 var _inventories: Dictionary[int, Inventory] = {}  # player_id -> inventário
 var _skills: Dictionary[int, SkillProgress] = {}  # player_id -> experiência de coleta
+var _equipment: Dictionary[int, Equipment] = {}  # player_id -> equipamento vestido
 var _items: ItemDatabase
+var _equipment_layout: EquipmentLayout
 
 
 ## `items` dá o limite de pilha de cada item nos inventários (sem ele: limite padrão).
-func _init(items: ItemDatabase = null) -> void:
+## `equipment_layout`: espaços de equipamento (sem ele: o de `data/`).
+func _init(items: ItemDatabase = null, equipment_layout: EquipmentLayout = null) -> void:
 	_items = items
+	_equipment_layout = equipment_layout if equipment_layout else EquipmentLayout.load_default()
 
 
 func allocate_entity_id() -> int:
@@ -43,10 +47,15 @@ func add_player(player_id: int, entity_id: int,
 	if not _inventories.has(player_id):
 		_inventories[player_id] = Inventory.new(inventory_slots, _items)
 		_skills[player_id] = SkillProgress.new()
+		_equipment[player_id] = Equipment.new(_equipment_layout, _items)
 
 
 func get_inventory(player_id: int) -> Inventory:
 	return _inventories.get(player_id)
+
+
+func get_equipment(player_id: int) -> Equipment:
+	return _equipment.get(player_id)
 
 
 func get_skills(player_id: int) -> SkillProgress:
@@ -63,6 +72,7 @@ func remove_player(player_id: int) -> void:
 	_player_entities.erase(player_id)
 	_inventories.erase(player_id)
 	_skills.erase(player_id)
+	_equipment.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

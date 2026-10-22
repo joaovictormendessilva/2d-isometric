@@ -12,7 +12,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) a seguir |
+| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) em andamento |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
@@ -142,7 +142,10 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   janela do inventário. Passo 3 ✅ bancada fabricada e colocada pelo jogador; receitas de
   bancada por perto. Ajustes do João: Fabricar recolhível e menu do botão direito (Dividir /
   Soltar). 80 testes. Validado pelo João (2026-10-22).
-- **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
+- **E4 – Equipamentos** 🟡 (branch `stage-e/equipment`, ADR-018): espaços estilo Terraria/Forager
+  com 2 acessórios e mãos estilo Path of Exile. Passo 1 ✅ núcleo (espaços, regras de mão,
+  trocas com o inventário, host decide; 88 testes). Passo 2 ⬜ atributos, mochila e espada como
+  item. Passo 3 ⬜ tela de equipamento e itens de exemplo.
 
 ## Funcionalidades
 
@@ -216,6 +219,12 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 ## Ideias futuras (backlog criativo)
 
 Ideias do João para considerar nas etapas certas — não são compromissos ainda.
+
+- **Escolher em que mão segurar** (escudo/tomo à direita ou à esquerda, mudando a animação):
+  adiado (ADR-018) — com o personagem espelhado ao virar, dobraria a arte de combate por 2–3 px
+  de diferença. Reavaliar se os sprites crescerem.
+- **Variedade de armas** (arco + aljava, cajados, tomo): regras de mão prontas no E4; o
+  comportamento precisa do sistema de habilidades e projéteis (etapa própria, a definir).
 
 - **Atravessar água**: buff, poção ou montaria que permite andar sobre a água (ou nadar),
   abrindo atalhos e áreas escondidas. Técnica prevista: mover a colisão da água para uma

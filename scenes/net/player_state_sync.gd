@@ -1,10 +1,11 @@
 class_name PlayerStateSync
 extends Node
-## Estado de cada jogador que só o host decide: inventário (com a mão) e experiência de
-## coleta (ADR-012). Host: envia ao dono cada espaço que mudou, a mão, cada ganho (para os
-## avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
+## Estado de cada jogador que só o host decide: inventário (com a mão), equipamento e
+## experiência de coleta (ADR-012). Host: envia ao dono cada espaço que mudou (inventário e
+## equipamento), a mão, cada ganho (para os avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
-## estrutura); o host confere e aplica. Offline, os pedidos são aplicados na hora.
+## estrutura, vestir e tirar equipamento); o host confere e aplica. Offline, os pedidos são
+## aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -38,6 +39,8 @@ func track_player(player_id: int) -> void:
 		_send(player_id, &"_added", [item_id, amount]))
 	session.get_skills(player_id).changed.connect(func(skill_id: StringName, xp: int) -> void:
 		_send(player_id, &"_skill_xp", [skill_id, xp]))
+	var equipment := session.get_equipment(player_id)
+	equipment.slot_changed.connect(_send_equipment_slot.bind(player_id, equipment))
 
 
 ## Cliente: pede ao host o estado completo do próprio jogador (espaços, mão e experiência).
@@ -71,6 +74,16 @@ func request_drop_slot(index: int) -> void:
 ## Jogador local fechou o inventário com algo na mão: volta para os espaços.
 func request_return_held() -> void:
 	_request(&"_return_held_requested", [])
+
+
+## Jogador local quer vestir o item do espaço `index` do inventário (menu "Equipar").
+func request_equip(index: int) -> void:
+	_request(&"_equip_requested", [index])
+
+
+## Jogador local clicou no espaço de equipamento `index` (vestir o que está na mão, ou tirar).
+func request_click_equipment(index: int) -> void:
+	_request(&"_click_equipment_requested", [index])
 
 
 ## Jogador local quer fazer a receita `recipe_id` uma vez.
@@ -118,6 +131,10 @@ func _send_held(player_id: int, inventory: Inventory) -> void:
 	_send(player_id, &"_held", [inventory.held_item(), inventory.held_amount()])
 
 
+func _send_equipment_slot(index: int, player_id: int, equipment: Equipment) -> void:
+	_send(player_id, &"_equipment_slot", [index, equipment.item_id(index)])
+
+
 ## Host: inventário de quem pediu (o próprio host, numa chamada local, ou o cliente remetente).
 func _requester_inventory() -> Inventory:
 	if not multiplayer.is_server():
@@ -149,6 +166,20 @@ func _return_held_requested() -> void:
 	var inventory := _requester_inventory()
 	if inventory and inventory.return_held() > 0:
 		_drop_held_requested()  # não coube de volta: cai no chão em vez de sumir
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _equip_requested(index: int) -> void:
+	var inventory := _requester_inventory()
+	if inventory:  # confere índice, mão vazia, tipo do item e regras de mão
+		EquipmentRules.equip_from_inventory(inventory, session.get_equipment(_requester()), index)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _click_equipment_requested(index: int) -> void:
+	var inventory := _requester_inventory()
+	if inventory:  # confere índice e se o item da mão cabe no espaço
+		EquipmentRules.click_slot(inventory, session.get_equipment(_requester()), index)
 
 
 ## Soltar um espaço = pegar a pilha e jogar fora o que está na mão, de uma vez no host.
@@ -211,6 +242,9 @@ func _full_state_requested() -> void:
 	for index in inventory.capacity():
 		_send_slot(index, player_id, inventory)
 	_send_held(player_id, inventory)
+	var equipment := session.get_equipment(player_id)
+	for index in equipment.size():
+		_send_equipment_slot(index, player_id, equipment)
 	var progress := session.get_skills(player_id)
 	for skill in skills.entries():
 		_send(player_id, &"_skill_xp", [skill.id, progress.xp(skill.id)])
@@ -242,6 +276,17 @@ func _skill_xp(skill_id: StringName, xp: int) -> void:
 	var progress := session.get_skills(multiplayer.get_unique_id())
 	if progress != null and xp >= 0 and skills.has(skill_id):
 		progress.replicate_xp(skill_id, xp)
+
+
+## Espaço de equipamento vindo do host: vazio, ou um equipamento conhecido do tipo do espaço.
+@rpc("authority", "call_remote", "reliable")
+func _equipment_slot(index: int, item_id: StringName) -> void:
+	var equipment := session.get_equipment(multiplayer.get_unique_id())
+	if equipment == null or not equipment.is_valid_index(index):
+		return
+	var item := equipment.data_of(item_id)
+	if item_id == Equipment.EMPTY or (item and item.get_slot() == equipment.slot_type(index)):
+		equipment.replicate_slot(index, item_id)
 
 
 ## Pilha vinda da rede: vazia, ou item conhecido em quantidade dentro do limite dele.

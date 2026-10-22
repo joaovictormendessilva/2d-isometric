@@ -71,5 +71,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Inventário | ✅ | ✅ automático (host decide; pedidos adulterados recusados) | ⬜ |
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |
 | Fabricação e estruturas | ✅ | ✅ automático (host confere receita, bancada por perto, ponto e item na mão) | ⬜ |
+| Equipamento | ✅ regras (testes) | host decide e confere tipo/índice; teste de rede no passo 2 do E4 | ⬜ |
 | Desconexão/reconexão | — | ✅ desconexão (host e cliente); reconexão ⬜ | ⬜ |
 | Salvamento | ⬜ | ⬜ | ⬜ |

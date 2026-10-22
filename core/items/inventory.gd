@@ -94,6 +94,12 @@ func add(item_id: StringName, amount: int) -> int:
 	return left
 
 
+## Guarda itens que JÁ eram do jogador (ex.: escudo que saiu da mão ao vestir um espadão):
+## como `add`, mas sem aviso de ganho. Retorna o que não coube.
+func store(item_id: StringName, amount: int) -> int:
+	return _store(item_id, amount)
+
+
 ## Tira `amount` deste item (das últimas pilhas para as primeiras). Tudo ou nada.
 func remove(item_id: StringName, amount: int) -> bool:
 	if count(item_id) < amount:
@@ -194,6 +200,17 @@ func get_counts() -> Dictionary[StringName, int]:
 	return counts
 
 
+## Host: troca direta com outro recipiente do mesmo jogador (equipamento). Quem chama garante
+## que nada se cria nem se perde (EquipmentRules).
+func set_slot(index: int, item_id: StringName, amount: int) -> void:
+	_set_slot(index, item_id, amount)
+
+
+## Host: idem, para a mão.
+func set_held(item_id: StringName, amount: int) -> void:
+	_set_held(item_id, amount)
+
+
 ## Cliente: conteúdo oficial de um espaço, vindo do host.
 func replicate_slot(index: int, item_id: StringName, amount: int) -> void:
 	_set_slot(index, item_id, amount)
@@ -226,7 +243,7 @@ func _store(item_id: StringName, amount: int) -> int:
 
 
 func _set_slot(index: int, item_id: StringName, amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or item_id == EMPTY:
 		item_id = EMPTY
 		amount = 0
 	if _ids[index] == item_id and _amounts[index] == amount:
@@ -237,7 +254,7 @@ func _set_slot(index: int, item_id: StringName, amount: int) -> void:
 
 
 func _set_held(item_id: StringName, amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or item_id == EMPTY:
 		item_id = EMPTY
 		amount = 0
 	if _held_id == item_id and _held_amount == amount:
