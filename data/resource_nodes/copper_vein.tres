@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="ResourceNodeData" format=3]
+
+[ext_resource type="Script" path="res://core/gathering/resource_node_data.gd" id="1_node"]
+[ext_resource type="Resource" path="res://data/skills/mining.tres" id="2_skill"]
+[ext_resource type="Script" path="res://core/items/drop_entry.gd" id="3_drop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/copper_vein.png" id="4_texture"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/rubble.png" id="5_depleted"]
+[ext_resource type="Resource" path="res://data/items/copper_ore.tres" id="6_copper_ore"]
+[ext_resource type="Resource" path="res://data/items/stone.tres" id="7_stone"]
+
+[sub_resource type="Resource" id="Yield_1"]
+script = ExtResource("3_drop")
+item = ExtResource("6_copper_ore")
+chance = 1.0
+min_amount = 1
+max_amount = 1
+
+[sub_resource type="Resource" id="Yield_2"]
+script = ExtResource("3_drop")
+item = ExtResource("7_stone")
+chance = 0.5
+min_amount = 1
+max_amount = 1
+
+[resource]
+script = ExtResource("1_node")
+id = &"copper_vein"
+display_name = "Veio de cobre"
+skill = ExtResource("2_skill")
+min_tool_tier = 0
+min_skill_level = 1
+gather_time = 1.5
+charges = 3
+respawn_time = 60.0
+xp_per_gather = 6
+yields = Array[ExtResource("3_drop")]([SubResource("Yield_1"), SubResource("Yield_2")])
+texture = ExtResource("4_texture")
+depleted_texture = ExtResource("5_depleted")

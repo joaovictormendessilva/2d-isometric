@@ -1,6 +1,7 @@
 class_name DropEntry
 extends Resource
-## Uma linha da tabela de drops de uma criatura. Sorteada por jogador (drop pessoal).
+## Uma linha de uma tabela com chances: drops de criaturas (sorteados por jogador) e
+## rendimento de pontos de coleta.
 
 @export var item: ItemData
 @export_range(0.0, 1.0) var chance: float = 1.0
