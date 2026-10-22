@@ -12,7 +12,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | ⬜ |
+| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 (coleta) aguardando validação do João |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
@@ -129,6 +129,15 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
       perceptível; drops individuais em cada janela
 - [x] Merge na `main` — autorizado pelo João
 
+## Etapa E — incrementos (branch `stage-e/gathering` para o E1)
+
+- **E1 – Coleta** 🟡: árvores de lenha, veios de cobre e carvalhos antigos; mãos, ferramentas,
+  níveis de Lenhador e Minerador, regeneração, coop (ADR-014). 59 testes passando.
+  Aguardando validação do João.
+- **E2 – Inventário** ⬜: tela com espaços e quantidades.
+- **E3 – Crafting** ⬜: receitas com materiais de coleta e de criaturas; primeiras ferramentas.
+- **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
+
 ## Funcionalidades
 
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
@@ -136,6 +145,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Combate com espada (clique esquerdo, J ou botão X do controle; segurar repete) contra slimes;
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
+- Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
+  (pedra com pontos laranja); níveis de coleta no HUD.
 
 ## Problemas conhecidos
 

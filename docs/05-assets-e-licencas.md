@@ -17,7 +17,7 @@ basta — a licença precisa permitir **uso comercial**.
 
 | Asset | Origem | Autor | Licença | Atribuição exigida | Arquivo(s) |
 |---|---|---|---|---|---|
-| Arte provisória (tiles grama/terra/água, personagem, árvore, pedra, sombra, slime, gosma, rastro de espada) | Gerada por código (`tools/generate_placeholder_art.gd`) | Claude (para o projeto) | Própria do projeto | Não | `assets/tilesets/placeholder/`, `assets/sprites/placeholder/` |
+| Arte provisória (tiles grama/terra/água, personagem, árvore, pedra, sombra, slime, gosma, rastro de espada, pontos de coleta e seus restos, ícones de itens e ferramentas) | Gerada por código (`tools/generate_placeholder_art.gd`) | Claude (para o projeto) | Própria do projeto | Não | `assets/tilesets/placeholder/`, `assets/sprites/placeholder/` |
 
 ## Referências (não entram no jogo)
 

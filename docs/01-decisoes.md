@@ -250,3 +250,29 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
   saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
   `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.
+
+## ADR-014 — Coleta: pontos no mundo, ferramentas e níveis por tipo
+
+- **Status**: Hipótese (Etapa E1, aguardando validação de sensação do João)
+- **Direção do João**: coleta no estilo Albion; monstros também dropam (tabelas com chance).
+- **Decisões**:
+  - **Pontos próprios de coleta** (`ResourceNode`), marcados visualmente (árvore de lenha,
+    veio de cobre, carvalho antigo); o cenário comum é só enfeite. Cada ponto tem cargas,
+    esgota (toco, cascalho) e **regenera** (`ResourceNodeData`, em `data/resource_nodes/`).
+  - **Mãos coletam o básico**: sem ferramenta, só pontos que não exigem ferramenta, na
+    metade da velocidade. Ferramentas (`ToolData`, um item) aceleram e liberam pontos de
+    nível maior. Enquanto não há equipamentos (E4), vale a melhor ferramenta do inventário.
+  - **Nível por tipo de coleta, pelo uso** (Lenhador, Minerador — `GatheringSkillData`):
+    experiência a cada coleta; o nível acelera, dá chance de +1 no rendimento e é exigido
+    por pontos melhores. Sem árvore de talentos por enquanto.
+  - **Rendimento com chances**, reaproveitando `DropEntry` (o mesmo formato dos drops).
+  - **Interação**: tecla E (botão A no controle) coleta o ponto mais próximo ao alcance;
+    a coleta continua sozinha até esgotar; andar, atacar, apanhar ou morrer interrompem.
+    Itens coletados vão **direto para o inventário** com aviso "+1 Madeira" (decisão
+    técnica padrão; os drops de criaturas continuam caindo no chão). Revisável.
+  - **Coop**: o dono coleta na hora e pede ao host, que confere alcance, ferramenta e nível
+    de novo e decide itens, experiência e cargas (ADR-012/013). Nomes de pontos vindos da
+    rede são validados (sem caminhos). Quem entra no meio da partida recebe o estado dos
+    pontos.
+- **Consequências**: novos recursos = dados + cena herdada de `resource_node.tscn`. Ainda
+  não há como obter ferramentas no jogo (vem com o crafting, E3).
