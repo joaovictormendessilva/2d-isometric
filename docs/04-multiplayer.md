@@ -66,7 +66,7 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Movimento e câmera | ✅ | ✅ automático (2 instâncias no mesmo processo) | ⬜ |
 | Combate e dano | ✅ testes automáticos | ✅ automático (host decide, cliente vê) | ⬜ |
 | Drops pessoais | ✅ | ✅ automático em rede (só o dono vê e coleta) | ⬜ |
-| Transição de região | ⬜ | ⬜ | ⬜ |
+| Transição de região | ✅ automático (passagem, estado da região deixada, save da região) | ⬜ F2c (hoje a passagem não viaja no coop) | ⬜ |
 | Morte e respawn | ✅ | ✅ automático (host ordena, cliente renasce) | ⬜ |
 | Inventário | ✅ | ✅ automático (host decide; pedidos adulterados recusados) | ⬜ |
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |

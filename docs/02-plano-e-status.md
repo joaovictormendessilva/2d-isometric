@@ -76,7 +76,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Arte provisória gerada por código (`tools/generate_placeholder_art.gd`)
 - [x] TileSet isométrico 32×16 (losango) com colisão na água
 - [x] Região "Prado" (`scenes/regions/meadow/`) gerada com semente fixa: borda de água,
-      lagos, caminhos de terra, 164 árvores e 74 pedras (`tools/generate_meadow_region.gd`)
+      lagos, caminhos de terra, 164 árvores e 74 pedras (hoje `tools/generate_regions.gd`)
 - [x] Sessão com IDs de jogador/entidade (`core/game_session.gd`), sem jogador global
 - [x] Personagem movido por intenções, velocidade igual em todas as direções no plano do chão
 - [x] Colisão por "pegada" redonda no chão (`scenes/components/footprint.gd`); o personagem
@@ -164,6 +164,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   (escolha do João, se o host aguentar). F2a: segunda região e passagem, sozinho (regiões já
   prontas para várias ativas no host). F2b: benchmark do host com 2–4 regiões ativas. F2c: coop
   com jogadores em regiões diferentes (cada cliente só recebe a sua).
+  F2a ✅ implementado (ADR-020): floresta densa (mais escura, 8 carvalhos antigos, 10 pontos de
+  slime), passagens nas bordas (campina leste ↔ floresta oeste), região deixada guardada, save
+  lembra a região. 110 testes. Aguardando teste do João.
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
@@ -189,6 +192,8 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - Save: o mundo é guardado sozinho (ao fechar a janela, quando alguém sai e a cada 30 s) em
   `%APPDATA%\Godot\app_userdata\2D Isometric\saves\world.json`. Para começar do zero, apague
   esse arquivo. No coop, o progresso do amigo fica no save de quem hospeda.
+- Regiões: no fim do caminho de terra na borda leste da campina fica a passagem para a floresta
+  (e na borda oeste da floresta, a volta). No coop a passagem ainda não leva (F2c).
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

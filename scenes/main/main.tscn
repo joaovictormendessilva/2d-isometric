@@ -30,16 +30,17 @@ script = ExtResource("12_player_state")
 
 [node name="World" type="Node2D" parent="."]
 
-[node name="DamageNumbers" type="Node2D" parent="World"]
-z_index = 50
-script = ExtResource("6_numbers")
-
 [node name="PlacementPreview" type="Sprite2D" parent="World"]
 z_index = 40
 script = ExtResource("14_placement")
 
-[node name="InteractionPrompt" type="Node2D" parent="World"]
-z_index = 50
+[node name="WorldText" type="CanvasLayer" parent="."]
+follow_viewport_enabled = true
+
+[node name="DamageNumbers" type="Node2D" parent="WorldText"]
+script = ExtResource("6_numbers")
+
+[node name="InteractionPrompt" type="Node2D" parent="WorldText"]
 script = ExtResource("11_prompt")
 
 [node name="Camera" type="Camera2D" parent="."]

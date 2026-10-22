@@ -13,7 +13,7 @@ const AUTOSAVE_TIME := 30.0
 ## Limite de estruturas lidas do arquivo (bem acima do legítimo; só barra lixo).
 const MAX_STRUCTURES := 1000
 
-## Arquivo do save; vazio = desligado. Testes e ferramentas de captura trocam o padrão para não
+## Arquivo do save; vazio = só na memória. Testes e ferramentas de captura trocam o padrão para não
 ## mexer no mundo de quem joga.
 static var default_path := DEFAULT_PATH
 
@@ -28,25 +28,28 @@ var _skills: DataCatalog
 var _structures: DataCatalog
 
 
-## Host: lê o save e devolve a região ao estado guardado. Chame antes de criar os jogadores.
-func setup(path: String, session: GameSession, spawner: EntitySpawner, region: Region,
-		network: Network, items: ItemDatabase, skills: DataCatalog, structures: DataCatalog) -> void:
-	if path.is_empty() or not multiplayer.is_server():
+## Host: abre o mundo. Sem `path`, o save fica só na memória (regiões deixadas e quem sai e
+## volta na mesma partida), sem ler nem gravar arquivo. Depois, `enter_region` para a região
+## carregada (antes dos jogadores).
+func setup(path: String, session: GameSession, spawner: EntitySpawner, network: Network,
+		items: ItemDatabase, skills: DataCatalog, structures: DataCatalog) -> void:
+	if not multiplayer.is_server():
 		return
-	_path = path
 	_session = session
 	_spawner = spawner
-	_region = region
 	_network = network
 	_items = items
 	_skills = skills
 	_structures = structures
-	_save = WorldSave.load_file(path)
-	if _save == null:
-		push_warning("[save] %s ilegível e não pôde ser guardado de lado: save desligado" % path)
-		return
-	_restore_region(_save.regions.get(String(region.region_id)))
 	network.player_left.connect(_on_player_left)
+	_save = WorldSave.load_file(path) if not path.is_empty() else WorldSave.new()
+	if _save == null:
+		push_warning("[save] %s ilegível e não pôde ser guardado de lado: nada será gravado" % path)
+		_save = WorldSave.new()
+		return
+	_path = path
+	if _path.is_empty():
+		return
 	var timer := Timer.new()
 	timer.wait_time = AUTOSAVE_TIME
 	timer.timeout.connect(save_now)
@@ -54,8 +57,30 @@ func setup(path: String, session: GameSession, spawner: EntitySpawner, region: R
 	timer.start()
 
 
+## Host com o mundo aberto (com ou sem arquivo).
 func is_enabled() -> bool:
 	return _save != null
+
+
+## Região onde o jogador estava ao sair ("" se não houver; quem chama confere no catálogo).
+func region_of(player_id: int) -> StringName:
+	var record: Variant = _save.players.get(_network.player_key(player_id)) if is_enabled() else null
+	var region_id: Variant = record.get("region") if record is Dictionary else null
+	return StringName(region_id) if region_id is String else &""
+
+
+## A região acabou de ser carregada: volta ao estado guardado (estruturas, pontos de coleta).
+func enter_region(region: Region) -> void:
+	_region = region
+	if is_enabled():
+		_restore_region(_save.regions.get(String(region.region_id)))
+
+
+## A região vai ser liberada (viagem): o estado dela fica guardado na memória.
+func leave_region() -> void:
+	if is_enabled() and _region:
+		_save.regions[String(_region.region_id)] = _capture_region()
+	_region = null
 
 
 ## Host: o personagem acabou de ser criado. Quem já jogou neste mundo volta como estava
@@ -79,7 +104,10 @@ func save_now() -> Error:
 		return OK
 	for player_id in _session.get_player_ids():
 		_remember(player_id)
-	_save.regions[String(_region.region_id)] = _capture_region()
+	if _region:
+		_save.regions[String(_region.region_id)] = _capture_region()
+	if _path.is_empty():
+		return OK
 	var error := _save.save_file(_path)
 	if error != OK:
 		push_warning("[save] não foi possível gravar %s: %s" % [_path, error_string(error)])
@@ -98,9 +126,12 @@ func _remember(player_id: int) -> void:
 	if key.is_empty() or character == null or _session.get_inventory(player_id) == null:
 		return
 	var health := character.health
-	_save.players[key] = CharacterRecord.capture(_session.get_inventory(player_id),
+	var record := CharacterRecord.capture(_session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
 		health.max_health if health.is_dead() else health.current)
+	if _region:  # por enquanto todos estão na região carregada (F2c: região de cada um)
+		record["region"] = String(_region.region_id)
+	_save.players[key] = record
 
 
 ## Antes de o personagem sumir da sessão (a chave ainda é conhecida, ver Network).

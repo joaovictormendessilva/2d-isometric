@@ -47,6 +47,8 @@ var saves: SaveService
 var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
 var _next_structure_id := 1
+var _region_generation := 0
+var _moving: Character
 var _rng := RandomNumberGenerator.new()
 
 @onready var _replicator: MultiplayerSpawner = $Replicator
@@ -61,10 +63,28 @@ func setup(p_session: GameSession, p_region: Region, p_local_player_id: int,
 	damage_numbers = p_damage_numbers
 	items = p_items
 	player_state = p_player_state
-	_monster_points = region.get_monster_spawn_points()
 	_rng.randomize()
-	_replicator.spawn_path = _replicator.get_path_to(region.entities)
 	_replicator.spawn_function = _instantiate
+	set_region(p_region)
+
+
+## A região carregada mudou (viagem): entidades novas nascem nela. Renascimentos agendados na
+## região anterior são esquecidos (`_region_generation`).
+func set_region(p_region: Region) -> void:
+	region = p_region
+	_region_generation += 1
+	_monster_points = region.get_monster_spawn_points()
+	_replicator.spawn_path = _replicator.get_path_to(region.entities)
+
+
+## Leva um personagem para a região atual (viagem) sem tirá-lo da sessão: trocar de pai na
+## árvore dispara a mesma saída que um jogador indo embora, que aqui é ignorada.
+func move_player(character: Character, at: Vector2) -> void:
+	_moving = character
+	character.reparent(region.entities, false)
+	_moving = null
+	character.position = at
+	character.reset_physics_interpolation()
 
 
 # --- Host: decide o que existe ---------------------------------------------------------------
@@ -279,6 +299,8 @@ func _on_entity_blocked(entity: Character) -> void:
 # --- Ciclo de vida -----------------------------------------------------------------------------
 
 func _on_entity_removed(entity: Character) -> void:
+	if entity == _moving:
+		return
 	session.unregister_entity(entity.entity_id)
 	if entity.player_id != 0 and session.get_player_entity(entity.player_id) == null:
 		session.remove_player(entity.player_id)
@@ -305,7 +327,7 @@ func _on_monster_died(monster: Character, point_index: int) -> void:
 	_spawn_drops(monster as Monster)
 	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
 	get_tree().create_timer(_monster_points[point_index].respawn_time).timeout.connect(
-		spawn_monster.bind(point_index))
+		_respawn_monster.bind(point_index, _region_generation))
 
 
 ## Drops pessoais: a tabela é sorteada separadamente para cada jogador da sessão. Cada item
@@ -319,3 +341,9 @@ func _spawn_drops(monster: Monster) -> void:
 				var spot := GroundQuery.find_drop_spot(space, monster.position, _rng,
 					DROP_DISTANCE_MIN, DROP_DISTANCE_MAX, DROP_CLEARANCE)
 				spawn_pickup(entry.item, amount, player_id, monster.position, spot)
+
+
+## Só se a região ainda for a mesma em que a criatura morreu.
+func _respawn_monster(point_index: int, generation: int) -> void:
+	if generation == _region_generation:
+		spawn_monster(point_index)

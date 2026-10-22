@@ -432,3 +432,32 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Kit de testes** só para personagem novo (quem volta não ganha outro).
 - **Consequências**: reconexão funciona (quem volta recebe o próprio personagem). Testes,
   capturas de tela e `capture_frames` não leem nem gravam o save de quem joga.
+
+## ADR-020 — Várias regiões, passagens e viagem
+
+- **Status**: Hipótese (Etapa F2a, 2026-10-22; aguardando teste do João)
+- **Contexto**: segunda região (floresta densa, escolha do João) ligada à campina. No coop,
+  cada jogador poderá estar numa região diferente (decisão do João, ADR-005), se o benchmark
+  da F2b mostrar que o host aguenta.
+- **Decisões (F2a, jogando sozinho)**:
+  - **Catálogo** `data/regions/` (`RegionData`: id e cena). Ids vindos do save só servem para
+    buscar no catálogo.
+  - **Passagem** (`scenes/regions/passage.tscn`): gatilho no fim de um caminho de terra que
+    atravessa o anel de água, parede invisível atrás (não se sai do mapa) e ponto de chegada
+    longe do gatilho. Destino em dados: região e passagem de destino.
+  - **Viagem**: a região anterior vai para o save (memória) e é liberada com as criaturas e os
+    itens no chão; o personagem troca de pai na árvore (sem sair da sessão) e chega na
+    passagem de volta. Renascimentos agendados na região anterior são descartados.
+  - **Save**: o host sempre tem o save na memória (sem arquivo = só memória); cada personagem
+    guarda a região onde estava e volta ao ponto de entrada dela.
+  - **Ambientação**: cada região tem luz ambiente (`ambient`, CanvasModulate); a floresta é
+    mais escura e esverdeada. Textos do mundo (números, avisos) ficam numa camada própria, fora
+    dessa luz, para continuarem legíveis.
+  - **Gerador** `tools/generate_regions.gd` (antes `generate_meadow_region.gd`): receitas por
+    região; o caminho é aberto depois de tudo sorteado, então a campina continua idêntica
+    (mesmos nomes e posições: o save dela continua valendo).
+  - **Coop até a F2c**: passagens não levam a lugar nenhum (aviso "em breve"); todos começam
+    na campina.
+- **Limitações**: pontos de coleta de uma região deixada não renascem enquanto ninguém está
+  lá; itens no chão somem ao sair da região; a troca de região é um corte seco (sem
+  transição).

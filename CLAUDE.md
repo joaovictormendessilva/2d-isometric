@@ -122,9 +122,9 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Só alguns arquivos de teste: `... -s res://tests/run_tests.gd -- network` (filtro no nome).
     - Coop local (duas janelas, host + cliente): `tools/coop-local.bat`, ou
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`.
-    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory]`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory] [--region=forest]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
-      importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
+      importar, `G --headless --path . -s res://tools/generate_regions.gd`, importar.
     - Folha de quadros (animação): `G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<png> --scenario=attack`
     - Conferir sprite: `G --headless --path . -s res://tools/art_check.gd -- <sprite.png> --preview=<png>`
     - Regerar tema da UI (após mudar `UiStyle`): `G --headless --path . -s res://tools/generate_ui_theme.gd`, importar.
