@@ -3,17 +3,16 @@ extends Node2D
 ## Item no chão que pertence a UM jogador (drop pessoal, `docs/04-multiplayer.md`).
 ## Nasce onde a criatura morreu e salta num arco até o ponto onde cai (escolhido pelo host,
 ## sempre em chão andável: `GroundQuery`). Depois de pousar, o dono o pega ao passar por
-## cima; bem perto, o item escorrega até ele. Só o dono o vê; a coleta é decidida pelo host.
+## cima; dentro do "ímã" do dono, o item escorrega até ele. Só o dono o vê; a coleta é decidida pelo host.
 
 signal collected(pickup: Pickup)
 
 ## Duração do salto até o chão; antes de pousar o item não pode ser pego.
 const POP_TIME := 0.35
 const POP_HEIGHT := 10.0
-## Distância (chão, entre centros) em que o dono pega o item, e em que ele escorrega até o
-## dono (só um empurrão final: é preciso ir até o item).
+## Distância (chão, entre centros) em que o dono pega o item. Até `ActorStats.pickup_radius`
+## do dono, o item escorrega até ele (o "ímã", que equipamentos poderão aumentar).
 const COLLECT_RADIUS := 8.0
-const MAGNET_RADIUS := 16.0
 const MAGNET_SPEED := 120.0
 const SPRITE_HEIGHT := 4.0
 const BOB_HZ := 1.5
@@ -53,7 +52,7 @@ func _physics_process(delta: float) -> void:
 	var distance := Iso.ground_distance(position, owner_body.position)
 	if distance <= COLLECT_RADIUS:
 		_collect()
-	elif distance <= MAGNET_RADIUS:
+	elif distance <= owner_body.stats.pickup_radius:
 		position = position.move_toward(owner_body.position, MAGNET_SPEED * delta)
 
 

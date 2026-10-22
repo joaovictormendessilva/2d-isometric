@@ -175,7 +175,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Drops pessoais**: a tabela é sorteada por jogador; cada um só vê e coleta os seus.
   - **Drops caem no chão** (pedido do João): o item salta da criatura até um ponto andável e
     alcançável em linha reta (`GroundQuery`; nunca na água ou dentro de objetos) e só pode
-    ser pego depois de pousar, passando por cima (empurrão final de 16 px).
+    ser pego depois de pousar, passando por cima. O "ímã" (16 px) é `ActorStats.pickup_radius`,
+    para equipamentos futuros aumentarem por jogador.
   - Apresentação (números de dano em pool, rastro, flash, HUD) só **lê** sinais.
   - **Bote comprometido** (`MeleeAttackData.interruptible = false` no slime): levar dano não
     cancela a preparação do inimigo. Sem isso, segurar o ataque travava o slime para sempre

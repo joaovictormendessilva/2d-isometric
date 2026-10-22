@@ -62,7 +62,7 @@ func test_drop_waits_on_the_ground_for_its_owner() -> void:
 	check(pickup.position.distance_to(monster.position) > 1.0, "o item saltou para longe da criatura")
 	check(session.get_inventory(game.local_player_id()).count(&"gel") == 0, "não foi direto para o inventário")
 
-	player.position = pickup.position + Iso.ground_to_screen(Vector2(Pickup.MAGNET_RADIUS + 10.0, 0))
+	player.position = pickup.position + Iso.ground_to_screen(Vector2(player.stats.pickup_radius + 10.0, 0))
 	await physics_frames(60)
 	check(is_instance_valid(pickup), "parado longe, o jogador não pega o item")
 
@@ -70,6 +70,23 @@ func test_drop_waits_on_the_ground_for_its_owner() -> void:
 	await physics_frames(3)
 	check(not is_instance_valid(pickup), "ao passar por cima, pega")
 	check(session.get_inventory(game.local_player_id()).count(&"gel") > 0, "item no inventário")
+
+
+## O ímã vem dos atributos do jogador: um raio maior (futuros equipamentos) puxa de mais longe.
+func test_larger_pickup_radius_pulls_from_farther() -> void:
+	var game := start_game()
+	var session: GameSession = game.session
+	var player := session.get_player_entity(game.local_player_id()) as Character
+	player.stats = player.stats.duplicate()  # só este jogador, sem mexer no recurso compartilhado
+	player.stats.pickup_radius = 60.0
+	var monster := first_monster(game)
+	monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, game.local_player_id()))
+	await physics_frames(2)
+	var pickup: Pickup = pickups(game)[0]
+	player.position = pickup.position + Iso.ground_to_screen(Vector2(40.0, 0))
+	await physics_frames(90)
+	check(not is_instance_valid(pickup), "a 40 px, um ímã de 60 px trouxe o item")
 
 
 func _first_water_tile(region: Region) -> Vector2:

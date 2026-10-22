@@ -11,8 +11,8 @@ Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidad
 - **Terraria** — variedade de combate, equipamentos, crafting, liberdade de builds.
 - **Grand Fantasia** — auras, brilhos, runas, cosméticos mágicos encantadores.
 - **Albion Online** — coleta em pontos do mundo (árvores, minérios) com ferramenta própria e
-  especialização por tipo de coleta; combate com habilidades vindas da arma.
-- **V Rising** — combate de ação parecido com o de Albion (habilidades mirando, esquiva).
+  especialização por tipo de coleta; o jeito de lançar habilidades no combate.
+- **V Rising** — o mesmo estilo de lançar habilidades (teclas de habilidade, mira no cursor).
 
 Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
 arquitetura considera **coop LAN** desde o início e uma possível evolução para online.

@@ -162,13 +162,16 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   melhora a coleta daquele tipo). Pontos **regeneram** com o tempo.
 - **Monstros também dropam** (diferente de Albion): tabelas de drop com **chances**, raros
   inclusos, no estilo Grand Fantasia e MMORPGs antigos — "a magia do grind".
-- Drops caem no chão e o jogador vai até eles (feito em `fix/drop-placement`).
+- Drops caem no chão e o jogador vai até eles (feito em `fix/drop-placement`), com raio de
+  coleta ("ímã") nos atributos do jogador para equipamentos futuros aumentarem.
 
 ## Direção de combate (para ter em mente)
 
-- Referências: **Albion Online** e **V Rising** — habilidades definidas pela arma, mira com o
-  mouse, ataques telegrafados, esquiva e posicionamento. Hoje a espada é só o ataque básico;
-  a evolução para habilidades deve seguir essa linha (registrar ADR quando começar).
+- Referências: **Albion Online** e **V Rising** no **jeito de lançar as habilidades** (o "cast"):
+  teclas de habilidade, mira no cursor, habilidades em linha e em área com aviso no chão,
+  tempo de conjuração. Correção do João: NÃO significa que cada arma define os ataques (isso
+  foi coincidência entre os dois jogos); de onde vêm as habilidades fica para decidir.
+  Registrar ADR quando o sistema de habilidades começar.
 
 ## Ideias futuras (backlog criativo)
 
