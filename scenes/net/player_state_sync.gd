@@ -1,12 +1,12 @@
 class_name PlayerStateSync
 extends Node
-## Estado de cada jogador que só o host decide: inventário (com a mão), equipamento e
-## experiência de coleta (ADR-012). Host: envia ao dono cada espaço do inventário que mudou,
-## a mão, cada ganho (para os avisos) e a experiência; e o equipamento de cada jogador a todos.
-## Dono: pede ao host para mexer no inventário (clicar num espaço,
+## Estado de cada jogador que só o host decide: inventário (com a mão), equipamento,
+## experiência de coleta e moedas (ADR-012). Host: envia ao dono cada espaço do inventário que
+## mudou, a mão, cada ganho (para os avisos), a experiência e as moedas; e o equipamento de cada
+## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
-## estrutura, vestir e tirar equipamento); o host confere e aplica. Offline, os pedidos são
-## aplicados na hora.
+## estrutura, vestir e tirar equipamento, comprar e vender com um NPC); o host confere e aplica.
+## Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -50,6 +50,9 @@ func track_player(player_id: int) -> void:
 		_send(player_id, &"_added", [item_id, amount]))
 	session.get_skills(player_id).changed.connect(func(skill_id: StringName, xp: int) -> void:
 		_send(player_id, &"_skill_xp", [skill_id, xp]))
+	var wallet := session.get_wallet(player_id)
+	wallet.changed.connect(func(coins: int) -> void: _send(player_id, &"_coins", [coins]))
+	wallet.earned.connect(func(amount: int) -> void: _send(player_id, &"_earned", [amount]))
 
 
 ## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
@@ -112,19 +115,48 @@ func request_place(at: Vector2) -> void:
 	_request(&"_place_requested", [at])
 
 
+## Jogador local quer comprar uma unidade de `item_id` do NPC perto dele.
+func request_buy(item_id: StringName) -> void:
+	_request(&"_buy_requested", [item_id])
+
+
+## Jogador local quer vender `amount` da pilha do espaço `index` ao NPC perto dele.
+func request_sell(index: int, amount: int) -> void:
+	_request(&"_sell_requested", [index, amount])
+
+
 ## Lugares de fabricação ao alcance do jogador: a mão e as estações perto dos pés dele.
 func stations_of(player_id: int) -> Array[RecipeData.Station]:
 	var stations: Array[RecipeData.Station] = [RecipeData.Station.HAND]
-	var character := session.get_player_entity(player_id) as Character
-	if character == null:
-		return stations
-	for node in get_tree().get_nodes_in_group(Structure.STATION_GROUP):
+	for node in _in_reach(Structure.STATION_GROUP, player_id):
 		var structure := node as Structure
-		# Mesmo mundo: nos testes, host e cliente dividem a mesma árvore.
-		if structure.get_world_2d() == character.get_world_2d() \
-				and structure.reaches(character.position) and structure.data.station not in stations:
+		if structure.data.station not in stations:
 			stations.append(structure.data.station)
 	return stations
+
+
+## NPC mais próximo ao alcance do jogador (para negociar), ou null.
+func npc_near(player_id: int) -> Npc:
+	var character := session.get_player_entity(player_id) as Character
+	var best: Npc
+	for node in _in_reach(Npc.GROUP, player_id):
+		if best == null or Iso.ground_distance(node.position, character.position) \
+				< Iso.ground_distance(best.position, character.position):
+			best = node
+	return best
+
+
+## Nós do grupo (com `reaches(pés)`) ao alcance do jogador vivo, no mundo dele.
+func _in_reach(group: StringName, player_id: int) -> Array[Node2D]:
+	var found: Array[Node2D] = []
+	var character := session.get_player_entity(player_id) as Character
+	if character == null or not character.is_alive():
+		return found
+	for node: Node2D in get_tree().get_nodes_in_group(group):
+		# Mesmo mundo: nos testes, host e cliente dividem a mesma árvore.
+		if node.get_world_2d() == character.get_world_2d() and node.reaches(character.position):
+			found.append(node)
+	return found
 
 
 func _request(method: StringName, args: Array) -> void:
@@ -259,6 +291,24 @@ func _place_requested(at: Vector2) -> void:
 		spawner.spawn_structure(Region.of(character), placeable.structure, at)
 
 
+## O NPC é o que o HOST sabe estar perto do jogador; o preço é o dos dados dele, nunca um valor
+## dito pelo cliente.
+@rpc("any_peer", "call_remote", "reliable")
+func _buy_requested(item_id: StringName) -> void:
+	var inventory := _requester_inventory()
+	var npc := npc_near(_requester()) if inventory else null
+	if npc:  # confere item à venda, moedas e espaço
+		TradeRules.buy(npc.data, item_id, inventory, session.get_wallet(_requester()))
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _sell_requested(index: int, amount: int) -> void:
+	var inventory := _requester_inventory()
+	var npc := npc_near(_requester()) if inventory else null
+	if npc:  # confere índice, quantidade, item que o NPC compra e teto da carteira
+		TradeRules.sell(npc.data, inventory, index, amount, session.get_wallet(_requester()), items)
+
+
 @rpc("any_peer", "call_remote", "reliable")
 func _full_state_requested() -> void:
 	var player_id := multiplayer.get_remote_sender_id()
@@ -271,6 +321,7 @@ func _full_state_requested() -> void:
 	var progress := session.get_skills(player_id)
 	for skill in skills.entries():
 		_send(player_id, &"_skill_xp", [skill.id, progress.xp(skill.id)])
+	_send(player_id, &"_coins", [session.get_wallet(player_id).coins()])
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -299,6 +350,20 @@ func _skill_xp(skill_id: StringName, xp: int) -> void:
 	var progress := session.get_skills(multiplayer.get_unique_id())
 	if progress != null and xp >= 0 and skills.has(skill_id):
 		progress.replicate_xp(skill_id, xp)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _coins(coins: int) -> void:
+	var wallet := session.get_wallet(multiplayer.get_unique_id())
+	if wallet and coins >= 0 and coins <= Wallet.MAX_COINS:
+		wallet.replicate(coins)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _earned(amount: int) -> void:
+	var wallet := session.get_wallet(multiplayer.get_unique_id())
+	if wallet and amount > 0 and amount <= Wallet.MAX_COINS:
+		wallet.notify_earned(amount)
 
 
 ## Host: alguém pediu o equipamento de um jogador (público no coop). Uma resposta por pedido.

@@ -159,3 +159,13 @@ func resource_node(game: Node, data_id: StringName) -> ResourceNode:
 func stand_next_to(character: Character, node: ResourceNode) -> void:
 	character.position = node.approach_point(character.footprint_radius())
 	character.reset_physics_interpolation()
+
+
+## Leva um personagem simulado neste computador até `target` a uma velocidade aceita pelo host
+## (o host recusa teletransporte). Ignora colisões: o teste só precisa chegar.
+func glide_to(character: Character, target: Vector2) -> void:
+	const STEP := 1.5  # px por quadro = 90 px/s
+	while character.position.distance_to(target) > STEP:
+		character.position = character.position.move_toward(target, STEP)
+		await tree.physics_frame
+	character.position = target

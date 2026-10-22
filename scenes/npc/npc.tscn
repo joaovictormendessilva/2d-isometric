@@ -1,0 +1,7 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="1_prop"]
+[ext_resource type="Script" path="res://scenes/npc/npc.gd" id="2_npc"]
+
+[node name="Npc" instance=ExtResource("1_prop")]
+script = ExtResource("2_npc")

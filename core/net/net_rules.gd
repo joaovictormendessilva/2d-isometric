@@ -7,7 +7,7 @@ extends RefCounted
 ## Identifica o jogo e a versão do protocolo no aperto de mão. Mudou o formato de alguma
 ## mensagem? Aumente a versão: computadores com versões diferentes não se conectam.
 const PROTOCOL_ID := "2d-isometric"
-const PROTOCOL_VERSION := 5
+const PROTOCOL_VERSION := 6
 const DEFAULT_PORT := 24680
 ## Coop de até 4 jogadores: o host e mais 3.
 const MAX_CLIENTS := 3

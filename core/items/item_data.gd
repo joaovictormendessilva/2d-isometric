@@ -6,6 +6,9 @@ extends Resource
 @export var icon: Texture2D
 ## Quantos cabem num espaço do inventário (ferramentas: 1).
 @export var max_stack: int = 99
+## Moedas que um mercador paga por UMA unidade (0 = ninguém compra). O preço de compra fica em
+## cada NPC (`NpcData.offers`).
+@export var sell_price: int = 0
 
 
 ## Nome no idioma atual (chave `ITEM_<ID>` em `data/i18n/texts.csv`).

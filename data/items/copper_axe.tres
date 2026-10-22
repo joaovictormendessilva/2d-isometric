@@ -7,6 +7,7 @@
 [resource]
 script = ExtResource("1_tool")
 id = &"copper_axe"
+sell_price = 15
 icon = ExtResource("2_icon")
 skill = ExtResource("3_skill")
 tier = 2

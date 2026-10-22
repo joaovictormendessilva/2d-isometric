@@ -18,6 +18,7 @@ const PASSAGE_SCENE := "res://scenes/regions/passage.tscn"
 const LUMBER_TREE := "res://scenes/gathering/lumber_tree.tscn"
 const COPPER_VEIN := "res://scenes/gathering/copper_vein.tscn"
 const OLD_OAK := "res://scenes/gathering/old_oak.tscn"
+const MERCHANT := "res://scenes/npc/merchant.tscn"
 
 enum Side { EAST, WEST }
 
@@ -43,6 +44,7 @@ const PASSAGE_INSET := 22.0
 ## Receita de cada região. `spawn`: ponto de entrada (null = centro). `resources`: [cena,
 ## quantidade, quantos perto da entrada]. `far`: distância máxima (chão) da entrada para
 ## criaturas e pontos de coleta. `passages`: [id, lado, y, região destino, passagem destino].
+## `npcs`: [cena, posição em relação à entrada (px de tela)], dentro da área livre da entrada.
 var REGIONS := [
 	{
 		"id": &"meadow", "node": "Meadow", "path": "res://scenes/regions/meadow/meadow.tscn",
@@ -51,6 +53,7 @@ var REGIONS := [
 		"monsters": 8, "far": 900.0,
 		"resources": [[LUMBER_TREE, 12, 2], [COPPER_VEIN, 8, 1], [OLD_OAK, 3, 0]],
 		"passages": [[&"to_forest", Side.EAST, 480.0, &"forest", &"to_meadow"]],
+		"npcs": [[MERCHANT, Vector2(-72, -20)]],
 	},
 	{
 		# Floresta densa (João, F2): mata fechada e mais escura, mais carvalhos antigos.
@@ -155,6 +158,7 @@ func _build_region(tile_set: TileSet) -> Node2D:
 		resource_rng)
 	# Por último: abrir caminho não mexe no sorteio do resto do mapa.
 	_carve_passages(region, ground)
+	_place_npcs(entities, region, spawn.position)
 	return region
 
 
@@ -359,3 +363,12 @@ func _shuffled(cells: Array[Vector2i], rng: RandomNumberGenerator) -> Array[Vect
 		result[i] = result[j]
 		result[j] = tmp
 	return result
+
+
+## NPCs fixos (F3), na área livre em volta da entrada: nada sorteado, nada tirado do lugar.
+func _place_npcs(entities: Node2D, region: Node2D, spawn: Vector2) -> void:
+	for entry: Array in _r.get("npcs", []):
+		var npc: Node2D = load(entry[0]).instantiate()
+		npc.position = spawn + entry[1]
+		_add_owned(entities, npc, region)
+		print("[gen] %s npc: %s em %s" % [_r["id"], npc.name, npc.position])

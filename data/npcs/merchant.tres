@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="NpcData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/npc/npc_data.gd" id="1_npc"]
+
+[resource]
+script = ExtResource("1_npc")
+id = &"merchant"
+offers = Dictionary[StringName, int]({
+&"simple_backpack": 120,
+&"stone_axe": 20,
+&"stone_pickaxe": 20,
+&"workbench": 30
+})
+footprint_radius = 6.0

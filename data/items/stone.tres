@@ -6,4 +6,5 @@
 [resource]
 script = ExtResource("1_item")
 id = &"stone"
+sell_price = 1
 icon = ExtResource("2_icon")

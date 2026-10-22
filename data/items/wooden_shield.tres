@@ -11,6 +11,7 @@ defense = 2
 [resource]
 script = ExtResource("1_item")
 id = &"wooden_shield"
+sell_price = 6
 icon = ExtResource("2_icon")
 max_stack = 1
 kind = 0
