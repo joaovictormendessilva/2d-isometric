@@ -228,6 +228,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   regime está em `docs/03-desempenho.md`.
 - Criaturas não têm busca de caminho: contornam obstáculos redondos, mas podem ficar presas
   atrás de lagos. Avaliar navegação quando houver mapas mais fechados.
+- Corrigido (F3a, relato do João): depois de viajar entre regiões, vestir a mochila não abria os
+  espaços e tirá-la não os fechava (o tamanho usava os bônus do equipamento anterior; o
+  personagem é recriado a cada viagem). Agora o tamanho vem direto do equipamento vestido.
 - Corrigido (`fix/death-cancels-attack`): criatura que morria no meio da preparação ainda dava
   o bote ("fantasma", sem acertar). Agora a morte encerra qualquer ataque.
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é

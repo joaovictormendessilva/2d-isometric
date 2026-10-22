@@ -177,3 +177,11 @@ func left_click() -> InputEventMouseButton:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	return click
+
+
+## Primeiro espaço do inventário com este item, ou -1.
+func slot_of(inventory: Inventory, item_id: StringName) -> int:
+	for index in inventory.capacity():
+		if inventory.slot_item(index) == item_id:
+			return index
+	return -1

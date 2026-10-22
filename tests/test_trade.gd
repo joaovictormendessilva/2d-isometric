@@ -125,7 +125,7 @@ func test_merchant_in_the_meadow_trades_only_up_close() -> void:
 	state.request_buy(&"stone_axe")
 	check(inventory.count(&"stone_axe") == 1
 		and wallet.coins() == 100 - merchant.data.price_of(&"stone_axe"), "perto compra")
-	var index := _slot_of(inventory, &"stone_axe")
+	var index := slot_of(inventory, &"stone_axe")
 	state.request_sell(index, 1)
 	check(inventory.count(&"stone_axe") == 0, "e vende")
 
@@ -215,7 +215,7 @@ func test_shop_window_buys_sells_and_closes_when_far() -> void:
 	var gel_price := shop.sell_price_of(&"gel")
 	check(gel_price > 0, "a loja aberta compra gosma")
 	var menu: SlotMenu = panel.find_children("*", "SlotMenu", true, false)[0]
-	panel._on_menu_requested(_slot_of(inventory, &"gel"))
+	panel._on_menu_requested(slot_of(inventory, &"gel"))
 	check(menu._sell_one.visible and menu._sell_all.visible, "menu oferece vender 1 e tudo")
 	menu._sell_all.pressed.emit()
 	check(inventory.count(&"gel") == 0 and wallet.coins() == 100
@@ -238,10 +238,4 @@ func _merchant_node(game: Node) -> Npc:
 			return node
 	return null
 
-
-func _slot_of(inventory: Inventory, item_id: StringName) -> int:
-	for index in inventory.capacity():
-		if inventory.slot_item(index) == item_id:
-			return index
-	return -1
 
