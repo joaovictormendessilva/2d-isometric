@@ -155,6 +155,21 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
 
+## Direção para a Etapa E (João, 2026-10-22)
+
+- **Coleta no estilo Albion**: árvores, minérios e outros pontos de coleta no mundo, cada tipo
+  com a **ferramenta própria** (machado, picareta...) e **especialização** por tipo (coletar
+  melhora a coleta daquele tipo). Pontos **regeneram** com o tempo.
+- **Monstros também dropam** (diferente de Albion): tabelas de drop com **chances**, raros
+  inclusos, no estilo Grand Fantasia e MMORPGs antigos — "a magia do grind".
+- Drops caem no chão e o jogador vai até eles (feito em `fix/drop-placement`).
+
+## Direção de combate (para ter em mente)
+
+- Referências: **Albion Online** e **V Rising** — habilidades definidas pela arma, mira com o
+  mouse, ataques telegrafados, esquiva e posicionamento. Hoje a espada é só o ataque básico;
+  a evolução para habilidades deve seguir essa linha (registrar ADR quando começar).
+
 ## Ideias futuras (backlog criativo)
 
 Ideias do João para considerar nas etapas certas — não são compromissos ainda.
