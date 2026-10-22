@@ -72,6 +72,15 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   `attribution`).
 - Commit antes de mudanças arriscadas; nunca reescrever histórico já enviado ao GitHub
   (force push) sem autorização do João.
+- **Fluxo de branches** (autorizado pelo João a enviar ao GitHub neste projeto):
+  1. Todo trabalho começa numa branch a partir da `main` atualizada
+     (`stage-c/...`, `feat/...`, `fix/...`, `chore/...`, `docs/...`).
+  2. Commits pequenos na branch; `git push -u origin <branch>` para ter backup no GitHub.
+  3. Quando o incremento estiver validado (testes do Claude passando e, quando houver
+     validação visual/de sensação, aprovação do João): merge na `main` com `--no-ff`
+     (preserva o "degrau" no histórico) e `git push origin main`.
+  4. Branches mescladas ficam no GitHub como histórico; nunca apagar sem pedir.
+  5. Se algo der errado, a `main` continua no último estado bom.
 
 ## Ambiente
 
