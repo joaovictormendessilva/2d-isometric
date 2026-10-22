@@ -79,7 +79,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - Chunks dentro de uma região só se medições mostrarem necessidade.
   - Dungeons temporárias/instanciadas: decidir quando forem implementadas.
 - **Coop (decidido pelo João, 2026-10-22)**: jogadores podem estar em regiões diferentes; o host
-  simula toda região ocupada — condicionado ao benchmark da F2b. Texto original do ponto aberto:
+  simula toda região ocupada. Benchmark da F2b (2026-10-22, `docs/03-desempenho.md`): 4 regiões
+  em combate ~3 ms no PC de dev, viável. Texto original do ponto aberto:
   jogadores em regiões diferentes ao mesmo tempo (o host
   precisaria simular mais de uma região). Decidir até a Etapa H.
 
@@ -435,7 +436,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-020 — Várias regiões, passagens e viagem
 
-- **Status**: Hipótese (Etapa F2a, 2026-10-22; aguardando teste do João)
+- **Status**: Hipótese (F2a validada pelo João, 2026-10-22; F2b medida; coop na F2c)
 - **Contexto**: segunda região (floresta densa, escolha do João) ligada à campina. No coop,
   cada jogador poderá estar numa região diferente (decisão do João, ADR-005), se o benchmark
   da F2b mostrar que o host aguenta.

@@ -166,7 +166,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   com jogadores em regiões diferentes (cada cliente só recebe a sua).
   F2a ✅ implementado (ADR-020): floresta densa (mais escura, 8 carvalhos antigos, 10 pontos de
   slime), passagens nas bordas (campina leste ↔ floresta oeste), região deixada guardada, save
-  lembra a região. 110 testes. Aguardando teste do João.
+  lembra a região. 110 testes. Validado pelo João (2026-10-22).
+  F2b ✅ executado (`tests/benchmark_regions.gd`): 4 regiões ativas em combate ~3 ms no PC de
+  dev, viável (detalhes em `docs/03-desempenho.md`). F2c a seguir.
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
@@ -220,7 +222,7 @@ Ordem proposta (cada um com validação do João antes do próximo):
 
 ## Pendências de decisão
 
-- ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22), se o benchmark da F2b permitir.
+- ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22); benchmark da F2b confirmou que o host aguenta.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
 
