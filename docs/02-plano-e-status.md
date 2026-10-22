@@ -11,7 +11,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
-| D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
+| D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | 🟡 aguardando validação do João |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
@@ -114,12 +114,27 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Validação de sensação do combate — João, 2026-10-22
 - [x] Merge na `main` — autorizado pelo João
 
+## Etapa D+ — checklist (branch `stage-d-plus/network-test`)
+
+- [x] Rede com host autoritativo (ADR-012): cada jogador simula o próprio movimento e o host
+      valida; criaturas e outros jogadores interpolados; criação pelo MultiplayerSpawner
+- [x] Segurança de rede (ADR-013, regra permanente do João): porta só quando pedida (127.0.0.1
+      por padrão), aperto de mão com versão, sem repasse entre clientes, validação de tudo
+- [x] Dano, vida, morte, renascimento, imunidade, drops pessoais e inventário pela rede
+- [x] Outros jogadores com tom esverdeado; situação da rede no canto superior direito
+- [x] `tools/coop-local.bat`: abre host + cliente neste PC com dois cliques
+- [x] 12 testes de rede (host e cliente no mesmo processo, ENet real em 127.0.0.1), 37 no total
+- [x] Desempenho offline preservado (200 slimes: 3,2–3,3 ms); tráfego ~0,9 KB/s por entidade
+- [ ] Validação de sensação (movimento do outro jogador suave?) — **João**
+- [ ] Merge na `main` — só após o OK explícito do João
+
 ## Funcionalidades
 
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
 - Árvores (e futuros prédios) ficam semitransparentes quando o personagem está atrás delas.
 - Combate com espada (clique esquerdo, J ou botão X do controle; segurar repete) contra slimes;
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
+- Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 
 ## Problemas conhecidos
 

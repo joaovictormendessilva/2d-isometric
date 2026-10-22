@@ -39,7 +39,7 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 | Muitos projéteis | 200 / 500 / 1000 | ⬜ |
 | Partículas e auras | 10 / 30 / 60 auras ativas | ⬜ |
 | Itens no chão | 200 / 500 | ⬜ |
-| Coop | 2 / 4 jogadores na mesma região | ⬜ |
+| Coop | 2 / 4 jogadores na mesma região | 🟡 2 jogadores (tráfego medido); 4 ⬜ |
 
 Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 
@@ -50,6 +50,8 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 | 2026-10-21 | ~~`benchmark_region.gd` sem `--fixed-fps`~~ — média 0,41 ms | PC de dev | **Medição subestimada**: sem `--fixed-fps` a física (60 Hz) rodava só em ~1 de cada 40 quadros. Substituída pelas linhas abaixo. |
 | 2026-10-21 | `benchmark_region.gd --fixed-fps 60` — Prado com 238 objetos, 8 slimes, ~1180 nós, personagem andando, 1200 quadros | PC de dev (RX 6600, Compatibility) | média **0,82 ms**, p99 1,15 ms, pior 1,40 ms, 38 draw calls, 43 MB de memória estática |
 | 2026-10-21 | `benchmark_monsters.gd --fixed-fps 60` — N slimes perseguindo e atacando 1 jogador, 600 quadros | PC de dev | 50: **0,81 ms** (p99 1,21) · 100: **1,54 ms** (p99 2,07) · 200: **3,13 ms** (p99 4,03, pior 4,47) |
+| 2026-10-22 | Mesmo `benchmark_monsters.gd -- 200` com a camada de rede (offline) | PC de dev | 200: **3,2–3,3 ms** (p99 4,0–4,5): +~4% pelo componente NetSync; ele se desliga offline |
+| 2026-10-22 | Tráfego em rede: host + 1 cliente, 10 entidades, 10 s de jogo andando | PC de dev (127.0.0.1) | host → cliente **8,8 KB/s**, cliente → host **1,0 KB/s** (~0,9 KB/s por entidade replicada) |
 
 Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
 200 criaturas cabem na meta de 4 ms do PC de dev. Supondo que o hardware modesto seja 3–4×
