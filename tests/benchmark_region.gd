@@ -20,7 +20,7 @@ func _run() -> void:
 	var game := MAIN_SCENE.instantiate()
 	root.add_child(game)
 	game.detach_local_input()
-	var player := (game.session as GameSession).get_player_entity(game.LOCAL_PLAYER_ID) as Character
+	var player := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
 
 	var stats := FrameStats.new()
 	var draw_calls := 0.0

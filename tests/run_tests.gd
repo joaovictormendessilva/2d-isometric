@@ -2,7 +2,8 @@ extends SceneTree
 ## Executa todos os testes de `tests/test_*.gd` e sai com código 0 (ok) ou 1 (falhas).
 ## Qualquer erro de script ou da engine durante um teste também o reprova.
 ##
-## Uso: Godot --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd
+## Uso: Godot --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd [-- <filtro>]
+## Com filtro, roda só os arquivos cujo nome contém o texto (ex.: `-- network`).
 ## (`--fixed-fps 60` faz cada quadro valer 1/60 s: a física roda rápida e determinística.)
 
 const TEST_DIR := "res://tests/"
@@ -38,8 +39,9 @@ func _initialize() -> void:
 func _run_all() -> void:
 	var total := 0
 	var failed := 0
+	var filter := "" if OS.get_cmdline_user_args().is_empty() else OS.get_cmdline_user_args()[0]
 	for file in DirAccess.get_files_at(TEST_DIR):
-		if not (file.begins_with("test_") and file.ends_with(".gd")):
+		if not (file.begins_with("test_") and file.ends_with(".gd")) or not (filter.is_empty() or file.contains(filter)):
 			continue
 		var script: GDScript = load(TEST_DIR + file)
 		print("%s" % file)

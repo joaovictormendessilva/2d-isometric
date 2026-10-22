@@ -55,7 +55,7 @@ func test_monster_drops_are_personal_and_collectable() -> void:
 	var owners := pickups.map(func(p: Pickup) -> int: return p.owner_player_id)
 	check(1 in owners and 2 in owners, "um drop para cada jogador (donos %s)" % [owners])
 	for p: Pickup in pickups:
-		check(p.visible == (p.owner_player_id == game.LOCAL_PLAYER_ID), "só o drop do jogador local aparece")
+		check(p.visible == (p.owner_player_id == game.local_player_id()), "só o drop do jogador local aparece")
 
 	# O jogador 2 pisa no drop do jogador 1: esse fica. O dele (ao lado) é atraído e coletado.
 	var drop_of_1: Pickup = pickups.filter(func(p: Pickup) -> bool: return p.owner_player_id == 1)[0]
@@ -71,7 +71,7 @@ func test_monster_drops_are_personal_and_collectable() -> void:
 func test_player_dies_and_respawns_at_entry() -> void:
 	var game := start_game()
 	var region: Region = game.region
-	var player := (game.session as GameSession).get_player_entity(game.LOCAL_PLAYER_ID) as Character
+	var player := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
 	player.position += Vector2(40, 0)
 	player.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 0))
 	check(not player.is_alive(), "jogador morreu")

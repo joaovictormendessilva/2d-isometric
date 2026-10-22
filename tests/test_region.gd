@@ -24,7 +24,7 @@ func test_props_stand_on_land() -> void:
 func test_player_cannot_leave_region() -> void:
 	var game := start_game()
 	var region: Region = game.region
-	var player := (game.session as GameSession).get_player_entity(game.LOCAL_PLAYER_ID) as Character
+	var player := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
 	var bounds := region.camera_bounds
 	for angle_step in 8:
 		player.position = region.get_spawn_position()

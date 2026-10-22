@@ -60,7 +60,7 @@ func test_rock_footprints_never_overlap() -> void:
 func test_local_input_moves_local_player() -> void:
 	var game := add_to_tree(TestCase.MAIN_SCENE.instantiate())
 	var session: GameSession = game.session
-	var player := session.get_player_entity(game.LOCAL_PLAYER_ID) as Character
+	var player := session.get_player_entity(game.local_player_id()) as Character
 	check(session.get_player_count() == 1, "sessão com 1 jogador")
 	check(player != null, "jogador local tem personagem")
 	var start := player.position
