@@ -17,6 +17,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	SaveService.default_path = ""  # não lê nem grava o save de quem joga
 	var game := MAIN_SCENE.instantiate()
 	root.add_child(game)
 	game.detach_local_input()

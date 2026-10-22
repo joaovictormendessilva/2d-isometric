@@ -52,7 +52,7 @@ func _physics_process(delta: float) -> void:
 	if not has_landed():
 		return
 	var owner_body := session.get_player_entity(owner_player_id) as Character
-	if owner_body == null or not owner_body.is_alive():
+	if owner_body == null or not owner_body.is_alive() or owner_body.get_parent() != get_parent():
 		return
 	var inventory := session.get_inventory(owner_player_id)
 	if inventory == null or not inventory.can_add(item.id, amount):

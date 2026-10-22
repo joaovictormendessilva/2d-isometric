@@ -13,6 +13,8 @@ Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidad
 - **Albion Online** — coleta em pontos do mundo (árvores, minérios) com ferramenta própria e
   especialização por tipo de coleta; o jeito de lançar habilidades no combate.
 - **V Rising** — o mesmo estilo de lançar habilidades (teclas de habilidade, mira no cursor).
+- **Hero Siege** — referência de design (João, 2026-10-22): HUD, ambientação medieval que muda
+  conforme o mundo, cosméticos que mudam o personagem, skills, grind e mapas em pixel art.
 
 Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
 arquitetura considera **coop LAN** desde o início e uma possível evolução para online.
@@ -115,14 +117,18 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Importar recursos: `G --headless --path . --import`
     - Testes automáticos: `G --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd`
     - Desempenho (com janela; `--fixed-fps 60` = 1 passo de física por quadro, sem espera):
-      `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd` e `.../benchmark_monsters.gd`
+      `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd`, `.../benchmark_monsters.gd` e
+      `.../benchmark_regions.gd` (várias regiões ativas no host)
     - Testes reprovam também qualquer erro de script registrado durante o teste.
+    - Verificações de imagem (com janela; os testes acima não enxergam pixels):
+      `G --path . --fixed-fps 60 -s res://tests/render_checks.gd` (textos do mundo visíveis antes e
+      depois de viajar). Rodar ao mexer em câmera, camadas, regiões ou textos do mundo.
     - Só alguns arquivos de teste: `... -s res://tests/run_tests.gd -- network` (filtro no nome).
     - Coop local (duas janelas, host + cliente): `tools/coop-local.bat`, ou
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`.
-    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory]`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory] [--region=forest]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
-      importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
+      importar, `G --headless --path . -s res://tools/generate_regions.gd`, importar.
     - Folha de quadros (animação): `G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<png> --scenario=attack`
     - Conferir sprite: `G --headless --path . -s res://tools/art_check.gd -- <sprite.png> --preview=<png>`
     - Regerar tema da UI (após mudar `UiStyle`): `G --headless --path . -s res://tools/generate_ui_theme.gd`, importar.

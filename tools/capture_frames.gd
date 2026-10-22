@@ -102,7 +102,8 @@ func _act(character: Character, scenario: String) -> void:
 
 
 func _screen_position(character: Character) -> Vector2:
-	return character.get_viewport().get_canvas_transform() * character.global_position
+	# Pela janela: o personagem mora no mundo da região, que não tem câmera (ver RegionWorlds).
+	return root.get_canvas_transform() * character.global_position
 
 
 func _crop(image: Image, center: Vector2) -> Image:

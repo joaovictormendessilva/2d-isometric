@@ -48,7 +48,7 @@ func test_monster_drops_are_personal_and_collectable() -> void:
 	var game := start_game()
 	var session: GameSession = game.session
 	var spawner: EntitySpawner = game.get_node("EntitySpawner")
-	var second_player := spawner.spawn_player(2)
+	var second_player := spawner.enter_region(2, game.region, game.region.get_spawn_position())
 	var monster := first_monster(game)
 	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 1))
 	await physics_frames(2)

@@ -152,6 +152,20 @@ func revive(at: Vector2) -> void:
 	revived.emit(self)
 
 
+## Host: o personagem foi recriado em outra região (viagem). Este fica parado, invisível e
+## sem colisão até ser liberado, ignorando mensagens atrasadas do dono.
+func retire() -> void:
+	if gatherer:
+		gatherer.stop()
+	process_mode = PROCESS_MODE_DISABLED
+	visible = false
+	collision_layer = 0
+	collision_mask = 0
+	remove_from_group(OccluderFade.VIEWER_GROUP)
+	if net:
+		net.retire()
+
+
 func _physics_process(delta: float) -> void:
 	if net and not net.is_simulating():
 		return

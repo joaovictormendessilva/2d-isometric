@@ -46,6 +46,8 @@ var _stopping_on_request := false
 ## perguntas são feitas todo quadro por todas as criaturas.
 var _online := false
 var _simulating := true
+## Personagem trocado por outro numa viagem (ver Character.retire): ignora o dono.
+var _retired := false
 
 @onready var _body: Character = get_parent()
 
@@ -79,6 +81,11 @@ func owner_peer() -> int:
 	return _body.player_id if _body.player_id != 0 else 1
 
 
+## Host: o corpo foi aposentado (viagem); mensagens atrasadas do dono deixam de valer.
+func retire() -> void:
+	_retired = true
+
+
 func is_simulating() -> bool:
 	return _simulating
 
@@ -103,7 +110,7 @@ func _send_state(t: float, position: Vector2, facing: Vector2) -> void:
 ## Dono → host: posição do personagem do jogador, validada antes de valer.
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func _owner_state(t: float, position: Vector2, facing: Vector2) -> void:
-	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
 		return
 	if not is_finite(t) or not NetRules.is_valid_vector(position) or not facing.is_finite():
 		return
@@ -204,7 +211,7 @@ func _on_attack_started(direction: Vector2) -> void:
 ## Dono → host. O host aplica as próprias regras (vivo, ritmo do ataque) antes de aceitar.
 @rpc("any_peer", "call_remote", "reliable")
 func _request_attack(direction: Vector2) -> void:
-	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
 		return
 	direction = NetRules.clean_direction(direction)
 	if direction != Vector2.ZERO:
@@ -238,7 +245,7 @@ func _on_gather_stopped() -> void:
 ## Dono → host. O host confere tudo de novo (alcance, ferramenta, nível) antes de aceitar.
 @rpc("any_peer", "call_remote", "reliable")
 func _request_gather(node_name: String, seq: int) -> void:
-	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
 		return
 	_stop_silently()  # a coleta anterior acabou a pedido do dono: não avisar de volta
 	_gather_seq = seq
@@ -249,7 +256,7 @@ func _request_gather(node_name: String, seq: int) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _stop_gather(seq: int) -> void:
-	if multiplayer.is_server() and multiplayer.get_remote_sender_id() == owner_peer() \
+	if not _retired and multiplayer.is_server() and multiplayer.get_remote_sender_id() == owner_peer() \
 			and seq == _gather_seq:
 		_stop_silently()
 

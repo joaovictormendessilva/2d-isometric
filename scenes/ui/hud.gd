@@ -14,14 +14,20 @@ var _skills: DataCatalog
 @onready var _inventory_hint: Label = $InventoryHint
 
 
-func setup(character: Character, progress: SkillProgress, skills: DataCatalog) -> void:
+## Uma vez: o que é do jogador (níveis de coleta, tecla do inventário).
+func setup(progress: SkillProgress, skills: DataCatalog) -> void:
 	_skills = skills
 	_bar_fill.color = BAR_FULL_COLOR
-	character.health.changed.connect(_on_health_changed)
-	_on_health_changed(character.health.current, character.health.max_health)
 	progress.changed.connect(_on_skills_changed.bind(progress).unbind(2))
 	_on_skills_changed(progress)
 	_inventory_hint.text = Texts.format(&"HUD_INVENTORY_KEY", [Texts.action_key(&"inventory")])
+
+
+## A cada personagem (ele é recriado numa viagem): a vida dele. A ligação com o anterior some
+## junto com ele.
+func set_character(character: Character) -> void:
+	character.health.changed.connect(_on_health_changed)
+	_on_health_changed(character.health.current, character.health.max_health)
 
 
 func _on_health_changed(current: int, maximum: int) -> void:

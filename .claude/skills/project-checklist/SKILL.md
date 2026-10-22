@@ -42,6 +42,8 @@ Passe item por item e relate o que **não** se aplica ou ficou pendente. Detalhe
 - [ ] Mudou desempenho (muitas entidades, partículas, física)? Rodar os benchmarks e comparar
       com `docs/03-desempenho.md`.
 - [ ] Captura de tela ou folha de quadros quando algo visual mudou — e olhar.
+- [ ] Mexeu em câmera, camadas, regiões ou textos do mundo? Rodar `tests/render_checks.gd`
+      (com janela) — os testes headless não veem pixels.
 
 ## Documentação e Git
 

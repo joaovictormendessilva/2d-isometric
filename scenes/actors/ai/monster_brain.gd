@@ -68,7 +68,8 @@ func _pick_target() -> Character:
 	var best_distance := _body.data.aggro_radius
 	for player_id in session.get_player_ids():
 		var candidate := session.get_player_entity(player_id) as Character
-		if candidate == null or not candidate.is_alive():
+		# Só quem está na mesma região (o host simula várias, cada uma no seu mundo).
+		if candidate == null or not candidate.is_alive() or candidate.get_parent() != _body.get_parent():
 			continue
 		var distance := Iso.ground_distance(_body.position, candidate.position)
 		if distance <= best_distance:

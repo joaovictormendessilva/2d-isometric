@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 (segunda região) a seguir |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 (NPC) a seguir |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -76,7 +76,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Arte provisória gerada por código (`tools/generate_placeholder_art.gd`)
 - [x] TileSet isométrico 32×16 (losango) com colisão na água
 - [x] Região "Prado" (`scenes/regions/meadow/`) gerada com semente fixa: borda de água,
-      lagos, caminhos de terra, 164 árvores e 74 pedras (`tools/generate_meadow_region.gd`)
+      lagos, caminhos de terra, 164 árvores e 74 pedras (hoje `tools/generate_regions.gd`)
 - [x] Sessão com IDs de jogador/entidade (`core/game_session.gd`), sem jogador global
 - [x] Personagem movido por intenções, velocidade igual em todas as direções no plano do chão
 - [x] Colisão por "pegada" redonda no chão (`scenes/components/footprint.gd`); o personagem
@@ -160,7 +160,19 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - **F1 – Save** ✅ (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
   host (escolha do João), estruturas colocadas e pontos de coleta; identidade por perfil;
   reconexão devolve o personagem. 105 testes. Validado pelo João, inclusive no coop (2026-10-22).
-- **F2 – Segunda região** ⬜: passagem entre regiões, cada uma com seu estado salvo (ADR-005).
+- **F2 – Segunda região** ✅ (branch `stage-f/regions`): no coop cada jogador vai para onde quiser
+  (escolha do João, se o host aguentar). F2a: segunda região e passagem, sozinho (regiões já
+  prontas para várias ativas no host). F2b: benchmark do host com 2–4 regiões ativas. F2c: coop
+  com jogadores em regiões diferentes (cada cliente só recebe a sua).
+  F2a ✅ implementado (ADR-020): floresta densa (mais escura, 8 carvalhos antigos, 10 pontos de
+  slime), passagens nas bordas (campina leste ↔ floresta oeste), região deixada guardada, save
+  lembra a região. 110 testes. Validado pelo João (2026-10-22).
+  F2b ✅ executado (`tests/benchmark_regions.gd`): 4 regiões ativas em combate ~3 ms no PC de
+  dev, viável (detalhes em `docs/03-desempenho.md`).
+  F2c ✅ implementado (ADR-020): cada região num mundo próprio; no coop cada jogador vai para
+  onde quiser e cada cliente só recebe a própria região; viajar recria o personagem lá. 111
+  testes. Validado pelo João, inclusive no coop (2026-10-22). Correção do teste dele: os textos
+  do mundo (dano, itens, "[E]") sumiam; agora há verificação com imagem (`tests/render_checks.gd`).
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
@@ -186,6 +198,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - Save: o mundo é guardado sozinho (ao fechar a janela, quando alguém sai e a cada 30 s) em
   `%APPDATA%\Godot\app_userdata\2D Isometric\saves\world.json`. Para começar do zero, apague
   esse arquivo. No coop, o progresso do amigo fica no save de quem hospeda.
+- Regiões: no fim do caminho de terra na borda leste da campina fica a passagem para a floresta
+  (e na borda oeste da floresta, a volta). No coop cada um viaja sozinho; quem volta ao jogo
+  começa na região onde estava.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 
@@ -212,7 +227,7 @@ Ordem proposta (cada um com validação do João antes do próximo):
 
 ## Pendências de decisão
 
-- Coop: jogadores em regiões diferentes ao mesmo tempo? (ADR-005, decidir até a Etapa H)
+- ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22); benchmark da F2b confirmou que o host aguenta.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
 

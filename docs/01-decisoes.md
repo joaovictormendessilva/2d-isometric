@@ -78,7 +78,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     e libera a cena.
   - Chunks dentro de uma região só se medições mostrarem necessidade.
   - Dungeons temporárias/instanciadas: decidir quando forem implementadas.
-- **Ponto aberto para o coop**: jogadores em regiões diferentes ao mesmo tempo (o host
+- **Coop (decidido pelo João, 2026-10-22)**: jogadores podem estar em regiões diferentes; o host
+  simula toda região ocupada. Benchmark da F2b (2026-10-22, `docs/03-desempenho.md`): 4 regiões
+  em combate ~3 ms no PC de dev, viável. Texto original do ponto aberto:
+  jogadores em regiões diferentes ao mesmo tempo (o host
   precisaria simular mais de uma região). Decidir até a Etapa H.
 
 ## ADR-006 — Representação isométrica
@@ -242,6 +245,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Ritmo de ataque** conferido no host (folga de 0,05 s para variação de chegada).
   - **Dano só no host**: `Health.apply_damage` não faz nada fora dele, nem por engano.
   - **Limites**: no máximo 3 clientes; pacotes de sincronização até 1 KB.
+  - **Regiões (F2c)**: o cliente não escolhe região: só o host decide, pelas passagens que
+    ele mesmo detecta. O id de região que chega ao cliente só serve para buscar no catálogo.
+    Cada cliente só recebe a própria região. Custo aceito: o host simula até uma região por
+    jogador (medido na F2b).
 - **Pendências registradas** (antes do coop pela internet — não aceitar sem resolver):
   - **Criptografia** (DTLS do ENet) e **código/senha da partida** — hoje desnecessários no
     127.0.0.1, obrigatórios antes de LAN aberta (código) e internet (ambos).
@@ -430,3 +437,57 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Kit de testes** só para personagem novo (quem volta não ganha outro).
 - **Consequências**: reconexão funciona (quem volta recebe o próprio personagem). Testes,
   capturas de tela e `capture_frames` não leem nem gravam o save de quem joga.
+
+## ADR-020 — Várias regiões, passagens e viagem
+
+- **Status**: Aceita (F2 validada pelo João, inclusive no coop, 2026-10-22)
+- **Contexto**: segunda região (floresta densa, escolha do João) ligada à campina. No coop,
+  cada jogador poderá estar numa região diferente (decisão do João, ADR-005), se o benchmark
+  da F2b mostrar que o host aguenta.
+- **Decisões (F2a, jogando sozinho)**:
+  - **Catálogo** `data/regions/` (`RegionData`: id e cena). Ids vindos do save só servem para
+    buscar no catálogo.
+  - **Passagem** (`scenes/regions/passage.tscn`): gatilho no fim de um caminho de terra que
+    atravessa o anel de água, parede invisível atrás (não se sai do mapa) e ponto de chegada
+    longe do gatilho. Destino em dados: região e passagem de destino.
+  - **Viagem**: a região anterior vai para o save (memória) e é liberada com as criaturas e os
+    itens no chão; o personagem troca de pai na árvore (sem sair da sessão) e chega na
+    passagem de volta. Renascimentos agendados na região anterior são descartados.
+  - **Save**: o host sempre tem o save na memória (sem arquivo = só memória); cada personagem
+    guarda a região onde estava e volta ao ponto de entrada dela.
+  - **Ambientação**: cada região tem luz ambiente (`ambient`, CanvasModulate); a floresta é
+    mais escura e esverdeada. Textos do mundo (números, avisos) ficam numa camada própria, fora
+    dessa luz, para continuarem legíveis.
+  - **Gerador** `tools/generate_regions.gd` (antes `generate_meadow_region.gd`): receitas por
+    região; o caminho é aberto depois de tudo sorteado, então a campina continua idêntica
+    (mesmos nomes e posições: o save dela continua valendo).
+- **Decisões (F2c, coop: cada jogador na região que quiser)** — benchmark da F2b: viável:
+  - **Cada região num mundo próprio** (`RegionWorlds`): um SubViewport por região carregada,
+    com física e desenho só dela, que nunca desenha sozinho. A janela passa a usar o mundo da
+    região do jogador local (`Viewport.world_2d`), então câmera, interface e textos do mundo
+    ficam onde sempre estiveram. A câmera copia a posição do personagem a cada passo de física
+    (antes era filha dele). Mira do mouse calculada pela janela.
+  - **Host**: carrega toda região com jogador (no máximo uma por jogador) e simula todas; a que
+    fica vazia é guardada no save (memória) e liberada pouco depois (1,5 s, ver abaixo).
+  - **Quem está onde**: a própria região guarda os jogadores presentes (host). É a única fonte:
+    decide criaturas que perseguem (só da mesma região), drops pessoais (só de quem está lá),
+    vida das criaturas pela quantidade de jogadores na região e o que cada cliente recebe.
+  - **Cada cliente só recebe a região dele**: um replicador (MultiplayerSpawner) por região, com
+    o mesmo caminho nos dois lados, e um "portão" em cada entidade (MultiplayerSynchronizer sem
+    propriedades) cuja visibilidade o host decide. Mensagens sobre nós de uma região
+    (`HostBroadcast`) só vão para quem está nela; pedido atrasado de quem já saiu fica sem
+    resposta.
+  - **Viagem = personagem recriado** na região de destino (o replicador de uma região não leva
+    um nó para a outra). Inventário, equipamento e níveis ficam na sessão; a vida vai junto. O
+    personagem antigo some para todos na hora, mas fica 1 s parado no host ignorando mensagens
+    atrasadas do dono; a região vazia espera um pouco mais que isso antes de ser liberada.
+  - **Ordem na viagem de um cliente** (canal confiável, em ordem): some o que é da região antiga
+    → aviso "carregue a região X" (`Main._enter_region`, id conferido no catálogo) → chegam as
+    entidades da nova e o personagem dele. Quem entra na partida segue o mesmo caminho e volta
+    para a região onde estava (save).
+  - Protocolo de rede: versão 5.
+  - **Textos do mundo**: a Godot solta a camada que segue a câmera ao trocar o mundo da janela;
+    o Main a recoloca na árvore a cada troca. Verificado com imagem (`tests/render_checks.gd`).
+- **Limitações**: pontos de coleta de uma região sem ninguém não renascem enquanto ninguém está
+  lá; itens no chão somem ao sair da região; a troca de região é um corte seco (sem
+  transição).

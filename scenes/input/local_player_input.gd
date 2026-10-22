@@ -61,7 +61,14 @@ func _mouse_is_busy() -> bool:
 
 func _aim_direction() -> Vector2:
 	if _aim_with_mouse:
-		var to_mouse := Iso.screen_to_ground(target.get_global_mouse_position() - target.global_position)
+		var to_mouse := Iso.screen_to_ground(_mouse_in_world() - target.global_position)
 		if not to_mouse.is_zero_approx():
 			return to_mouse
 	return target.facing
+
+
+## Ponteiro em coordenadas do mundo, pela janela (o personagem mora no mundo da região, que
+## não recebe o mouse; ver RegionWorlds).
+func _mouse_in_world() -> Vector2:
+	var viewport := get_viewport()
+	return viewport.get_canvas_transform().affine_inverse() * viewport.get_mouse_position()

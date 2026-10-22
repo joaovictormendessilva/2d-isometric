@@ -22,6 +22,8 @@ var recipes: RecipeDatabase
 var spawner: EntitySpawner
 
 var _rng := RandomNumberGenerator.new()
+## Host: inventário de cada jogador já ligado aos envios (ver `track_player`).
+var _tracked: Dictionary[int, Inventory] = {}
 
 
 func _ready() -> void:
@@ -33,11 +35,15 @@ func _ready() -> void:
 func track_player(player_id: int) -> void:
 	if not NetRules.is_online(multiplayer) or not multiplayer.is_server():
 		return
+	# Uma vez por jogador na sessão: o personagem é recriado a cada viagem, o inventário não.
+	var inventory := session.get_inventory(player_id)
+	if _tracked.get(player_id) == inventory:
+		return
+	_tracked[player_id] = inventory
 	session.get_equipment(player_id).slot_changed.connect(
 		_broadcast_equipment.bind(player_id).unbind(1))
 	if player_id == multiplayer.get_unique_id():
 		return
-	var inventory := session.get_inventory(player_id)
 	inventory.slot_changed.connect(_send_slot.bind(player_id, inventory))
 	inventory.held_changed.connect(_send_held.bind(player_id, inventory))
 	inventory.added.connect(func(item_id: StringName, amount: int) -> void:
@@ -225,8 +231,8 @@ func _drop_held_requested() -> void:
 	var space := character.get_world_2d().direct_space_state
 	var spot := GroundQuery.find_drop_spot(space, character.position, _rng, DROP_DISTANCE.x,
 		DROP_DISTANCE.y, DROP_CLEARANCE)
-	spawner.spawn_pickup(items.get_item(content[0]), content[1], player_id, character.position,
-		spot, true)
+	spawner.spawn_pickup(Region.of(character), items.get_item(content[0]), content[1], player_id,
+		character.position, spot, true)
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -250,7 +256,7 @@ func _place_requested(at: Vector2) -> void:
 	var space := character.get_world_2d().direct_space_state
 	if placeable and PlacementRules.can_place(space, placeable.structure, character.position, at) \
 			and inventory.use_held(1):
-		spawner.spawn_structure(placeable.structure, at)
+		spawner.spawn_structure(Region.of(character), placeable.structure, at)
 
 
 @rpc("any_peer", "call_remote", "reliable")

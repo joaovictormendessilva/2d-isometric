@@ -13,7 +13,7 @@ const AUTOSAVE_TIME := 30.0
 ## Limite de estruturas lidas do arquivo (bem acima do legítimo; só barra lixo).
 const MAX_STRUCTURES := 1000
 
-## Arquivo do save; vazio = desligado. Testes e ferramentas de captura trocam o padrão para não
+## Arquivo do save; vazio = só na memória. Testes e ferramentas de captura trocam o padrão para não
 ## mexer no mundo de quem joga.
 static var default_path := DEFAULT_PATH
 
@@ -21,32 +21,36 @@ var _path := ""
 var _save: WorldSave
 var _session: GameSession
 var _spawner: EntitySpawner
-var _region: Region
+## Regiões carregadas agora (no coop, uma por região com jogador).
+var _loaded: Array[Region] = []
 var _network: Network
 var _items: ItemDatabase
 var _skills: DataCatalog
 var _structures: DataCatalog
 
 
-## Host: lê o save e devolve a região ao estado guardado. Chame antes de criar os jogadores.
-func setup(path: String, session: GameSession, spawner: EntitySpawner, region: Region,
-		network: Network, items: ItemDatabase, skills: DataCatalog, structures: DataCatalog) -> void:
-	if path.is_empty() or not multiplayer.is_server():
+## Host: abre o mundo. Sem `path`, o save fica só na memória (regiões deixadas e quem sai e
+## volta na mesma partida), sem ler nem gravar arquivo. Depois, `region_loaded` para cada região
+## carregada (antes de os jogadores chegarem nela).
+func setup(path: String, session: GameSession, spawner: EntitySpawner, network: Network,
+		items: ItemDatabase, skills: DataCatalog, structures: DataCatalog) -> void:
+	if not multiplayer.is_server():
 		return
-	_path = path
 	_session = session
 	_spawner = spawner
-	_region = region
 	_network = network
 	_items = items
 	_skills = skills
 	_structures = structures
-	_save = WorldSave.load_file(path)
-	if _save == null:
-		push_warning("[save] %s ilegível e não pôde ser guardado de lado: save desligado" % path)
-		return
-	_restore_region(_save.regions.get(String(region.region_id)))
 	network.player_left.connect(_on_player_left)
+	_save = WorldSave.load_file(path) if not path.is_empty() else WorldSave.new()
+	if _save == null:
+		push_warning("[save] %s ilegível e não pôde ser guardado de lado: nada será gravado" % path)
+		_save = WorldSave.new()
+		return
+	_path = path
+	if _path.is_empty():
+		return
 	var timer := Timer.new()
 	timer.wait_time = AUTOSAVE_TIME
 	timer.timeout.connect(save_now)
@@ -54,8 +58,30 @@ func setup(path: String, session: GameSession, spawner: EntitySpawner, region: R
 	timer.start()
 
 
+## Host com o mundo aberto (com ou sem arquivo).
 func is_enabled() -> bool:
 	return _save != null
+
+
+## Região onde o jogador estava ao sair ("" se não houver; quem chama confere no catálogo).
+func region_of(player_id: int) -> StringName:
+	var record: Variant = _save.players.get(_network.player_key(player_id)) if is_enabled() else null
+	var region_id: Variant = record.get("region") if record is Dictionary else null
+	return StringName(region_id) if region_id is String else &""
+
+
+## A região acabou de ser carregada: volta ao estado guardado (estruturas, pontos de coleta).
+func region_loaded(region: Region) -> void:
+	_loaded.append(region)
+	if is_enabled():
+		_restore_region(region, _save.regions.get(String(region.region_id)))
+
+
+## A região vai ser liberada (ninguém mais nela): o estado dela fica guardado na memória.
+func region_unloading(region: Region) -> void:
+	_loaded.erase(region)
+	if is_enabled():
+		_save.regions[String(region.region_id)] = _capture_region(region)
 
 
 ## Host: o personagem acabou de ser criado. Quem já jogou neste mundo volta como estava
@@ -79,7 +105,10 @@ func save_now() -> Error:
 		return OK
 	for player_id in _session.get_player_ids():
 		_remember(player_id)
-	_save.regions[String(_region.region_id)] = _capture_region()
+	for region in _loaded:
+		_save.regions[String(region.region_id)] = _capture_region(region)
+	if _path.is_empty():
+		return OK
 	var error := _save.save_file(_path)
 	if error != OK:
 		push_warning("[save] não foi possível gravar %s: %s" % [_path, error_string(error)])
@@ -98,9 +127,13 @@ func _remember(player_id: int) -> void:
 	if key.is_empty() or character == null or _session.get_inventory(player_id) == null:
 		return
 	var health := character.health
-	_save.players[key] = CharacterRecord.capture(_session.get_inventory(player_id),
+	var record := CharacterRecord.capture(_session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
 		health.max_health if health.is_dead() else health.current)
+	var region := Region.of(character)
+	if region:
+		record["region"] = String(region.region_id)
+	_save.players[key] = record
 
 
 ## Antes de o personagem sumir da sessão (a chave ainda é conhecida, ver Network).
@@ -109,10 +142,10 @@ func _on_player_left(player_id: int) -> void:
 	save_now()
 
 
-func _capture_region() -> Dictionary:
+func _capture_region(region: Region) -> Dictionary:
 	var nodes := {}
 	var placed := []
-	for node in _region.entities.get_children():
+	for node in region.entities.get_children():
 		if node is ResourceNode:
 			nodes[String(node.name)] = node.save_state()
 		elif node is Structure and not node.is_queued_for_deletion():
@@ -122,12 +155,12 @@ func _capture_region() -> Dictionary:
 
 ## Estado lido do arquivo (não confiável): nós da região só por nome existente, estruturas só
 ## de tipos conhecidos e em coordenadas válidas.
-func _restore_region(state: Variant) -> void:
+func _restore_region(region: Region, state: Variant) -> void:
 	if not state is Dictionary:
 		return
 	var nodes: Variant = state.get("resource_nodes")
 	if nodes is Dictionary:
-		for node in _region.entities.get_children():
+		for node in region.entities.get_children():
 			if node is ResourceNode and nodes.has(String(node.name)):
 				node.load_state(nodes[String(node.name)])
 	var placed: Variant = state.get("structures")
@@ -141,4 +174,4 @@ func _restore_region(state: Variant) -> void:
 			NetRules.MAX_COORDINATE, NAN), SaveValues.to_float(entry[2],
 			-NetRules.MAX_COORDINATE, NetRules.MAX_COORDINATE, NAN))
 		if structure and NetRules.is_valid_vector(at):
-			_spawner.spawn_structure(structure, at)
+			_spawner.spawn_structure(region, structure, at)

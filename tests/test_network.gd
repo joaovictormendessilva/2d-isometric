@@ -221,6 +221,7 @@ func test_late_joiner_sees_depleted_nodes() -> void:
 	for i in host_node.data.charges:
 		host_node.take_charge()
 	var client := start_network_game("Client", Network.Role.CLIENT, PORT)
+	await wait_until(func() -> bool: return client.region != null)  # o host diz qual carregar
 	var node := resource_node(client, &"copper_vein")
 	var synced := await wait_until(func() -> bool: return node.is_depleted())
 	check(synced, "cliente recebeu o ponto esgotado")

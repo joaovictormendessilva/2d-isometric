@@ -6,6 +6,7 @@ extends TestCase
 func test_placed_workbench_unlocks_its_recipes_nearby() -> void:
 	var game := start_game()
 	calm_monsters(game)
+	await physics_frames(1)  # mundo novo da região: consultas só enxergam corpos após um passo
 	var player_id: int = game.local_player_id()
 	var state: PlayerStateSync = game.player_state
 	var inventory := (game.session as GameSession).get_inventory(player_id)
