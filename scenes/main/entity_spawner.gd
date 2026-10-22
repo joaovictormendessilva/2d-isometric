@@ -39,8 +39,10 @@ var items: ItemDatabase
 var player_state: PlayerStateSync
 ## Tipos de estrutura (`data/structures/`), para montar as que o host cria.
 var structures: DataCatalog
-## Kit de testes dado a cada jogador ao entrar (só em compilações de desenvolvimento; ver main).
+## Kit de testes dado a cada jogador NOVO (só em compilações de desenvolvimento; ver main).
 var starter_kit: ItemBundle
+## Save do mundo (host): devolve o progresso de quem volta. Null = sem save.
+var saves: SaveService
 
 var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
@@ -68,8 +70,11 @@ func setup(p_session: GameSession, p_region: Region, p_local_player_id: int,
 # --- Host: decide o que existe ---------------------------------------------------------------
 
 func spawn_player(player_id: int) -> Character:
-	return _replicator.spawn({"kind": Kind.PLAYER, "entity_id": session.allocate_entity_id(),
-		"player_id": player_id, "position": region.get_spawn_position()})
+	var character: Character = _replicator.spawn({"kind": Kind.PLAYER,
+		"entity_id": session.allocate_entity_id(), "player_id": player_id,
+		"position": region.get_spawn_position()})
+	_prepare_player(character)
+	return character
 
 
 func despawn_player(player_id: int) -> void:
@@ -153,12 +158,19 @@ func _instantiate_player(data: Dictionary) -> Character:
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
 		player_state.track_player(character.player_id)
-		if equipment.equipped().is_empty():  # jogador novo: começa com o equipamento inicial
-			for item in character.stats.starting_equipment:
-				EquipmentRules.give_equipped(equipment, item)
-		if starter_kit:
-			starter_kit.give_to(session.get_inventory(character.player_id))
 	return character
+
+
+## Host, com o personagem já na árvore (vida pronta): quem já jogou neste mundo volta como
+## estava; quem é novo ganha o equipamento inicial (e o kit de testes, se houver).
+func _prepare_player(character: Character) -> void:
+	if saves and saves.restore_player(character):
+		return
+	var equipment := session.get_equipment(character.player_id)
+	for item in character.stats.starting_equipment:
+		EquipmentRules.give_equipped(equipment, item)
+	if starter_kit:
+		starter_kit.give_to(session.get_inventory(character.player_id))
 
 
 ## Tamanho do inventário = base do jogador + espaços das mochilas vestidas (bônus já somados

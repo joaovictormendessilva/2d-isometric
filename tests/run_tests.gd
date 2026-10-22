@@ -9,6 +9,8 @@ extends SceneTree
 const TEST_DIR := "res://tests/"
 ## Preferências de interface dos testes: arquivo próprio, zerado antes de cada teste.
 const TEST_SETTINGS := "user://test_settings.cfg"
+## Identidade de rede dos clientes dos testes (não a de quem joga neste computador).
+const TEST_PROFILE := "user://test_profile.cfg"
 
 
 ## Captura erros reportados pela engine (SCRIPT ERROR, push_error...) enquanto um teste roda.
@@ -36,6 +38,8 @@ var _errors := ErrorCollector.new()
 func _initialize() -> void:
 	OS.add_logger(_errors)
 	UserSettings.path = TEST_SETTINGS
+	SaveService.default_path = ""  # o jogo dos testes não lê nem grava save; test_save escolhe o dele
+	PlayerProfile.path = TEST_PROFILE
 	_run_all.call_deferred()
 
 

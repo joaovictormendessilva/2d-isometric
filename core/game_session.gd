@@ -66,8 +66,8 @@ func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
 
-## Jogador saiu (desconectou). Sem identidade persistente ainda (Etapa I), um retorno é um
-## jogador novo: inventário e experiência vão junto.
+## Jogador saiu (desconectou). O save do mundo (SaveService, só no host) já guardou o personagem;
+## aqui ele some da sessão (quem volta é recriado e recebe o progresso do save).
 func remove_player(player_id: int) -> void:
 	_player_entities.erase(player_id)
 	_inventories.erase(player_id)

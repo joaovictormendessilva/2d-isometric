@@ -12,6 +12,8 @@ extends Node
 ## Segurança (ADR-013): aperto de mão com identificação e versão do protocolo (quem não
 ## responde certo é desconectado), sem repasse direto entre clientes (tudo passa pelo host,
 ## que valida), sem decodificação de objetos, limite de jogadores e de tamanho de pacote.
+## No aperto de mão o cliente também manda o segredo do seu perfil (PlayerProfile): o resumo
+## dele é a chave do personagem no save do host (ADR-019). Mesma chave duas vezes é recusada.
 
 signal player_joined(player_id: int)
 signal player_left(player_id: int)
@@ -19,6 +21,8 @@ signal player_left(player_id: int)
 enum Role { OFFLINE, HOST, HOST_LAN, CLIENT }
 
 const LOOPBACK := "127.0.0.1"
+## Chave do personagem de quem hospeda (ou joga sozinho) no save do próprio mundo.
+const HOST_KEY := "host"
 
 var role := Role.OFFLINE
 var address := LOOPBACK
@@ -27,6 +31,7 @@ var port := NetRules.DEFAULT_PORT
 var _status := ""
 var _local_id := 1
 var _hello := ("%s:%d" % [NetRules.PROTOCOL_ID, NetRules.PROTOCOL_VERSION]).to_utf8_buffer()
+var _keys: Dictionary[int, String] = {}  # host: peer -> chave do personagem
 
 
 func configure_from_command_line(args: PackedStringArray) -> void:
@@ -91,6 +96,13 @@ func local_player_id() -> int:
 	return _local_id
 
 
+## Host: chave do personagem do jogador no save do mundo ("" se desconhecido).
+func player_key(player_id: int) -> String:
+	if player_id == _local_id:
+		return HOST_KEY
+	return _keys.get(player_id, "")
+
+
 ## Texto curto para a interface; vazio offline.
 func status_text() -> String:
 	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
@@ -106,20 +118,39 @@ func status_text() -> String:
 
 
 func _on_peer_authenticating(peer_id: int) -> void:
-	(multiplayer as SceneMultiplayer).send_auth(peer_id, _hello)
+	var hello := _hello if multiplayer.is_server() else _hello + PlayerProfile.token()
+	(multiplayer as SceneMultiplayer).send_auth(peer_id, hello)
 
 
-## Os dois lados conferem a identificação do outro byte a byte (nada é interpretado).
+## Os dois lados conferem a identificação do outro byte a byte (nada é interpretado). O host
+## também separa o segredo do cliente (tamanho exato) e guarda só o resumo como chave.
 func _on_auth_data(peer_id: int, data: PackedByteArray) -> void:
 	var api := multiplayer as SceneMultiplayer
-	if data == _hello:
-		api.complete_auth(peer_id)
-	else:
-		print("[net] peer %d recusado: versão ou jogo diferente" % peer_id)
-		api.disconnect_peer(peer_id)
+	if not multiplayer.is_server():
+		if data == _hello:
+			api.complete_auth(peer_id)
+		else:
+			_refuse(peer_id, "versão ou jogo diferente")
+		return
+	if data.size() != _hello.size() + PlayerProfile.TOKEN_SIZE \
+			or data.slice(0, _hello.size()) != _hello:
+		_refuse(peer_id, "versão ou jogo diferente")
+		return
+	var key := PlayerProfile.key_of(data.slice(_hello.size()))
+	if _keys.values().has(key):
+		_refuse(peer_id, "o mesmo jogador já está na partida")
+		return
+	_keys[peer_id] = key
+	api.complete_auth(peer_id)
+
+
+func _refuse(peer_id: int, reason: String) -> void:
+	print("[net] peer %d recusado: %s" % [peer_id, reason])
+	(multiplayer as SceneMultiplayer).disconnect_peer(peer_id)
 
 
 func _on_peer_authentication_failed(peer_id: int) -> void:
+	_keys.erase(peer_id)
 	print("[net] peer %d não concluiu o aperto de mão" % peer_id)
 
 
@@ -132,7 +163,8 @@ func _on_peer_connected(peer_id: int) -> void:
 func _on_peer_disconnected(peer_id: int) -> void:
 	if multiplayer.is_server():
 		print("[net] jogador %d saiu" % peer_id)
-		player_left.emit(peer_id)
+		player_left.emit(peer_id)  # antes de esquecer a chave: o save guarda o personagem
+		_keys.erase(peer_id)
 
 
 func _set_status(key: StringName) -> void:
