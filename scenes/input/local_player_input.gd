@@ -1,12 +1,19 @@
 class_name LocalPlayerInput
 extends Node
-## Lê teclado/controle do jogador LOCAL e entrega a intenção de movimento ao personagem dele.
-## As direções da tela viram direções no plano do chão (cima na tela = "norte" do chão),
+## Lê teclado/mouse/controle do jogador LOCAL e entrega INTENÇÕES ao personagem dele.
+## Movimento: direções da tela viram direções no plano do chão (cima na tela = "norte"),
 ## então as diagonais andam alinhadas às bordas dos tiles.
-## No coop, esta intenção será enviada ao host em vez de aplicada direto.
+## Ataque: segurar repete o golpe. Mira no mouse se ele foi o último dispositivo usado;
+## senão, na direção em que o personagem olha (teclado/controle).
+## No coop, estas intenções serão enviadas ao host em vez de aplicadas direto.
+
+## Movimento mínimo do analógico para considerar o controle como dispositivo ativo.
+const JOYPAD_ACTIVITY := 0.5
 
 var player_id := 0
 var target: Character
+
+var _aim_with_mouse := false
 
 
 func _ready() -> void:
@@ -14,7 +21,26 @@ func _ready() -> void:
 	process_physics_priority = -10
 
 
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or event is InputEventMouseMotion:
+		_aim_with_mouse = true
+	elif event is InputEventKey or event is InputEventJoypadButton:
+		_aim_with_mouse = false
+	elif event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > JOYPAD_ACTIVITY:
+		_aim_with_mouse = false
+
+
 func _physics_process(_delta: float) -> void:
 	if target == null:
 		return
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
+	if Input.is_action_pressed(&"attack"):
+		target.request_attack(_aim_direction())
+
+
+func _aim_direction() -> Vector2:
+	if _aim_with_mouse:
+		var to_mouse := Iso.screen_to_ground(target.get_global_mouse_position() - target.global_position)
+		if not to_mouse.is_zero_approx():
+			return to_mouse
+	return target.facing

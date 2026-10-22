@@ -8,6 +8,7 @@ extends RefCounted
 var _next_entity_id := 1
 var _entities: Dictionary[int, Node] = {}
 var _player_entities: Dictionary[int, int] = {}  # player_id -> entity_id
+var _inventories: Dictionary[int, Inventory] = {}  # player_id -> inventário
 
 
 func allocate_entity_id() -> int:
@@ -30,6 +31,12 @@ func get_entity(entity_id: int) -> Node:
 
 func add_player(player_id: int, entity_id: int) -> void:
 	_player_entities[player_id] = entity_id
+	if not _inventories.has(player_id):
+		_inventories[player_id] = Inventory.new()
+
+
+func get_inventory(player_id: int) -> Inventory:
+	return _inventories.get(player_id)
 
 
 func get_player_entity(player_id: int) -> Node:

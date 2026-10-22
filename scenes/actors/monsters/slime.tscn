@@ -1,0 +1,27 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/actors/actor.tscn" id="1_actor"]
+[ext_resource type="Script" path="res://scenes/actors/monsters/monster.gd" id="2_monster"]
+[ext_resource type="Resource" path="res://data/monsters/slime.tres" id="3_data"]
+[ext_resource type="Script" path="res://scenes/actors/monsters/slime_visual.gd" id="4_visual"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/slime.png" id="5_body"]
+[ext_resource type="Script" path="res://scenes/actors/ai/monster_brain.gd" id="6_brain"]
+
+[node name="Slime" instance=ExtResource("1_actor")]
+script = ExtResource("2_monster")
+data = ExtResource("3_data")
+faction = &"monsters"
+
+[node name="Footprint" parent="."]
+radius = 6.0
+
+[node name="Visual" parent="."]
+script = ExtResource("4_visual")
+
+[node name="Body" type="Sprite2D" parent="Visual"]
+texture = ExtResource("5_body")
+centered = false
+offset = Vector2(-8, -11)
+
+[node name="Brain" type="Node" parent="."]
+script = ExtResource("6_brain")

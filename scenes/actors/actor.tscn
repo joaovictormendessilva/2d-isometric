@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://scenes/actors/character/character.gd" id="1_character"]
+[ext_resource type="Script" path="res://scenes/components/footprint.gd" id="2_footprint"]
+[ext_resource type="Script" path="res://scenes/components/health.gd" id="3_health"]
+[ext_resource type="Script" path="res://scenes/components/melee_attacker.gd" id="4_attacker"]
+[ext_resource type="Script" path="res://scenes/components/actor_feedback.gd" id="5_feedback"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/shadow.png" id="6_shadow"]
+
+[node name="Actor" type="CharacterBody2D"]
+collision_layer = 2
+collision_mask = 1
+motion_mode = 1
+script = ExtResource("1_character")
+
+[node name="Footprint" type="CollisionPolygon2D" parent="."]
+script = ExtResource("2_footprint")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+
+[node name="MeleeAttacker" type="Node" parent="."]
+script = ExtResource("4_attacker")
+
+[node name="Visual" type="Node2D" parent="."]
+
+[node name="Shadow" type="Sprite2D" parent="Visual"]
+texture = ExtResource("6_shadow")
+
+[node name="Feedback" type="Node" parent="." node_paths=PackedStringArray("visual")]
+script = ExtResource("5_feedback")
+visual = NodePath("../Visual")

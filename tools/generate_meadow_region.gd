@@ -12,6 +12,8 @@ const REGION_SCRIPT := "res://scenes/regions/region.gd"
 const REGION_PATH := "res://scenes/regions/meadow/meadow.tscn"
 const TREE_SCENE := "res://scenes/props/tree.tscn"
 const ROCK_SCENE := "res://scenes/props/rock.tscn"
+const SLIME_SCENE := "res://scenes/actors/monsters/slime.tscn"
+const SPAWN_POINT_SCRIPT := "res://scenes/regions/monster_spawn_point.gd"
 
 const SEED := 7
 ## Área retangular da região em pixels de tela (2,5 x 2,7 telas de 640x360).
@@ -24,6 +26,10 @@ const MIN_PROP_DISTANCE := 22.0
 ## Chance de uma célula de grama receber árvore / pedra.
 const TREE_CHANCE := 0.05
 const ROCK_CHANCE := 0.025
+## Pontos de criaturas: quantidade, faixa de distância do ponto de entrada e espaçamento (chão).
+const MONSTER_SPAWN_COUNT := 8
+const MONSTER_SPAWN_DISTANCE := Vector2(220.0, 900.0)
+const MONSTER_SPAWN_SPACING := 150.0
 
 
 func _initialize() -> void:
@@ -98,7 +104,11 @@ func _build_region(tile_set: TileSet) -> Node2D:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED
 	var grass_cells := _paint_ground(ground, spawn.position, rng)
-	_place_props(region, ground, entities, grass_cells, spawn.position, rng)
+	var props := _place_props(region, ground, entities, grass_cells, spawn.position, rng)
+	# Semente própria: mudar as criaturas não muda o resto do mapa.
+	var monster_rng := RandomNumberGenerator.new()
+	monster_rng.seed = SEED + 2
+	_place_monster_spawns(region, ground, grass_cells, spawn.position, props, monster_rng)
 	return region
 
 
@@ -154,7 +164,7 @@ func _pick_tile(p: Vector2, spawn: Vector2, lakes: FastNoiseLite, paths: FastNoi
 
 
 func _place_props(region: Node2D, ground: TileMapLayer, entities: Node2D,
-		grass_cells: Array[Vector2i], spawn: Vector2, rng: RandomNumberGenerator) -> void:
+		grass_cells: Array[Vector2i], spawn: Vector2, rng: RandomNumberGenerator) -> Array[Vector2]:
 	var tree_scene: PackedScene = load(TREE_SCENE)
 	var rock_scene: PackedScene = load(ROCK_SCENE)
 	var placed: Array[Vector2] = []
@@ -175,6 +185,7 @@ func _place_props(region: Node2D, ground: TileMapLayer, entities: Node2D,
 		placed.append(p)
 		counts["trees" if is_tree else "rocks"] += 1
 	print("[gen] props: %s" % counts)
+	return placed
 
 
 ## A célula e as 8 vizinhas são terreno pisável e existente?
@@ -187,3 +198,45 @@ func _surrounded_by_land(ground: TileMapLayer, cell: Vector2i) -> bool:
 			if ground.get_cell_atlas_coords(cell + Vector2i(dx, dy)) in blocked:
 				return false
 	return true
+
+
+## Pontos de criaturas em grama firme, longe do ponto de entrada, dos objetos e entre si.
+func _place_monster_spawns(region: Node2D, ground: TileMapLayer, grass_cells: Array[Vector2i],
+		spawn: Vector2, props: Array[Vector2], rng: RandomNumberGenerator) -> void:
+	var container := Node2D.new()
+	container.name = "MonsterSpawns"
+	_add_owned(region, container, region)
+	var candidates := _shuffled(grass_cells, rng)
+	var placed: Array[Vector2] = []
+	for cell: Vector2i in candidates:
+		if placed.size() >= MONSTER_SPAWN_COUNT:
+			break
+		var p := ground.map_to_local(cell)
+		var from_spawn := Iso.ground_distance(p, spawn)
+		if from_spawn < MONSTER_SPAWN_DISTANCE.x or from_spawn > MONSTER_SPAWN_DISTANCE.y:
+			continue
+		if not _surrounded_by_land(ground, cell):
+			continue
+		if props.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < MIN_PROP_DISTANCE):
+			continue
+		if placed.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < MONSTER_SPAWN_SPACING):
+			continue
+		var point := Marker2D.new()
+		point.set_script(load(SPAWN_POINT_SCRIPT))
+		point.position = p
+		point.set(&"monster_scene", load(SLIME_SCENE))
+		point.set(&"respawn_time", rng.randf_range(15.0, 25.0))
+		_add_owned(container, point, region)
+		placed.append(p)
+	print("[gen] monster spawns: %d" % placed.size())
+
+
+## Cópia embaralhada com a semente dada (`Array.shuffle` usa o sorteio global, não determinístico).
+func _shuffled(cells: Array[Vector2i], rng: RandomNumberGenerator) -> Array[Vector2i]:
+	var result: Array[Vector2i] = cells.duplicate()
+	for i in range(result.size() - 1, 0, -1):
+		var j := rng.randi_range(0, i)
+		var tmp: Vector2i = result[i]
+		result[i] = result[j]
+		result[j] = tmp
+	return result
