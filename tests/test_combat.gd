@@ -47,22 +47,25 @@ func test_monster_drops_are_personal_and_collectable() -> void:
 	var session: GameSession = game.session
 	var spawner: EntitySpawner = game.get_node("EntitySpawner")
 	var second_player := spawner.spawn_player(2)
-	var monster := _first_monster(game)
+	var monster := first_monster(game)
 	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 1))
 	await physics_frames(2)
 
-	var pickups := _pickups(game)
-	var owners := pickups.map(func(p: Pickup) -> int: return p.owner_player_id)
+	var drops := pickups(game)
+	var owners := drops.map(func(p: Pickup) -> int: return p.owner_player_id)
 	check(1 in owners and 2 in owners, "um drop para cada jogador (donos %s)" % [owners])
-	for p: Pickup in pickups:
+	for p: Pickup in drops:
 		check(p.visible == (p.owner_player_id == game.local_player_id()), "só o drop do jogador local aparece")
 
-	# O jogador 2 pisa no drop do jogador 1: esse fica. O dele (ao lado) é atraído e coletado.
-	var drop_of_1: Pickup = pickups.filter(func(p: Pickup) -> bool: return p.owner_player_id == 1)[0]
-	var drop_of_2: Pickup = pickups.filter(func(p: Pickup) -> bool: return p.owner_player_id == 2)[0]
+	# O jogador 2 pisa no drop do jogador 1: esse fica. Depois pisa no dele, que é coletado.
+	var drop_of_1: Pickup = drops.filter(func(p: Pickup) -> bool: return p.owner_player_id == 1)[0]
+	var drop_of_2: Pickup = drops.filter(func(p: Pickup) -> bool: return p.owner_player_id == 2)[0]
+	await physics_frames(roundi(Pickup.POP_TIME * 60) + 1)
 	second_player.position = drop_of_1.position
-	await physics_frames(20)
+	await physics_frames(5)
 	check(is_instance_valid(drop_of_1), "drop alheio não é coletado")
+	second_player.position = drop_of_2.position
+	await physics_frames(5)
 	check(not is_instance_valid(drop_of_2), "o dono coleta o próprio drop")
 	check(session.get_inventory(2).count(&"gel") > 0, "gosma foi para o inventário do jogador 2")
 	check(session.get_inventory(1).count(&"gel") == 0, "inventário do jogador 1 não mudou")
@@ -85,19 +88,8 @@ func test_monster_respawns_after_death() -> void:
 	var game := start_game()
 	var session: GameSession = game.session
 	var before := session.get_entity_count()
-	var monster := _first_monster(game)
+	var monster := first_monster(game)
 	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 1))
 	check(session.get_entity_count() == before - 1, "criatura morta sai do registro")
 	await physics_frames(26 * 60)  # tempo máximo de renascimento gerado: 25 s
 	check(session.get_entity_count() == before, "criatura renasceu")
-
-
-func _first_monster(game: Node) -> Monster:
-	for node in (game.region as Region).entities.get_children():
-		if node is Monster:
-			return node
-	return null
-
-
-func _pickups(game: Node) -> Array:
-	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Pickup)
