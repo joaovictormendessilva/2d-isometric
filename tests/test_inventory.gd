@@ -153,7 +153,9 @@ func test_right_click_menu_splits_or_drops() -> void:
 	check(panel._menu.visible and not panel._menu._split.visible and panel._menu._drop.visible,
 		"item único: só Soltar")
 	check(panel._menu.captures_mouse(), "menu aberto: o clique fora não ataca")
-	panel._menu._input(_left_click())  # clique fora (posição 0,0, longe do menu)
+	var outside := _left_click()
+	outside.position = panel._menu.get_global_rect().end + Vector2(20, 20)  # longe do menu
+	panel._menu._input(outside)
 	await physics_frames(1)
 	check(not panel._menu.visible, "clique fora fechou o menu")
 

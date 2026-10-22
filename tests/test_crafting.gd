@@ -88,7 +88,7 @@ func test_crafting_list_collapses_and_remembers() -> void:
 	var list: CraftingList = panel.find_children("*", "CraftingList", true, false)[0]
 	check(list.is_open(), "começa aberta")
 	list._on_title_input(_left_click())
-	check(not list.is_open() and not list._list.visible, "clique no título recolheu")
+	check(not list.is_open() and not list._scroll.visible, "clique no título recolheu")
 	cleanup()
 	game = start_game()
 	panel = game.get_node("UI/InventoryPanel")

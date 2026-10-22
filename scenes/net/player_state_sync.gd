@@ -1,10 +1,12 @@
 class_name PlayerStateSync
 extends Node
-## Estado de cada jogador que só o host decide: inventário (com a mão) e experiência de
-## coleta (ADR-012). Host: envia ao dono cada espaço que mudou, a mão, cada ganho (para os
-## avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
+## Estado de cada jogador que só o host decide: inventário (com a mão), equipamento e
+## experiência de coleta (ADR-012). Host: envia ao dono cada espaço do inventário que mudou,
+## a mão, cada ganho (para os avisos) e a experiência; e o equipamento de cada jogador a todos.
+## Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
-## estrutura); o host confere e aplica. Offline, os pedidos são aplicados na hora.
+## estrutura, vestir e tirar equipamento); o host confere e aplica. Offline, os pedidos são
+## aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -26,10 +28,14 @@ func _ready() -> void:
 	_rng.randomize()
 
 
-## Host: passa a enviar ao dono (se for um cliente) tudo o que mudar no estado dele.
+## Host: passa a enviar o estado do jogador: equipamento a TODOS (define o golpe, que todos
+## animam, e um dia a aparência); inventário e experiência só ao dono (se for um cliente).
 func track_player(player_id: int) -> void:
-	if not NetRules.is_online(multiplayer) or not multiplayer.is_server() \
-			or player_id == multiplayer.get_unique_id():
+	if not NetRules.is_online(multiplayer) or not multiplayer.is_server():
+		return
+	session.get_equipment(player_id).slot_changed.connect(
+		_broadcast_equipment.bind(player_id).unbind(1))
+	if player_id == multiplayer.get_unique_id():
 		return
 	var inventory := session.get_inventory(player_id)
 	inventory.slot_changed.connect(_send_slot.bind(player_id, inventory))
@@ -38,6 +44,13 @@ func track_player(player_id: int) -> void:
 		_send(player_id, &"_added", [item_id, amount]))
 	session.get_skills(player_id).changed.connect(func(skill_id: StringName, xp: int) -> void:
 		_send(player_id, &"_skill_xp", [skill_id, xp]))
+
+
+## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
+## importa se avisos de equipamento chegaram antes de o personagem existir neste computador.
+func request_equipment_of(player_id: int) -> void:
+	if NetRules.is_online(multiplayer) and not multiplayer.is_server():
+		_equipment_requested.rpc_id(1, player_id)
 
 
 ## Cliente: pede ao host o estado completo do próprio jogador (espaços, mão e experiência).
@@ -71,6 +84,16 @@ func request_drop_slot(index: int) -> void:
 ## Jogador local fechou o inventário com algo na mão: volta para os espaços.
 func request_return_held() -> void:
 	_request(&"_return_held_requested", [])
+
+
+## Jogador local quer vestir o item do espaço `index` do inventário (menu "Equipar").
+func request_equip(index: int) -> void:
+	_request(&"_equip_requested", [index])
+
+
+## Jogador local clicou no espaço de equipamento `index` (vestir o que está na mão, ou tirar).
+func request_click_equipment(index: int) -> void:
+	_request(&"_click_equipment_requested", [index])
 
 
 ## Jogador local quer fazer a receita `recipe_id` uma vez.
@@ -118,6 +141,20 @@ func _send_held(player_id: int, inventory: Inventory) -> void:
 	_send(player_id, &"_held", [inventory.held_item(), inventory.held_amount()])
 
 
+## Host: o equipamento inteiro de `player_id` para todos os clientes (uma mensagem só).
+func _broadcast_equipment(player_id: int) -> void:
+	for peer in multiplayer.get_peers():
+		_send_equipment(peer, player_id)
+
+
+func _send_equipment(peer: int, player_id: int) -> void:
+	var equipment := session.get_equipment(player_id)
+	var ids := PackedStringArray()
+	for index in equipment.size():
+		ids.append(equipment.item_id(index))
+	_send(peer, &"_equipment", [player_id, ids])
+
+
 ## Host: inventário de quem pediu (o próprio host, numa chamada local, ou o cliente remetente).
 func _requester_inventory() -> Inventory:
 	if not multiplayer.is_server():
@@ -149,6 +186,20 @@ func _return_held_requested() -> void:
 	var inventory := _requester_inventory()
 	if inventory and inventory.return_held() > 0:
 		_drop_held_requested()  # não coube de volta: cai no chão em vez de sumir
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _equip_requested(index: int) -> void:
+	var inventory := _requester_inventory()
+	if inventory:  # confere índice, mão vazia, tipo do item e regras de mão
+		EquipmentRules.equip_from_inventory(inventory, session.get_equipment(_requester()), index)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _click_equipment_requested(index: int) -> void:
+	var inventory := _requester_inventory()
+	if inventory:  # confere índice e se o item da mão cabe no espaço
+		EquipmentRules.click_slot(inventory, session.get_equipment(_requester()), index)
 
 
 ## Soltar um espaço = pegar a pilha e jogar fora o que está na mão, de uma vez no host.
@@ -242,6 +293,29 @@ func _skill_xp(skill_id: StringName, xp: int) -> void:
 	var progress := session.get_skills(multiplayer.get_unique_id())
 	if progress != null and xp >= 0 and skills.has(skill_id):
 		progress.replicate_xp(skill_id, xp)
+
+
+## Host: alguém pediu o equipamento de um jogador (público no coop). Uma resposta por pedido.
+@rpc("any_peer", "call_remote", "reliable")
+func _equipment_requested(player_id: int) -> void:
+	if multiplayer.is_server() and session.get_equipment(player_id) != null:
+		_send_equipment(multiplayer.get_remote_sender_id(), player_id)
+
+
+## Equipamento de um jogador vindo do host: tudo ou nada — mesmo número de espaços, e cada um
+## vazio ou com um equipamento conhecido do tipo do espaço.
+@rpc("authority", "call_remote", "reliable")
+func _equipment(player_id: int, ids: PackedStringArray) -> void:
+	var equipment := session.get_equipment(player_id)
+	if equipment == null or ids.size() != equipment.size():
+		return
+	for index in ids.size():
+		var item := equipment.data_of(ids[index])
+		if ids[index] != Equipment.EMPTY \
+				and (item == null or item.get_slot() != equipment.slot_type(index)):
+			return
+	for index in ids.size():
+		equipment.replicate_slot(index, StringName(ids[index]))
 
 
 ## Pilha vinda da rede: vazia, ou item conhecido em quantidade dentro do limite dele.

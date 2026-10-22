@@ -12,7 +12,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) a seguir |
+| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) em andamento |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
@@ -142,7 +142,16 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   janela do inventário. Passo 3 ✅ bancada fabricada e colocada pelo jogador; receitas de
   bancada por perto. Ajustes do João: Fabricar recolhível e menu do botão direito (Dividir /
   Soltar). 80 testes. Validado pelo João (2026-10-22).
-- **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
+- **E4 – Equipamentos** 🟡 (branch `stage-e/equipment`, ADR-018): espaços estilo Terraria/Forager
+  com 2 acessórios e mãos estilo Path of Exile. Passo 1 ✅ núcleo (espaços, regras de mão,
+  trocas com o inventário, host decide). Passo 2a ✅ bônus de atributos, arma define o golpe
+  (espada vestida ao entrar; sem arma, soco, nunca mais rápido que a espada), equipamento
+  enviado a todos. Passo 2b ✅ mochila soma espaços; tirar só com eles vazios (93 testes).
+  Passo 3 ✅ coluna Equipamento no inventário (dourado onde o item da mão cabe, "Equipar" no
+  menu, dica com bônus), receitas com rolagem e 4 itens de bancada (escudo de madeira, elmo de
+  cobre, mochila simples, anel magnético). Correções do teste do João: trocar equipamento não
+  cura nem fere (vida atual não muda) e a defesa pequena agora reduz dano (97 testes).
+  Aguardando validação do João.
 
 ## Funcionalidades
 
@@ -152,7 +161,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 - Inventário: tecla I ou Tab (botão Y), Esc fecha; arraste a janela pelo título; clique pega e
-  põe itens, clique fora joga no chão, botão direito abre um menu (Dividir / Soltar).
+  põe itens, clique fora joga no chão, botão direito abre um menu (Equipar / Dividir / Soltar).
+- Equipamento: coluna à esquerda no inventário; clique num espaço com o item na mão veste, com
+  a mão vazia tira. Começa com espada; sem arma, soco. Bônus aparecem ao passar o mouse.
 - Fabricar: coluna à direita no inventário (clique no título recolhe/abre); clique numa
   receita acesa fabrica (machado e picareta de pedra e bancada, na mão; machado de cobre perto
   de uma bancada). Passar o mouse mostra o que falta.
@@ -216,6 +227,18 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 ## Ideias futuras (backlog criativo)
 
 Ideias do João para considerar nas etapas certas — não são compromissos ainda.
+
+- **Escolher em que mão segurar** (escudo/tomo à direita ou à esquerda, mudando a animação):
+  adiado (ADR-018) — com o personagem espelhado ao virar, dobraria a arte de combate por 2–3 px
+  de diferença. Reavaliar se os sprites crescerem.
+- **Cura do jogador** (E4): hoje a vida só volta ao renascer. Vestir item de vida deixa a
+  diferença para curar — poções, regeneração fora de combate etc. entram com consumíveis/NPCs.
+- **Dano final e tela de atributos** (pergunta do João, E4): hoje o dano é o da arma (espada
+  10, soco 5). Quando houver atributos de dano e buffs (habilidades/Etapa G), o dano final vira
+  fórmula em `CombatRules` (base da arma × modificadores) e uma tela de atributos mostra os
+  valores finais (vida, defesa, dano, velocidade, ímã); a dica do item continua com a base.
+- **Variedade de armas** (arco + aljava, cajados, tomo): regras de mão prontas no E4; o
+  comportamento precisa do sistema de habilidades e projéteis (etapa própria, a definir).
 
 - **Atravessar água**: buff, poção ou montaria que permite andar sobre a água (ou nadar),
   abrindo atalhos e áreas escondidas. Técnica prevista: mover a colisão da água para uma

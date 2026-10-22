@@ -11,6 +11,8 @@ extends VBoxContainer
 signal toggled
 
 const ROW_GAP := UiStyle.GAP
+## Altura da lista de receitas (rola quando há mais): cabe na tela com a janela inteira.
+const LIST_HEIGHT := 150.0
 const LISTED_STATIONS: Array[RecipeData.Station] = [RecipeData.Station.HAND,
 	RecipeData.Station.WORKBENCH]
 const SETTINGS_SECTION := "inventory"
@@ -24,6 +26,8 @@ var _player_state: PlayerStateSync
 var _player_id := 0
 var _title := Label.new()
 var _list := VBoxContainer.new()
+## Altura fixa com rolagem: a lista cresce com as receitas, a janela não.
+var _scroll := ScrollContainer.new()
 var _rows: Array[RecipeRow] = []
 var _stations: Array[RecipeData.Station] = []
 var _refresh_queued := false
@@ -42,7 +46,11 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_title.mouse_exited.connect(func() -> void: _title.modulate = Color.WHITE)
 	add_child(_title)
 	_list.add_theme_constant_override(&"separation", ROW_GAP)
-	add_child(_list)
+	_scroll.custom_minimum_size.y = LIST_HEIGHT
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_list)
+	add_child(_scroll)
 	for recipe in player_state.recipes.recipes_at(LISTED_STATIONS):
 		var row := RecipeRow.new()
 		row.setup(recipe, items)
@@ -54,7 +62,7 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 
 
 func is_open() -> bool:
-	return _list.visible
+	return _scroll.visible
 
 
 func set_open(open: bool) -> void:
@@ -72,7 +80,7 @@ func _process(_delta: float) -> void:
 
 
 func _apply_open(open: bool) -> void:
-	_list.visible = open
+	_scroll.visible = open
 	_title.text = "%s %s" % [OPEN_MARK if open else CLOSED_MARK, Texts.get_text(&"CRAFT_TITLE")]
 	if open:
 		_refresh()

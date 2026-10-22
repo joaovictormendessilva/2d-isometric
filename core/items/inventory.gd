@@ -8,12 +8,14 @@ extends RefCounted
 
 signal slot_changed(index: int)
 signal held_changed
+## O número de espaços mudou (mochila).
+signal resized
 ## Ganho de itens (apresentação: "+1 Madeira"). Mexer em itens que já eram seus não conta.
 signal added(item_id: StringName, amount: int)
 
 ## Limite de pilha sem catálogo de itens (testes) ou para item desconhecido.
 const DEFAULT_STACK := 99
-## Espaços de quem ainda não tem mochila (mochilas somam espaços, Etapa E4).
+## Espaços de quem ainda não tem mochila (mochilas vestidas somam: `resize`).
 const DEFAULT_SLOTS := 12
 const EMPTY := &""
 
@@ -33,6 +35,32 @@ func _init(capacity: int, items: ItemDatabase = null) -> void:
 
 func capacity() -> int:
 	return _ids.size()
+
+
+## Muda o número de espaços (mochila vestida/tirada). Encolher só tira espaços vazios do fim:
+## se algum deles tiver item, nada muda e retorna false (EquipmentRules impede isso antes).
+func resize(new_capacity: int) -> bool:
+	var old := capacity()
+	if new_capacity == old:
+		return true
+	for index in range(new_capacity, old):
+		if _ids[index] != EMPTY:
+			return false
+	_ids.resize(new_capacity)
+	_amounts.resize(new_capacity)
+	for index in range(old, new_capacity):
+		_ids[index] = EMPTY
+		_amounts[index] = 0
+	resized.emit()
+	return true
+
+
+## Os espaços a partir de `from` estão todos vazios?
+func is_empty_from(from: int) -> bool:
+	for index in range(maxi(from, 0), capacity()):
+		if _ids[index] != EMPTY:
+			return false
+	return true
 
 
 func slot_item(index: int) -> StringName:
@@ -92,6 +120,12 @@ func add(item_id: StringName, amount: int) -> int:
 	if left < amount:
 		added.emit(item_id, amount - left)
 	return left
+
+
+## Guarda itens que JÁ eram do jogador (ex.: escudo que saiu da mão ao vestir um espadão):
+## como `add`, mas sem aviso de ganho. Retorna o que não coube.
+func store(item_id: StringName, amount: int) -> int:
+	return _store(item_id, amount)
 
 
 ## Tira `amount` deste item (das últimas pilhas para as primeiras). Tudo ou nada.
@@ -194,6 +228,17 @@ func get_counts() -> Dictionary[StringName, int]:
 	return counts
 
 
+## Host: troca direta com outro recipiente do mesmo jogador (equipamento). Quem chama garante
+## que nada se cria nem se perde (EquipmentRules).
+func set_slot(index: int, item_id: StringName, amount: int) -> void:
+	_set_slot(index, item_id, amount)
+
+
+## Host: idem, para a mão.
+func set_held(item_id: StringName, amount: int) -> void:
+	_set_held(item_id, amount)
+
+
 ## Cliente: conteúdo oficial de um espaço, vindo do host.
 func replicate_slot(index: int, item_id: StringName, amount: int) -> void:
 	_set_slot(index, item_id, amount)
@@ -226,7 +271,7 @@ func _store(item_id: StringName, amount: int) -> int:
 
 
 func _set_slot(index: int, item_id: StringName, amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or item_id == EMPTY:
 		item_id = EMPTY
 		amount = 0
 	if _ids[index] == item_id and _amounts[index] == amount:
@@ -237,7 +282,7 @@ func _set_slot(index: int, item_id: StringName, amount: int) -> void:
 
 
 func _set_held(item_id: StringName, amount: int) -> void:
-	if amount <= 0:
+	if amount <= 0 or item_id == EMPTY:
 		item_id = EMPTY
 		amount = 0
 	if _held_id == item_id and _held_amount == amount:

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="OffHandData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/equipment/off_hand_data.gd" id="1_item"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_wooden_shield.png" id="2_icon"]
+[ext_resource type="Script" path="res://core/equipment/stat_bonuses.gd" id="3_bonuses"]
+
+[sub_resource type="Resource" id="Bonuses"]
+script = ExtResource("3_bonuses")
+defense = 2
+
+[resource]
+script = ExtResource("1_item")
+id = &"wooden_shield"
+icon = ExtResource("2_icon")
+max_stack = 1
+kind = 0
+bonuses = SubResource("Bonuses")

@@ -15,6 +15,7 @@ func _initialize() -> void:
 	theme.set_stylebox(&"panel", &"PanelContainer",
 		_box(UiStyle.PANEL_BACK, UiStyle.BORDER, UiStyle.WINDOW_MARGIN))
 	_button(theme)
+	_scroll_bar(theme)
 	var error := ResourceSaver.save(theme, THEME_PATH)
 	print("[ui-theme] %s: %s" % [THEME_PATH, error_string(error)])
 	quit(error)
@@ -41,6 +42,17 @@ func _button(theme: Theme) -> void:
 		Color(UiStyle.TEXT, UiStyle.UNAVAILABLE_ALPHA))
 	theme.set_color(&"font_outline_color", &"Button", UiStyle.TEXT_OUTLINE)
 	theme.set_constant(&"outline_size", &"Button", UiStyle.TEXT_OUTLINE_SIZE)
+
+
+## Barra de rolagem fina: trilho escuro, puxador com as cores de borda (claro ao passar o
+## mouse, dourado ao arrastar).
+func _scroll_bar(theme: Theme) -> void:
+	var thin := Vector2(UiStyle.SCROLL_BAR_WIDTH / 2.0, 0)
+	theme.set_stylebox(&"scroll", &"VScrollBar", _box(UiStyle.SLOT_BACK, UiStyle.SLOT_BACK, thin))
+	theme.set_stylebox(&"grabber", &"VScrollBar", _box(UiStyle.BORDER, UiStyle.BORDER, thin))
+	theme.set_stylebox(&"grabber_highlight", &"VScrollBar",
+		_box(UiStyle.BORDER_HOVER, UiStyle.BORDER_HOVER, thin))
+	theme.set_stylebox(&"grabber_pressed", &"VScrollBar", _box(UiStyle.ACCENT, UiStyle.ACCENT, thin))
 
 
 static func _box(back: Color, border: Color, margin: Vector2) -> StyleBoxFlat:

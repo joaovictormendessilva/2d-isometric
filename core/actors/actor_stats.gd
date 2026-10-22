@@ -20,13 +20,20 @@ extends Resource
 @export var hit_stun: float = 0.2
 ## 0 = sofre todo o recuo; 1 = imune a recuo.
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0
+## Golpe sem arma (jogadores: a arma vestida o substitui; ver `Character.apply_equipment`).
+@export var unarmed_attack: MeleeAttackData
+
+@export_group("Equipamento")
+## Vestido ao entrar na partida pela primeira vez (jogadores).
+@export var starting_equipment: Array[EquipmentData] = []
 
 @export_group("Coleta")
 ## Raio do "ímã" de itens no chão (plano do chão): dentro dele, os itens do jogador escorregam
 ## até ele. Equipamentos futuros poderão aumentá-lo, como um bônus por jogador somado a este
-## valor (nunca alterando este recurso, que é compartilhado por todos os jogadores).
+## valor (nunca alterando este recurso, que é compartilhado por todos os jogadores): ver
+## `StatBonuses` e `Character.pickup_radius()`.
 @export var pickup_radius: float = 16.0
 
 @export_group("Inventário")
-## Espaços do inventário sem mochila (mochilas equipadas somarão, por jogador — Etapa E4).
+## Espaços do inventário sem mochila (mochilas vestidas somam, por jogador: `StatBonuses`).
 @export var inventory_slots: int = Inventory.DEFAULT_SLOTS

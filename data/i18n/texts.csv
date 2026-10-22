@@ -8,6 +8,11 @@ ITEM_STONE_AXE,Machado de pedra,Stone axe
 ITEM_STONE_PICKAXE,Picareta de pedra,Stone pickaxe
 ITEM_COPPER_AXE,Machado de cobre,Copper axe
 ITEM_WORKBENCH,Bancada,Workbench
+ITEM_SWORD,Espada,Sword
+ITEM_WOODEN_SHIELD,Escudo de madeira,Wooden shield
+ITEM_COPPER_HELMET,Elmo de cobre,Copper helmet
+ITEM_SIMPLE_BACKPACK,Mochila simples,Simple backpack
+ITEM_MAGNET_RING,Anel magnético,Magnet ring
 SKILL_WOODCUTTING,Lenhador,Woodcutting
 SKILL_MINING,Minerador,Mining
 NODE_LUMBER_TREE,Árvore de lenha,Lumber tree
@@ -48,3 +53,19 @@ SPLIT_CONFIRM,Dividir,Split
 SPLIT_CANCEL,Cancelar,Cancel
 SLOT_MENU_SPLIT,Dividir,Split
 SLOT_MENU_DROP,Soltar,Drop
+SLOT_MENU_EQUIP,Equipar,Equip
+EQUIPMENT_TITLE,Equipamento,Equipment
+EQUIP_SLOT_MAIN_HAND,Mão principal,Main hand
+EQUIP_SLOT_OFF_HAND,Mão secundária,Off hand
+EQUIP_SLOT_HEAD,Cabeça,Head
+EQUIP_SLOT_CHEST,Peito,Chest
+EQUIP_SLOT_LEGS,Pernas,Legs
+EQUIP_SLOT_BACKPACK,Mochila,Backpack
+EQUIP_SLOT_ACCESSORY,Acessório,Accessory
+STAT_DAMAGE,Dano %d,Damage %d
+STAT_TWO_HANDED,Duas mãos,Two-handed
+STAT_MAX_HEALTH,Vida máxima +%d,Max health +%d
+STAT_DEFENSE,Defesa +%d,Defense +%d
+STAT_MOVE_SPEED,Velocidade +%d%%,Speed +%d%%
+STAT_PICKUP_RADIUS,Ímã de itens +%d,Item magnet +%d
+STAT_INVENTORY_SLOTS,Espaços +%d,Slots +%d

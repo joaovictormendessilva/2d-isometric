@@ -29,10 +29,12 @@ func test_same_faction_is_not_hit() -> void:
 
 func test_defense_has_diminishing_returns() -> void:
 	check(CombatRules.mitigate(10, 0) == 10, "sem defesa: dano cheio")
-	check(CombatRules.mitigate(10, 100) == 5, "100 de defesa: metade")
+	var half := roundi(CombatBalance.get_default().defense_for_half_damage)
+	check(CombatRules.mitigate(10, half) == 5, "defesa de meio dano (dados): metade")
 	check(CombatRules.mitigate(10, 10000) == 1, "dano mínimo é 1")
-	check(CombatRules.mitigate(100, 50) > CombatRules.mitigate(100, 100) + 10,
+	check(CombatRules.mitigate(100, half / 2) > CombatRules.mitigate(100, half) + 10,
 		"os primeiros pontos de defesa valem mais que os seguintes")
+	check(CombatRules.mitigate(8, 4) < 8, "4 de defesa (escudo + elmo) já tira dano do slime")
 
 
 func test_monster_health_scales_with_player_count() -> void:

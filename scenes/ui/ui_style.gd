@@ -40,4 +40,5 @@ const UNAVAILABLE_ALPHA := 0.45
 const WINDOW_MARGIN := Vector2(6, 4)
 const BUTTON_MARGIN := Vector2(4, 1)
 const GAP := 2
+const SCROLL_BAR_WIDTH := 4
 const ROW_GAP := 4

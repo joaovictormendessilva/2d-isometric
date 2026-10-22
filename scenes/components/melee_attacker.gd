@@ -20,6 +20,7 @@ const MAX_TARGETS := 32
 var _phase := Phase.READY
 var _time_left := 0.0
 var _direction := Vector2.DOWN
+var _next_attack: MeleeAttackData
 
 @onready var _body: Character = get_parent()
 
@@ -83,8 +84,19 @@ func _strike() -> void:
 	attack_struck.emit(_direction, attack)
 
 
+## Troca o golpe (ex.: arma vestida). No meio de um ataque, vale a partir do próximo.
+func set_attack(value: MeleeAttackData) -> void:
+	if is_attacking():
+		_next_attack = value
+	else:
+		attack = value
+
+
 func _finish() -> void:
 	_phase = Phase.READY
+	if _next_attack:
+		attack = _next_attack
+		_next_attack = null
 	attack_finished.emit()
 
 

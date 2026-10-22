@@ -363,3 +363,39 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   `PlaceableData` (fornalha, baú...). Versão do protocolo de rede: 2. Pendências: recolher
   ou desmontar uma estrutura colocada; estruturas somem ao fechar o jogo (sem saves ainda).
   O teste confere que ingredientes e resultado existem.
+
+## ADR-018 — Equipamento: espaços estilo Terraria/Forager e mãos estilo Path of Exile
+
+- **Status**: Hipótese (Etapa E4, aguardando validação do João)
+- **Direção do João (2026-10-22)**: espaços como Terraria/Forager, mas com **poucos
+  acessórios** (para não exigir muita variedade de itens logo no início); armas de 1 e 2 mãos,
+  cajado de 1 mão com tomo, cajado de 2 mãos, arco de 2 mãos com aljava (como Path of Exile).
+- **Decisões**:
+  - **Espaços** (`EquipmentLayout`, em `data/balance/equipment_layout.tres`): mão principal,
+    mão secundária, cabeça, peito, pernas, mochila e **2 acessórios**. Mais espaços = só dados.
+  - **Itens**: `EquipmentData` (tipo de espaço), `WeaponData` (1 ou 2 mãos e quais
+    secundários aceita: `off_hand_kinds`), `OffHandData` (escudo, tomo, aljava). Pilha de 1.
+  - **Mãos**: o secundário precisa ser aceito pela arma (espadão: nenhum; arco: aljava;
+    cajado de 1 mão: tomo; espada: escudo — tudo em dados). De mãos vazias, qualquer
+    secundário serve. Vestir uma arma que não aceita o secundário atual o devolve ao
+    inventário; sem espaço para ele, a arma não é vestida (nada se perde).
+  - **Acessórios**: nunca dois iguais.
+  - **Como vestir**: menu "Equipar" no item do inventário, ou segurar o item e clicar no
+    espaço; clicar num espaço com a mão vazia tira o item para a mão. Regras puras em
+    `EquipmentRules`; estado por jogador em `Equipment` (sessão); o host decide e envia cada
+    espaço ao dono (ADR-012/013), que confere tipo e índice.
+  - **Escolher a mão (direita/esquerda)**: proposto pelo João e **não adotado** por enquanto.
+    O personagem é espelhado ao virar (a "mão direita" troca de lado na tela); escolher a mão
+    dobraria a arte de cada animação de arma para uma diferença de 2–3 px. Fica no backlog.
+  - **Variedade de armas**: arco, cajados e tomo ficam previstos nas regras (testados com
+    itens de teste), mas o comportamento (projéteis, magias) depende do sistema de
+    habilidades, que terá etapa própria.
+- **Consequências**: o equipamento passa a ser a fonte de atributos (passo 2: defesa, vida,
+  velocidade, ímã, espaços de mochila, ataque da arma). Visual do equipamento no personagem
+  fica para a arte real. Pendência: navegar inventário e equipamento só por teclado/controle
+  (hoje é com mouse; vale para toda a janela, não só o equipamento).
+- **Ajustes após o teste do João**: trocar equipamento **não mexe na vida atual**, só a limita
+  ao novo máximo (escolha do João; sem brecha de cura). Antes, somar o ganho curava e manter a
+  proporção ia baixando a vida no arredondamento. Defesa: o ponto de "metade
+  do dano" saiu do código para `data/balance/combat.tres` e caiu de 100 para 20 — com 100, a
+  defesa 2 do escudo sumia no arredondamento.

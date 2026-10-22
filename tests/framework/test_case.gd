@@ -39,9 +39,14 @@ func start_game() -> Node:
 	return game
 
 
+## Jogador avulso, já com o equipamento inicial vestido (como o spawner faz no jogo).
 func spawn_character(at: Vector2) -> Character:
 	var character: Character = PLAYER_SCENE.instantiate()
 	character.position = at
+	var equipment := Equipment.new(EquipmentLayout.load_default(), ItemDatabase.load_all())
+	for item in character.stats.starting_equipment:
+		EquipmentRules.give_equipped(equipment, item)
+	character.apply_equipment(equipment)
 	return add_to_tree(character)
 
 

@@ -1,6 +1,9 @@
-[gd_resource type="Resource" script_class="ActorStats" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="ActorStats" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://core/actors/actor_stats.gd" id="1_stats"]
+[ext_resource type="Resource" path="res://data/weapons/fists.tres" id="2_fists"]
+[ext_resource type="Resource" path="res://data/items/sword.tres" id="3_sword"]
+[ext_resource type="Script" path="res://core/equipment/equipment_data.gd" id="4_equipment"]
 
 [resource]
 script = ExtResource("1_stats")
@@ -15,3 +18,5 @@ hit_stun = 0.2
 knockback_resistance = 0.0
 pickup_radius = 16.0
 inventory_slots = 12
+unarmed_attack = ExtResource("2_fists")
+starting_equipment = Array[ExtResource("4_equipment")]([ExtResource("3_sword")])
