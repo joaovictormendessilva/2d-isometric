@@ -8,7 +8,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | Etapa | Descrição | Status |
 |---|---|---|
 | A | Escolher ambiente de vibe coding, engine e ferramentas | ✅ (ADR-001, ADR-002) |
-| B | Configurar projeto, controle de versão e primeiro executável | 🟡 |
+| B | Configurar projeto, controle de versão e primeiro executável | ✅ |
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ⬜ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ⬜ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
@@ -33,7 +33,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Repositório clonado no PC e aberto no Claude Code
 - [x] Claude Code consegue executar a Godot pela linha de comando (`--version` → 4.7.2.stable)
 - [x] Projeto Godot criado (estrutura de pastas, renderizador Compatibility, pixel art)
-- [ ] Primeira cena executável aberta pelo João com F5 — **aguardando validação do João**
+- [x] Primeira cena executável aberta pelo João com F5 (validado pelo João, 2026-10-21)
 - [x] Primeiro commit do projeto Godot
 - [x] Regras de Git: commits em inglês, sem trailers de atribuição (`.claude/settings.json`)
 
@@ -67,7 +67,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - `--headless --path . --quit-after 120`: imprime `[main] ready: viewport 640x360, renderer
   gl_compatibility`, código de saída 0.
 - Execução com janela (RX 6600, OpenGL 3.3 Compatibility): mesma saída, sem erros.
-- Validação visual (F5 no editor): pendente — João.
+- Validação visual (F5 no editor, João, 2026-10-21): janela 1280×720, texto legível, losango de
+  tiles nítido (pixels em escadinha, sem borrão), painel Saída com 0 erros e 0 avisos.
 
 ## Funcionalidades
 
