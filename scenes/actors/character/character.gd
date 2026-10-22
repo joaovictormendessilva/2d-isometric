@@ -23,6 +23,9 @@ var max_health_multiplier := 1.0
 var ground_velocity := Vector2.ZERO
 ## Direção em que o ator olha, no plano do chão. Usada pela apresentação e pelo ataque.
 var facing := Vector2.DOWN
+## Bônus do equipamento vestido (jogadores; ver `apply_equipment`). Somam a `stats`, que é
+## compartilhado e nunca muda.
+var bonuses := StatBonuses.new()
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -34,6 +37,7 @@ var net: NetSync
 var _footprint: Footprint
 var _move_intent := Vector2.ZERO
 var _stun_left := 0.0
+var _weapon_attack: MeleeAttackData
 
 @onready var _collision_layer := collision_layer
 
@@ -49,16 +53,44 @@ func _enter_tree() -> void:
 func _ready() -> void:
 	reset_physics_interpolation()  # nasce na posição dada, sem deslizar da origem
 	if health:
-		health.setup(roundi(stats.max_health * max_health_multiplier), stats.defense,
-			stats.invulnerability_time)
+		health.setup(_max_health(), stats.defense + bonuses.defense, stats.invulnerability_time)
 		health.damaged.connect(_on_damaged)
 		health.died.connect(_on_died.unbind(1))
+	if attacker and attacker.attack == null:
+		attacker.attack = _weapon_attack if _weapon_attack else stats.unarmed_attack
 	if attacker and gatherer:
 		attacker.attack_started.connect(gatherer.stop.unbind(2))  # atacar larga a coleta
 
 
 func is_alive() -> bool:
 	return health == null or not health.is_dead()
+
+
+## Equipamento vestido mudou: soma os bônus e troca o golpe pelo da arma (sem arma: o golpe
+## desarmado de `stats`). Vale antes de entrar na árvore (aplicado no `_ready`).
+func apply_equipment(equipment: Equipment) -> void:
+	bonuses = StatBonuses.total(equipment.equipped())
+	var weapon := equipment.weapon()
+	_weapon_attack = weapon.attack if weapon else null
+	if not is_node_ready():
+		return
+	if health:
+		health.set_limits(_max_health(), stats.defense + bonuses.defense)
+	if attacker:
+		attacker.set_attack(_weapon_attack if _weapon_attack else stats.unarmed_attack)
+
+
+func move_speed() -> float:
+	return stats.move_speed * (1.0 + bonuses.move_speed_percent / 100.0)
+
+
+## Raio do ímã de itens no chão (ver `Pickup`).
+func pickup_radius() -> float:
+	return stats.pickup_radius + bonuses.pickup_radius
+
+
+func _max_health() -> int:
+	return roundi((stats.max_health + bonuses.max_health) * max_health_multiplier)
 
 
 func footprint_radius() -> float:
@@ -125,7 +157,7 @@ func _physics_process(delta: float) -> void:
 		return
 	_stun_left = maxf(_stun_left - delta, 0.0)
 	var intent := _move_intent if is_alive() and _stun_left == 0.0 else Vector2.ZERO
-	var speed := stats.move_speed * Iso.move_speed_factor(intent, stats.horizontal_speed_factor)
+	var speed := move_speed() * Iso.move_speed_factor(intent, stats.horizontal_speed_factor)
 	if attacker:
 		speed *= attacker.move_multiplier()
 	var rate := stats.acceleration if intent != Vector2.ZERO else stats.friction

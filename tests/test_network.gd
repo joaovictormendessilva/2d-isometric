@@ -347,6 +347,41 @@ func test_client_places_structure_through_host() -> void:
 		"no cliente, a bancada vale como estação")
 
 
+## Equipamento pelo host: o cliente tira a espada (pedido) e todos passam a animar o soco dele;
+## cada computador sabe o que cada jogador veste. Pedidos com índices ruins não fazem nada.
+func test_equipment_goes_through_host_and_reaches_everyone() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client: Node = games[1]
+	var client_id: int = client.local_player_id()
+	var host_id: int = host.local_player_id()
+	var on_client := (client.session as GameSession).get_equipment(client_id)
+	var host_seen_by_client := (client.session as GameSession).get_equipment(host_id)
+	check(on_client.weapon() != null and on_client.weapon().id == &"sword", "cliente começa de espada")
+	check(host_seen_by_client.weapon() != null and host_seen_by_client.weapon().id == &"sword",
+		"o cliente sabe o que o host veste")
+
+	var state: PlayerStateSync = client.player_state
+	for bad in [-1, 99]:
+		state.request_click_equipment(bad)
+		state.request_equip(bad)
+	await physics_frames(10)
+	check(on_client.weapon() != null, "pedidos ruins: nada mudou")
+
+	var hand := on_client.index_of_type(EquipmentData.Slot.MAIN_HAND)
+	state.request_click_equipment(hand)
+	var unarmed := await wait_until(func() -> bool: return on_client.weapon() == null, 30)
+	var on_host_body := (host.session as GameSession).get_player_entity(client_id) as Character
+	var on_client_body := _local_player(client)
+	check(unarmed and (host.session as GameSession).get_equipment(client_id).weapon() == null,
+		"host tirou a espada e o cliente viu")
+	check(on_host_body.attacker.attack == on_host_body.stats.unarmed_attack
+		and on_client_body.attacker.attack == on_client_body.stats.unarmed_attack,
+		"nos dois computadores o golpe virou soco")
+	check((client.session as GameSession).get_inventory(client_id).held_item() == &"sword",
+		"a espada está na mão do cliente")
+
+
 func test_wrong_protocol_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	var viewport := SubViewport.new()

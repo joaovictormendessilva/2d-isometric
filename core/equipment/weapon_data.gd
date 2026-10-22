@@ -8,6 +8,8 @@ enum Grip { ONE_HAND, TWO_HAND }
 
 @export var grip: Grip = Grip.ONE_HAND
 @export var off_hand_kinds: Array[OffHandData.Kind] = []
+## Golpe desta arma (a arma define o ataque; sem arma: `fists` dos dados do jogador).
+@export var attack: MeleeAttackData
 
 
 func get_slot() -> EquipmentData.Slot:

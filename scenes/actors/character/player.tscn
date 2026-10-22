@@ -1,8 +1,7 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/actor.tscn" id="1_actor"]
 [ext_resource type="Resource" path="res://data/actors/player.tres" id="2_stats"]
-[ext_resource type="Resource" path="res://data/weapons/sword.tres" id="3_sword"]
 [ext_resource type="Script" path="res://scenes/actors/character/character_visual.gd" id="4_visual"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/character.png" id="5_body"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/slash.png" id="6_slash"]
@@ -14,9 +13,6 @@ stats = ExtResource("2_stats")
 
 [node name="Footprint" parent="."]
 radius = 5.0
-
-[node name="MeleeAttacker" parent="."]
-attack = ExtResource("3_sword")
 
 [node name="Visual" parent="."]
 script = ExtResource("4_visual")

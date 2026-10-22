@@ -26,6 +26,17 @@ func setup(p_max_health: int, p_defense: int, p_invulnerability_time: float) -> 
 	restore_full()
 
 
+## Muda vida máxima e defesa sem curar (equipamento vestido/tirado). A vida atual acompanha o
+## ganho de máximo e nunca passa do novo máximo.
+func set_limits(p_max_health: int, p_defense: int) -> void:
+	var gained := maxi(p_max_health - max_health, 0)
+	max_health = p_max_health
+	defense = p_defense
+	if not is_dead():
+		current = clampi(current + gained, 1, max_health)
+	changed.emit(current, max_health)
+
+
 func is_dead() -> bool:
 	return current <= 0
 

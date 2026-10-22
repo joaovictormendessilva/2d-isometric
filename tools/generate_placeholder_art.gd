@@ -159,6 +159,16 @@ const BENCH := [
 	"ooo..ooo",
 	"........",
 ]
+const SWORD := [
+	"......oo",
+	".....olo",
+	"....olso",
+	"o..olso.",
+	"oooslo..",
+	".ohoo...",
+	"oho.o...",
+	"oo......",
+]
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -169,6 +179,7 @@ const ICONS := {
 	"stone_pickaxe": [PICKAXE, {}],
 	"copper_axe": [AXE, COPPER_SWAP],
 	"workbench": [BENCH, {}],
+	"sword": [SWORD, {}],
 }
 
 

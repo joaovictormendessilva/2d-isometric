@@ -66,6 +66,15 @@ static func click_slot(inventory: Inventory, equipment: Equipment, index: int) -
 	return true
 
 
+## Veste um item NOVO (equipamento inicial) no primeiro espaço livre onde ele cabe.
+static func give_equipped(equipment: Equipment, item: EquipmentData) -> bool:
+	for index in equipment.size():
+		if equipment.item_id(index) == Equipment.EMPTY and fits(equipment, index, item):
+			equipment.replicate_slot(index, item.id)
+			return true
+	return false
+
+
 ## Espaço de destino: primeiro livre onde cabe; senão, o primeiro onde cabe (troca).
 static func _target_index(equipment: Equipment, item: EquipmentData) -> int:
 	var occupied := -1

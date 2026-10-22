@@ -10,7 +10,7 @@ signal collected(pickup: Pickup)
 ## Duração do salto até o chão; antes de pousar o item não pode ser pego.
 const POP_TIME := 0.35
 const POP_HEIGHT := 10.0
-## Distância (chão, entre centros) em que o dono pega o item. Até `ActorStats.pickup_radius`
+## Distância (chão, entre centros) em que o dono pega o item. Até `Character.pickup_radius()`
 ## do dono, o item escorrega até ele (o "ímã", que equipamentos poderão aumentar).
 const COLLECT_RADIUS := 8.0
 const MAGNET_SPEED := 120.0
@@ -59,11 +59,11 @@ func _physics_process(delta: float) -> void:
 		return  # inventário cheio: o item espera no chão
 	var distance := Iso.ground_distance(position, owner_body.position)
 	if waits_for_owner_to_leave:
-		waits_for_owner_to_leave = distance <= owner_body.stats.pickup_radius + LEAVE_MARGIN
+		waits_for_owner_to_leave = distance <= owner_body.pickup_radius() + LEAVE_MARGIN
 		return
 	if distance <= COLLECT_RADIUS:
 		_collect()
-	elif distance <= owner_body.stats.pickup_radius:
+	elif distance <= owner_body.pickup_radius():
 		position = position.move_toward(owner_body.position, MAGNET_SPEED * delta)
 
 

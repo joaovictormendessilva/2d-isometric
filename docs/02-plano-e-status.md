@@ -144,8 +144,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   Soltar). 80 testes. Validado pelo João (2026-10-22).
 - **E4 – Equipamentos** 🟡 (branch `stage-e/equipment`, ADR-018): espaços estilo Terraria/Forager
   com 2 acessórios e mãos estilo Path of Exile. Passo 1 ✅ núcleo (espaços, regras de mão,
-  trocas com o inventário, host decide; 88 testes). Passo 2 ⬜ atributos, mochila e espada como
-  item. Passo 3 ⬜ tela de equipamento e itens de exemplo.
+  trocas com o inventário, host decide). Passo 2a ✅ bônus de atributos, arma define o golpe
+  (espada vestida ao entrar; sem arma, soco), equipamento enviado a todos (91 testes). Passo 2b
+  ⬜ mochila aumentando o inventário. Passo 3 ⬜ tela de equipamento e itens de exemplo.
 
 ## Funcionalidades
 

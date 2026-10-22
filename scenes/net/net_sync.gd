@@ -130,7 +130,7 @@ func _state(t: float, position: Vector2, facing: Vector2) -> void:
 ## Deslocamento desde o último estado aceito cabe na velocidade máxima (plano do chão)?
 ## O "orçamento" acumula com o tempo do HOST (o do cliente não é confiável).
 func _within_move_budget(position: Vector2, now: float) -> bool:
-	var max_speed := _body.stats.move_speed * MAX_SPEED_FACTOR
+	var max_speed := _body.move_speed() * MAX_SPEED_FACTOR
 	var elapsed := minf(now - _last_accept_time, MOVE_BUDGET_TIME)
 	_move_budget = minf(_move_budget + max_speed * elapsed, max_speed * MOVE_BUDGET_TIME)
 	_last_accept_time = now

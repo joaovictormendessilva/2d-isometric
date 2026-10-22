@@ -137,6 +137,12 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var gatherer: Gatherer = character.get_node("Gatherer")
 	gatherer.session = session
 	gatherer.items = items
+	# Equipamento → atributos e golpe, em todos os computadores (cada um recebe o de todos).
+	var equipment := session.get_equipment(character.player_id)
+	character.apply_equipment(equipment)
+	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
+	if not multiplayer.is_server():
+		player_state.request_equipment_of(character.player_id)
 	if character.player_id == local_player_id:
 		character.add_to_group(OccluderFade.VIEWER_GROUP)
 		character.ready.connect(local_player_spawned.emit.bind(character), CONNECT_ONE_SHOT)
@@ -146,6 +152,9 @@ func _instantiate_player(data: Dictionary) -> Character:
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
 		player_state.track_player(character.player_id)
+		if equipment.equipped().is_empty():  # jogador novo: começa com o equipamento inicial
+			for item in character.stats.starting_equipment:
+				EquipmentRules.give_equipped(equipment, item)
 		if starter_kit:
 			starter_kit.give_to(session.get_inventory(character.player_id))
 	return character
