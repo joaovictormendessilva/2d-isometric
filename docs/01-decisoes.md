@@ -404,7 +404,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-019 — Save do mundo no host, com o progresso de todos os personagens
 
-- **Status**: Hipótese (Etapa F1, 2026-10-22; aguardando teste do João)
+- **Status**: Aceita (validada pelo João na Etapa F1, inclusive no coop, 2026-10-22)
 - **Contexto**: sem save não há progressão. Escolha do João: o progresso fica **no mundo do
   host** (como o coop do Stardew Valley), não num arquivo de personagem que viaja entre mundos
   (Terraria). O amigo continua de onde parou sempre que entra no mesmo mundo; o personagem dele

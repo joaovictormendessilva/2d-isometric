@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 (save) em andamento |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 (segunda região) a seguir |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -157,9 +157,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 
 Ordem proposta (cada um com validação do João antes do próximo):
 
-- **F1 – Save** 🟡 (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
+- **F1 – Save** ✅ (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
   host (escolha do João), estruturas colocadas e pontos de coleta; identidade por perfil;
-  reconexão devolve o personagem. 105 testes. Aguardando teste do João.
+  reconexão devolve o personagem. 105 testes. Validado pelo João, inclusive no coop (2026-10-22).
 - **F2 – Segunda região** ⬜: passagem entre regiões, cada uma com seu estado salvo (ADR-005).
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
