@@ -20,3 +20,9 @@ extends Resource
 @export var hit_stun: float = 0.2
 ## 0 = sofre todo o recuo; 1 = imune a recuo.
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0
+
+@export_group("Coleta")
+## Raio do "ímã" de itens no chão (plano do chão): dentro dele, os itens do jogador escorregam
+## até ele. Equipamentos futuros poderão aumentá-lo, como um bônus por jogador somado a este
+## valor (nunca alterando este recurso, que é compartilhado por todos os jogadores).
+@export var pickup_radius: float = 16.0

@@ -1,13 +1,20 @@
 class_name Pickup
-extends Area2D
+extends Node2D
 ## Item no chão que pertence a UM jogador (drop pessoal, `docs/04-multiplayer.md`).
-## Só o dono o vê e coleta; perto dele, o item é atraído. A coleta é decidida pelo host.
+## Nasce onde a criatura morreu e salta num arco até o ponto onde cai (escolhido pelo host,
+## sempre em chão andável: `GroundQuery`). Depois de pousar, o dono o pega ao passar por
+## cima; dentro do "ímã" do dono, o item escorrega até ele. Só o dono o vê; a coleta é decidida pelo host.
 
 signal collected(pickup: Pickup)
 
-## Distância (chão) em que o item começa a ser atraído pelo dono, e a velocidade.
-const MAGNET_RADIUS := 36.0
-const MAGNET_SPEED := 170.0
+## Duração do salto até o chão; antes de pousar o item não pode ser pego.
+const POP_TIME := 0.35
+const POP_HEIGHT := 10.0
+## Distância (chão, entre centros) em que o dono pega o item. Até `ActorStats.pickup_radius`
+## do dono, o item escorrega até ele (o "ímã", que equipamentos poderão aumentar).
+const COLLECT_RADIUS := 8.0
+const MAGNET_SPEED := 120.0
+const SPRITE_HEIGHT := 4.0
 const BOB_HZ := 1.5
 const BOB_HEIGHT := 1.5
 
@@ -15,34 +22,54 @@ var item: ItemData
 var amount := 1
 var owner_player_id := 0
 var session: GameSession
+## Onde o item nasce (posição da criatura); `position` é onde ele pousa. Definir os dois
+## antes de adicionar à árvore (iguais = sem salto).
+var origin := Vector2.ZERO
 
 var _time := 0.0
 
 @onready var _sprite: Sprite2D = $Sprite
+@onready var _shadow: Sprite2D = $Shadow
 
 
 func _ready() -> void:
 	_sprite.texture = item.icon
-	collision_layer = 0
-	collision_mask = PhysicsLayers.ACTORS
-	body_entered.connect(_on_body_entered)
+	_update_visual()
+
+
+func has_landed() -> bool:
+	return _time >= POP_TIME
 
 
 func _physics_process(delta: float) -> void:
 	_time += delta
-	_sprite.position.y = -4.0 - absf(sin(_time * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT
+	_update_visual()
+	if not has_landed():
+		return
 	var owner_body := session.get_player_entity(owner_player_id) as Character
-	if owner_body and owner_body.is_alive() \
-			and Iso.ground_distance(position, owner_body.position) < MAGNET_RADIUS:
+	if owner_body == null or not owner_body.is_alive():
+		return
+	var distance := Iso.ground_distance(position, owner_body.position)
+	if distance <= COLLECT_RADIUS:
+		_collect()
+	elif distance <= owner_body.stats.pickup_radius:
 		position = position.move_toward(owner_body.position, MAGNET_SPEED * delta)
 
 
-func _on_body_entered(body: Node2D) -> void:
-	var character := body as Character
-	if character == null or character.player_id != owner_player_id or not character.is_alive():
-		return
+func _collect() -> void:
 	if not multiplayer.is_server():
-		return
+		return  # o cliente espera o host remover o item
 	session.get_inventory(owner_player_id).add(item.id, amount)
 	collected.emit(self)
 	queue_free()
+
+
+## Durante o salto, sprite e sombra vão da origem até o ponto de pouso (o sprite em arco);
+## depois, o item balança no lugar.
+func _update_visual() -> void:
+	var t := minf(_time / POP_TIME, 1.0)
+	var ground_offset := (origin - position) * (1.0 - t)
+	_shadow.position = ground_offset
+	var height := sin(t * PI) * POP_HEIGHT if t < 1.0 \
+		else absf(sin((_time - POP_TIME) * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT
+	_sprite.position = ground_offset + Vector2(0.0, -SPRITE_HEIGHT - height)

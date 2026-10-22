@@ -19,7 +19,7 @@ func test_client_receives_the_host_world() -> void:
 	check(client_session.get_entity_count() == host_session.get_entity_count(),
 		"mesmas entidades (host %d, cliente %d)" % [
 			host_session.get_entity_count(), client_session.get_entity_count()])
-	var monster := _first_monster(host)
+	var monster := first_monster(host)
 	var replica := _replica(client, monster)
 	check(replica != null and replica.position.distance_to(monster.position) < 8.0,
 		"criatura aparece no mesmo lugar no cliente")
@@ -78,7 +78,7 @@ func test_host_rejects_client_teleport() -> void:
 ## O cliente não decide dano nem move o que não é dele.
 func test_client_cannot_damage_or_move_others() -> void:
 	var games := await _start_pair()
-	var monster := _first_monster(games[0])
+	var monster := first_monster(games[0])
 	var replica := _replica(games[1], monster)
 	var start := monster.position
 	replica.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 0))  # só local
@@ -147,9 +147,9 @@ func test_client_collects_own_personal_drop() -> void:
 	monster.reset_physics_interpolation()
 	await physics_frames(15)
 	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, client_id))
-	var drops_arrived := await wait_until(func() -> bool: return _pickups(client).size() >= 2, 60)
+	var drops_arrived := await wait_until(func() -> bool: return pickups(client).size() >= 2, 60)
 	check(drops_arrived, "drops chegaram ao cliente")
-	var own: Array = _pickups(client).filter(func(p: Pickup) -> bool: return p.visible)
+	var own: Array = pickups(client).filter(func(p: Pickup) -> bool: return p.visible)
 	check(own.size() == 1 and (own[0] as Pickup).owner_player_id == client_id,
 		"cliente vê só o próprio drop")
 	if own.size() != 1:
@@ -229,22 +229,11 @@ func _spawn(game: Node) -> Vector2:
 	return (game.region as Region).get_spawn_position()
 
 
-func _first_monster(game: Node) -> Monster:
-	for node in (game.region as Region).entities.get_children():
-		if node is Monster:
-			return node
-	return null
-
-
 ## Criatura com a IA desligada: o teste a posiciona onde quiser (longe de casa ela evadiria).
 func _pinned_monster(game: Node) -> Monster:
-	var monster := _first_monster(game)
+	var monster := first_monster(game)
 	monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
 	return monster
-
-
-func _pickups(game: Node) -> Array:
-	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Pickup)
 
 
 static func _min(values: PackedFloat32Array) -> float:

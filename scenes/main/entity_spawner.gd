@@ -17,7 +17,10 @@ const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
 const PLAYER_RESPAWN_TIME := 2.5
 ## Tempo que o corpo da criatura fica sumindo antes de ser removido.
 const CORPSE_TIME := 0.6
-const DROP_SCATTER := Vector2(8, 4)
+## Onde os drops pousam: distância (chão) da criatura e raio livre exigido no ponto.
+const DROP_DISTANCE_MIN := 10.0
+const DROP_DISTANCE_MAX := 24.0
+const DROP_CLEARANCE := 4.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
 const IMMUNE_TEXT := "Imune"
@@ -80,11 +83,13 @@ func spawn_monster(point_index: int) -> Monster:
 			session.get_player_count(), PLAYER_SCALING)})
 
 
-func spawn_pickup(item: ItemData, amount: int, owner_player_id: int, at: Vector2) -> Pickup:
+## `from`: onde o item nasce (a criatura); `at`: onde ele pousa.
+func spawn_pickup(item: ItemData, amount: int, owner_player_id: int, from: Vector2,
+		at: Vector2) -> Pickup:
 	var pickup_id := _next_pickup_id
 	_next_pickup_id += 1
 	return _replicator.spawn({"kind": Kind.PICKUP, "pickup_id": pickup_id, "item": String(item.id),
-		"amount": amount, "owner": owner_player_id, "position": at})
+		"amount": amount, "owner": owner_player_id, "origin": from, "position": at})
 
 
 # --- Todos os computadores: monta o nó a partir dos dados ------------------------------------
@@ -142,6 +147,7 @@ func _instantiate_pickup(data: Dictionary) -> Pickup:
 	pickup.amount = data["amount"]
 	pickup.owner_player_id = data["owner"]
 	pickup.session = session
+	pickup.origin = data["origin"]
 	pickup.position = data["position"]
 	# Drop pessoal: cada computador só mostra os itens do seu jogador local.
 	pickup.visible = pickup.owner_player_id == local_player_id
@@ -177,7 +183,7 @@ func _valid_kind(data: Variant) -> int:
 		Kind.PICKUP:
 			var item: Variant = d.get("item")
 			if _is_id(d, "pickup_id") and _is_id(d, "owner") and _is_position(d, "position") \
-					and item is String and items.get_item(StringName(item)) != null \
+					and _is_position(d, "origin") and item is String and items.get_item(StringName(item)) != null \
 					and d.get("amount") is int and d["amount"] >= 1 and d["amount"] <= MAX_PICKUP_AMOUNT:
 				return Kind.PICKUP
 	return -1
@@ -234,11 +240,14 @@ func _on_monster_died(monster: Character, point_index: int) -> void:
 		spawn_monster.bind(point_index))
 
 
-## Drops pessoais: a tabela é sorteada separadamente para cada jogador da sessão.
+## Drops pessoais: a tabela é sorteada separadamente para cada jogador da sessão. Cada item
+## pousa num ponto andável e alcançável perto da criatura (nunca na água ou dentro de objetos).
 func _spawn_drops(monster: Monster) -> void:
+	var space := region.get_world_2d().direct_space_state
 	for player_id in session.get_player_ids():
 		for entry in monster.data.drops:
 			var amount := entry.roll(_rng)
 			if amount > 0:
-				var scatter := Vector2(_rng.randf_range(-1, 1), _rng.randf_range(-1, 1)) * DROP_SCATTER
-				spawn_pickup(entry.item, amount, player_id, monster.position + scatter)
+				var spot := GroundQuery.find_drop_spot(space, monster.position, _rng,
+					DROP_DISTANCE_MIN, DROP_DISTANCE_MAX, DROP_CLEARANCE)
+				spawn_pickup(entry.item, amount, player_id, monster.position, spot)

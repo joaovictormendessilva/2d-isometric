@@ -99,3 +99,14 @@ func wait_until(condition: Callable, max_frames: int = 300) -> bool:
 			return true
 		await tree.physics_frame
 	return condition.call()
+
+
+func first_monster(game: Node) -> Monster:
+	for node in (game.region as Region).entities.get_children():
+		if node is Monster:
+			return node
+	return null
+
+
+func pickups(game: Node) -> Array:
+	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Pickup)
