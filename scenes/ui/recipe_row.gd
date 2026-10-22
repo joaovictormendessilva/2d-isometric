@@ -7,8 +7,8 @@ extends PanelContainer
 signal craft_requested(recipe_id: StringName)
 
 const ICON_SIZE := Vector2(16, 16)
-const MISSING_COLOR := Color(1.0, 0.45, 0.4)
-const UNAVAILABLE_ALPHA := 0.45
+const MISSING_COLOR := UiStyle.DANGER
+const UNAVAILABLE_ALPHA := UiStyle.UNAVAILABLE_ALPHA
 ## Motivo de não poder fabricar → chave de texto.
 const CHECK_TEXTS := {
 	CraftingRules.Check.NEEDS_STATION: &"CRAFT_NEEDS_STATION",

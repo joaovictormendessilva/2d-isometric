@@ -9,9 +9,9 @@ signal menu_requested(index: int)
 
 const SIZE := Vector2(24, 24)
 const ICON_SIZE := Vector2(16, 16)  # ícones 8x8 em escala 2, ainda em pixels inteiros
-const BACK_COLOR := Color(0.1, 0.08, 0.14, 0.92)
-const BORDER_COLOR := Color(0.32, 0.28, 0.42)
-const HOVER_COLOR := Color(0.62, 0.56, 0.78)
+const BACK_COLOR := UiStyle.SLOT_BACK
+const BORDER_COLOR := UiStyle.BORDER
+const HOVER_COLOR := UiStyle.BORDER_HOVER
 
 var index := 0
 

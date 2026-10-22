@@ -9,10 +9,10 @@ extends Control
 ## Cada ação é um pedido ao host (PlayerStateSync).
 
 const COLUMNS := 6
-const SLOT_GAP := 2
+const SLOT_GAP := UiStyle.GAP
 const COLUMN_GAP := 8
 const SETTINGS_KEY := "inventory"
-const HINT_ALPHA := 0.7
+const HINT_ALPHA := UiStyle.HINT_ALPHA
 
 ## Prévia de estruturas no mundo: com uma bancada na mão, clicar fora coloca em vez de jogar.
 var placement: PlacementPreview

@@ -4,8 +4,8 @@ extends Node2D
 ## falta para coletar ("Carvalho antigo: precisa de ferramenta nível 2"). Assim todo ponto
 ## coletável se identifica quando o jogador chega perto. Só apresentação.
 
-const READY_COLOR := Color("e8c15a")
-const BLOCKED_COLOR := Color("ff9f6b")
+const READY_COLOR := UiStyle.ACCENT
+const BLOCKED_COLOR := UiStyle.WARNING
 const LABEL_SIZE := Vector2(240, 12)
 ## Distância entre o topo do desenho do ponto e o rótulo.
 const MARGIN := 2.0

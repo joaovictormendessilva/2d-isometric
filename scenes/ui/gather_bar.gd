@@ -4,8 +4,8 @@ extends Node2D
 
 const SIZE := Vector2(14, 2)
 const HEIGHT_ABOVE_FEET := 28.0
-const BACK_COLOR := Color(0.08, 0.07, 0.12, 0.85)
-const FILL_COLOR := Color("e8c15a")
+const BACK_COLOR := UiStyle.SLOT_BACK
+const FILL_COLOR := UiStyle.ACCENT
 
 @export var gatherer: Gatherer
 
