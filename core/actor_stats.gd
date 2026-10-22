@@ -6,3 +6,5 @@ extends Resource
 @export var move_speed: float = 90.0
 @export var acceleration: float = 900.0
 @export var friction: float = 1200.0
+## Multiplicador de velocidade ao andar na horizontal (ver `Iso.move_speed_factor`).
+@export_range(0.5, 1.0) var horizontal_speed_factor: float = 1.0

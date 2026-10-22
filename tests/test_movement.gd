@@ -7,19 +7,34 @@ const DIRECTIONS: Array[Vector2] = [
 	Vector2(1, 1), Vector2(1, -1), Vector2(-1, 1), Vector2(-1, -1)]
 
 
-func test_same_ground_speed_in_every_direction() -> void:
+func test_speed_per_direction_matches_stats() -> void:
+	var characters := await _walk_one_second_in_every_direction()
+	var stats := characters[0].stats
+	for i in characters.size():
+		var speed := stats.move_speed * Iso.move_speed_factor(DIRECTIONS[i], stats.horizontal_speed_factor)
+		# 1 s de movimento menos o trecho de aceleração (v² / 2a).
+		var expected := speed - speed ** 2 / (2.0 * stats.acceleration)
+		var moved := Iso.ground_distance(Vector2.ZERO, characters[i].position)
+		check_near(moved, expected, 2.0, "distância no chão na direção %s" % DIRECTIONS[i])
+
+
+## Percepção (pedido do João): andar na horizontal não deve parecer mais rápido que na
+## diagonal — comparamos a distância percorrida NA TELA.
+func test_horizontal_screen_speed_close_to_diagonal() -> void:
+	var characters := await _walk_one_second_in_every_direction()
+	var horizontal := characters[DIRECTIONS.find(Vector2.RIGHT)].position.length()
+	var diagonal := characters[DIRECTIONS.find(Vector2(1, 1))].position.length()
+	check_near(horizontal / diagonal, 1.0, 0.1, "razão horizontal/diagonal na tela")
+
+
+func _walk_one_second_in_every_direction() -> Array[Character]:
 	var characters: Array[Character] = []
 	for dir in DIRECTIONS:
 		var c := spawn_character(Vector2.ZERO)
 		c.set_move_intent(dir.normalized())
 		characters.append(c)
 	await physics_frames(60)
-	var stats := characters[0].stats
-	# 1 s de movimento menos o trecho de aceleração (v² / 2a).
-	var expected := stats.move_speed - stats.move_speed ** 2 / (2.0 * stats.acceleration)
-	for i in characters.size():
-		var moved := Iso.ground_distance(Vector2.ZERO, characters[i].position)
-		check_near(moved, expected, 2.0, "distância no chão na direção %s" % DIRECTIONS[i])
+	return characters
 
 
 ## Pegadas redondas: ao empurrar contra a pedra o personagem desliza em volta dela (não

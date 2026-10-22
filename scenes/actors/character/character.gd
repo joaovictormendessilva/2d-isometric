@@ -22,7 +22,8 @@ func set_move_intent(direction: Vector2) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	var target := _move_intent * stats.move_speed
+	var target := _move_intent * stats.move_speed \
+		* Iso.move_speed_factor(_move_intent, stats.horizontal_speed_factor)
 	var rate := stats.acceleration if _move_intent != Vector2.ZERO else stats.friction
 	ground_velocity = ground_velocity.move_toward(target, rate * delta)
 	velocity = Iso.ground_to_screen(ground_velocity)
