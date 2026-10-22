@@ -55,6 +55,30 @@ func test_station_recipes_need_the_station() -> void:
 		"a lista da mão não mostra receitas de bancada")
 
 
+## Coluna "Fabricar" do inventário: só receitas da mão; apagada sem material; clicar fabrica e
+## a lista se atualiza.
+func test_crafting_list_shows_hand_recipes_and_crafts_on_click() -> void:
+	var game := start_game()
+	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
+	var rows: Array[RecipeRow] = []
+	rows.assign(panel.find_children("*", "RecipeRow", true, false))
+	var ids := rows.map(func(row: RecipeRow) -> StringName: return row.recipe.id)
+	check(&"stone_axe" in ids and &"copper_axe" not in ids, "receitas da mão; as de bancada não")
+	var axe: RecipeRow = rows[ids.find(&"stone_axe")]
+	check(not axe._available and axe.modulate.a < 1.0, "sem material: apagada")
+	axe._gui_input(_left_click())
+	check(inventory.count(&"stone_axe") == 0, "clicar apagada não faz nada")
+
+	inventory.add(&"wood", 10)
+	inventory.add(&"stone", 10)
+	await physics_frames(1)
+	check(axe._available and axe.modulate.a == 1.0, "com material: acesa")
+	axe._gui_input(_left_click())
+	check(inventory.count(&"stone_axe") == 1, "clicar fabricou")
+
+
 ## Os ingredientes liberam espaço: com o inventário cheio, ainda dá para fabricar se uma pilha
 ## de ingrediente acabar. Se nada liberar espaço, não fabrica (nada se perde).
 func test_full_inventory_counts_the_space_ingredients_free() -> void:
@@ -69,3 +93,10 @@ func test_full_inventory_counts_the_space_ingredients_free() -> void:
 	check(CraftingRules.check(recipe, inventory, HAND) == CraftingRules.Check.INVENTORY_FULL,
 		"sem espaço para o machado")
 	check(inventory.count(&"wood") == 10 and inventory.count(&"stone") == 10, "nada foi gasto")
+
+
+func _left_click() -> InputEventMouseButton:
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	return click

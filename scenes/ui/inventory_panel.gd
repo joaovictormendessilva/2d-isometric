@@ -4,10 +4,12 @@ extends Control
 ## o jogador a arrasta para onde preferir e anda e luta com ela aberta.
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
 ## clicar fora da janela joga no chão; botão direito divide (a parte separada vai para a mão).
-## Fechar com algo na mão devolve aos espaços. Cada ação é um pedido ao host (PlayerStateSync).
+## Fechar com algo na mão devolve aos espaços. Ao lado, a coluna de fabricação (CraftingList).
+## Cada ação é um pedido ao host (PlayerStateSync).
 
 const COLUMNS := 6
 const SLOT_GAP := 2
+const COLUMN_GAP := 8
 const SETTINGS_KEY := "inventory"
 const HINT_ALPHA := 0.7
 
@@ -30,15 +32,25 @@ func _ready() -> void:
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 
 
-func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateSync) -> void:
+func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateSync,
+		player_id: int) -> void:
 	_inventory = inventory
 	_player_state = player_state
 	_window.setup(Texts.get_text(&"INVENTORY_TITLE"), SETTINGS_KEY)
+	# Itens à esquerda, fabricação à direita.
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override(&"separation", COLUMN_GAP)
+	_window.add_content(columns)
+	var items_column := VBoxContainer.new()
+	columns.add_child(items_column)
+	var crafting := CraftingList.new()
+	columns.add_child(crafting)
+	crafting.setup(inventory, items, player_state, player_id)
 	var grid := GridContainer.new()
 	grid.columns = COLUMNS
 	grid.add_theme_constant_override(&"h_separation", SLOT_GAP)
 	grid.add_theme_constant_override(&"v_separation", SLOT_GAP)
-	_window.add_content(grid)
+	items_column.add_child(grid)
 	for i in inventory.capacity():
 		var slot := InventorySlot.new()
 		slot.setup(i, inventory, items)
@@ -53,7 +65,7 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.modulate = Color(1, 1, 1, HINT_ALPHA)
 	hint.text = Texts.get_text(&"INVENTORY_HINT")
-	_window.add_content(hint)
+	items_column.add_child(hint)
 	_split.confirmed.connect(player_state.request_split)
 	_held.setup(inventory, items)
 	inventory.slot_changed.connect(func(index: int) -> void: _slots[index].refresh())

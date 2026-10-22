@@ -138,8 +138,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   clicar para segurar, jogar fora e dividir, inventário cheio tratado, coop (ADR-016). Kit para
   testes em compilações de desenvolvimento. 69 testes passando. Validado pelo João (2026-10-22).
 - **E3 – Crafting** 🟡 (branch `stage-e/crafting`, ADR-017): na mão, na bancada e com NPCs.
-  Passo 1 ✅ receitas em dados e fabricação decidida pelo host (75 testes). Passo 2 ⬜ aba de
-  fabricação no inventário. Passo 3 ⬜ bancada no mundo.
+  Passo 1 ✅ receitas em dados e fabricação decidida pelo host. Passo 2 ✅ coluna "Fabricar" na
+  janela do inventário (76 testes). Passo 3 ⬜ bancada no mundo.
 - **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
 
 ## Funcionalidades
@@ -151,6 +151,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 - Inventário: tecla I ou Tab (botão Y), Esc fecha; arraste a janela pelo título; clique pega e
   põe itens, clique fora joga no chão, botão direito divide a pilha (a parte vai para a mão).
+- Fabricar: coluna à direita no inventário; clique numa receita acesa fabrica (machado e
+  picareta de pedra, na mão). Passar o mouse mostra o que falta.
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,
   liga/desliga em `game/debug/starter_kit` no project.godot). Jogo exportado nunca tem kit.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre

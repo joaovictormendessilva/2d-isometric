@@ -7,6 +7,7 @@ extends Node
 ##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --port=<n>).
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
+##   --open-inventory             abre o inventário antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
@@ -92,7 +93,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	_hud.setup(character, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
-	_inventory_panel.setup(inventory, items, player_state)
+	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	player_state.request_full_state()
 
 
@@ -106,12 +107,15 @@ func detach_local_input() -> void:
 func _handle_command_line() -> void:
 	var screenshot_path := ""
 	var move := Vector2.ZERO
+	var open_inventory := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
 			move = Vector2(parts[0].to_float(), parts[1].to_float())
+		elif arg == "--open-inventory":
+			open_inventory = true
 	if screenshot_path.is_empty():
 		return
 	for i in SCREENSHOT_FRAMES:
@@ -120,6 +124,8 @@ func _handle_command_line() -> void:
 		if character and move != Vector2.ZERO:
 			detach_local_input()
 			character.set_move_intent(move)
+	if open_inventory:
+		_inventory_panel.set_open(true)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)
