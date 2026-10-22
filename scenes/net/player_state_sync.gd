@@ -3,8 +3,8 @@ extends Node
 ## Estado de cada jogador que só o host decide: inventário (com a mão) e experiência de
 ## coleta (ADR-012). Host: envia ao dono cada espaço que mudou, a mão, cada ganho (para os
 ## avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
-## dividir, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma estrutura); o
-## host confere e aplica. Offline, os pedidos são aplicados na hora.
+## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
+## estrutura); o host confere e aplica. Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -61,6 +61,11 @@ func request_split(index: int, amount: int) -> void:
 ## Jogador local quer jogar no chão o que está na mão (só ele vê o item).
 func request_drop_held() -> void:
 	_request(&"_drop_held_requested", [])
+
+
+## Jogador local quer soltar no chão a pilha inteira do espaço `index` (menu do botão direito).
+func request_drop_slot(index: int) -> void:
+	_request(&"_drop_slot_requested", [index])
 
 
 ## Jogador local fechou o inventário com algo na mão: volta para os espaços.
@@ -144,6 +149,18 @@ func _return_held_requested() -> void:
 	var inventory := _requester_inventory()
 	if inventory and inventory.return_held() > 0:
 		_drop_held_requested()  # não coube de volta: cai no chão em vez de sumir
+
+
+## Soltar um espaço = pegar a pilha e jogar fora o que está na mão, de uma vez no host.
+@rpc("any_peer", "call_remote", "reliable")
+func _drop_slot_requested(index: int) -> void:
+	var inventory := _requester_inventory()
+	if inventory == null or session.get_player_entity(_requester()) == null \
+			or inventory.is_holding() or not inventory.is_valid_slot(index) \
+			or inventory.slot_amount(index) == 0:
+		return
+	inventory.click_slot(index)
+	_drop_held_requested()
 
 
 @rpc("any_peer", "call_remote", "reliable")

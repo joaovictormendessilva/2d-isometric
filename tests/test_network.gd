@@ -262,6 +262,8 @@ func test_client_inventory_actions_go_through_host() -> void:
 	state.request_split(0, 999)
 	state.request_split(0, -5)
 	state.request_drop_held()  # mão vazia: nada
+	for bad in [-1, 999, 5]:  # fora da grade, ou espaço vazio
+		state.request_drop_slot(bad)
 	state.request_click(0)  # pega as madeiras
 	state.request_click(1)  # troca com as pedras
 	await physics_frames(10)

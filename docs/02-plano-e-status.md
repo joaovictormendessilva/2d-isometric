@@ -140,7 +140,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - **E3 – Crafting** 🟡 (branch `stage-e/crafting`, ADR-017): na mão, na bancada e com NPCs.
   Passo 1 ✅ receitas em dados e fabricação decidida pelo host. Passo 2 ✅ coluna "Fabricar" na
   janela do inventário. Passo 3 ✅ bancada fabricada e colocada pelo jogador; receitas de
-  bancada por perto (78 testes). Aguardando validação do João.
+  bancada por perto. Ajustes do João: Fabricar recolhível e menu do botão direito (Dividir /
+  Soltar). 80 testes. Aguardando validação do João.
 - **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
 
 ## Funcionalidades
@@ -151,10 +152,10 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 - Inventário: tecla I ou Tab (botão Y), Esc fecha; arraste a janela pelo título; clique pega e
-  põe itens, clique fora joga no chão, botão direito divide a pilha (a parte vai para a mão).
-- Fabricar: coluna à direita no inventário; clique numa receita acesa fabrica (machado e
-  picareta de pedra e bancada, na mão; machado de cobre perto de uma bancada). Passar o mouse
-  mostra o que falta.
+  põe itens, clique fora joga no chão, botão direito abre um menu (Dividir / Soltar).
+- Fabricar: coluna à direita no inventário (clique no título recolhe/abre); clique numa
+  receita acesa fabrica (machado e picareta de pedra e bancada, na mão; machado de cobre perto
+  de uma bancada). Passar o mouse mostra o que falta.
 - Bancada: pegue-a no inventário e clique no chão (prévia verde = pode; vermelha = não pode).
   Bloqueia a passagem; ainda não dá para recolher (pendência).
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,

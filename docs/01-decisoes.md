@@ -315,7 +315,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     clicar fora da janela joga no chão (o dono só pega de volta depois de se afastar); fechar
     o inventário devolve a mão aos espaços. A **mão é estado do host** (parte do inventário):
     nada some nem se duplica no coop.
-  - **Dividir pilha** (botão direito, mão vazia): janelinha com régua; a parte separada vai
+  - **Menu do botão direito** (pedido do João, E3): "Dividir" (pilhas de 2+) e "Soltar" (a
+    pilha inteira cai no chão; o host pega e joga fora de uma vez). Fecha com Esc ou clique
+    fora, sem atacar.
+  - **Dividir pilha** (pelo menu, mão vazia): janelinha com régua; a parte separada vai
     para a mão (pode ser posta em qualquer espaço ou jogada fora).
   - **Clique da interface não ataca**: um clique de mouse só vira ataque se começou com o
     cursor livre (fora de janelas, sem item na mão, sem arrastar janela).
@@ -352,6 +355,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     na lista, apagadas longe de uma; acendem a até 40 px de chão dela, e o host confere a
     distância. **NPC**: receitas ficam indisponíveis até haver NPCs (Etapa F), que dirão
     quais ensinam.
+  - **Coluna recolhível** (pedido do João): clicar em "Fabricar" esconde/mostra as receitas;
+    a escolha fica em `UserSettings` (só neste computador).
   - Uma unidade por pedido, instantânea (tempo de fabricação e "fazer N" ficam para depois,
     se o João quiser).
 - **Consequências**: nova receita = novo `.tres`; nova estrutura = `StructureData` + item

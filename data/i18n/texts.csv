@@ -36,7 +36,7 @@ NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
 NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)
 GATHER_INVENTORY_FULL,Inventário cheio,Inventory full
 INVENTORY_TITLE,Inventário,Inventory
-INVENTORY_HINT,Clique: pegar e pôr · clique fora: jogar no chão · botão direito: dividir,Click: pick up and place · click outside: throw away · right click: split
+INVENTORY_HINT,Clique: pegar e pôr · clique fora: jogar no chão · botão direito: opções,Click: pick up and place · click outside: throw away · right click: options
 CRAFT_TITLE,Fabricar,Crafting
 CRAFT_INGREDIENT,%s: %d / %d,%s: %d / %d
 CRAFT_NEEDS_STATION,Precisa estar perto de uma bancada,Must be near a workbench
@@ -46,3 +46,5 @@ HUD_INVENTORY_KEY,[%s] Inventário,[%s] Inventory
 SPLIT_AMOUNT,Dividir: %d,Split: %d
 SPLIT_CONFIRM,Dividir,Split
 SPLIT_CANCEL,Cancelar,Cancel
+SLOT_MENU_SPLIT,Dividir,Split
+SLOT_MENU_DROP,Soltar,Drop

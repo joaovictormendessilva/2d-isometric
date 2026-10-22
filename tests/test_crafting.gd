@@ -80,6 +80,23 @@ func test_crafting_list_shows_hand_recipes_and_crafts_on_click() -> void:
 	check(inventory.count(&"stone_axe") == 1, "clicar fabricou")
 
 
+## Clicar no título recolhe/abre as receitas; a escolha vale na próxima vez que o jogo abrir.
+func test_crafting_list_collapses_and_remembers() -> void:
+	var game := start_game()
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
+	var list: CraftingList = panel.find_children("*", "CraftingList", true, false)[0]
+	check(list.is_open(), "começa aberta")
+	list._on_title_input(_left_click())
+	check(not list.is_open() and not list._list.visible, "clique no título recolheu")
+	cleanup()
+	game = start_game()
+	panel = game.get_node("UI/InventoryPanel")
+	list = panel.find_children("*", "CraftingList", true, false)[0]
+	check(not list.is_open(), "lembrou: continua recolhida")
+	list.set_open(true)
+
+
 ## Os ingredientes liberam espaço: com o inventário cheio, ainda dá para fabricar se uma pilha
 ## de ingrediente acabar. Se nada liberar espaço, não fabrica (nada se perde).
 func test_full_inventory_counts_the_space_ingredients_free() -> void:

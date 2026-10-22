@@ -1,11 +1,11 @@
 class_name InventorySlot
 extends Control
 ## Um espaço da tela de inventário: fundo, ícone, quantidade e o nome do item ao passar o
-## mouse. Clique esquerdo: pegar / pôr / juntar / trocar com a mão. Botão direito: dividir a
-## pilha (só com a mão vazia). Quem decide é o host; o espaço só mostra.
+## mouse. Clique esquerdo: pegar / pôr / juntar / trocar com a mão. Botão direito: menu de
+## opções (dividir, soltar; só com a mão vazia). Quem decide é o host; o espaço só mostra.
 
 signal clicked(index: int)
-signal split_requested(index: int)
+signal menu_requested(index: int)
 
 const SIZE := Vector2(24, 24)
 const ICON_SIZE := Vector2(16, 16)  # ícones 8x8 em escala 2, ainda em pixels inteiros
@@ -55,9 +55,9 @@ func _gui_input(event: InputEvent) -> void:
 	if button.button_index == MOUSE_BUTTON_LEFT:
 		clicked.emit(index)
 		accept_event()
-	elif button.button_index == MOUSE_BUTTON_RIGHT and _inventory.slot_amount(index) > 1 \
+	elif button.button_index == MOUSE_BUTTON_RIGHT and _inventory.slot_amount(index) > 0 \
 			and not _inventory.is_holding():
-		split_requested.emit(index)
+		menu_requested.emit(index)
 		accept_event()
 
 
