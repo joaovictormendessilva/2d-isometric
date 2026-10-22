@@ -11,8 +11,8 @@ signal added(item_id: StringName, amount: int)
 
 ## Limite de pilha sem catálogo de itens (testes) ou para item desconhecido.
 const DEFAULT_STACK := 99
-## Tamanho padrão do inventário de um jogador.
-const DEFAULT_SLOTS := 30
+## Espaços de quem ainda não tem mochila (mochilas somam espaços, Etapa E4).
+const DEFAULT_SLOTS := 12
 const EMPTY := &""
 
 var _ids: Array[StringName] = []
@@ -125,6 +125,25 @@ func can_add_all(amounts: Dictionary[StringName, int]) -> bool:
 		if copy.add(item_id, amounts[item_id]) > 0:
 			return false
 	return true
+
+
+## Separa `amount` da pilha de `from` para o espaço vazio `to`. Retorna se conseguiu.
+func split(from: int, amount: int, to: int) -> bool:
+	if not can_split(from, amount, to):
+		return false
+	_set_slot(to, _ids[from], amount)
+	_set_slot(from, _ids[from], _amounts[from] - amount)
+	return true
+
+
+func can_split(from: int, amount: int, to: int) -> bool:
+	return is_valid_slot(from) and is_valid_slot(to) and from != to \
+		and _ids[to] == EMPTY and amount >= 1 and amount < _amounts[from]
+
+
+## Para onde vai a parte separada de uma pilha: o espaço logo à direita (próximo índice).
+static func split_target(from: int) -> int:
+	return from + 1
 
 
 ## Esvazia um espaço e devolve o que havia nele: [id, quantidade].

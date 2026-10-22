@@ -36,6 +36,8 @@ var local_player_id := 0
 var damage_numbers: DamageNumbers
 var items: ItemDatabase
 var player_state: PlayerStateSync
+## Kit de testes dado a cada jogador ao entrar (só em compilações de desenvolvimento; ver main).
+var starter_kit: ItemBundle
 
 var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
@@ -130,6 +132,8 @@ func _instantiate_player(data: Dictionary) -> Character:
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
 		player_state.track_player(character.player_id)
+		if starter_kit:
+			starter_kit.give_to(session.get_inventory(character.player_id))
 	return character
 
 

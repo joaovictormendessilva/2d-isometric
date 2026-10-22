@@ -4,6 +4,10 @@ extends Control
 ## mouse. Arrastar o conteúdo para outro espaço pede a troca (quem decide é o host).
 
 signal move_requested(from: int, to: int)
+## O arrasto que começou neste espaço terminou sem cair em outro espaço.
+signal dropped_nowhere(index: int)
+## Botão direito: dividir a pilha.
+signal split_requested(index: int)
 
 const SIZE := Vector2(24, 24)
 const ICON_SIZE := Vector2(16, 16)  # ícones 8x8 em escala 2, ainda em pixels inteiros
@@ -20,6 +24,7 @@ var _items: ItemDatabase
 var _icon := TextureRect.new()
 var _amount := Label.new()
 var _hovered := false
+var _dragging_from_here := false
 
 
 func setup(p_index: int, inventory: Inventory, items: ItemDatabase) -> void:
@@ -66,6 +71,7 @@ func _get_drag_data(_at_position: Vector2) -> Variant:
 	var holder := Control.new()  # centraliza o ícone no ponteiro
 	holder.add_child(preview)
 	set_drag_preview(holder)
+	_dragging_from_here = true
 	return {DRAG_KEY: index}
 
 
@@ -75,6 +81,21 @@ func _can_drop_data(_at_position: Vector2, data: Variant) -> bool:
 
 func _drop_data(_at_position: Vector2, data: Variant) -> void:
 	move_requested.emit(data[DRAG_KEY], index)
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_DRAG_END and _dragging_from_here:
+		_dragging_from_here = false
+		if not get_viewport().gui_is_drag_successful():
+			dropped_nowhere.emit(index)
+
+
+func _gui_input(event: InputEvent) -> void:
+	var button := event as InputEventMouseButton
+	if button and button.pressed and button.button_index == MOUSE_BUTTON_RIGHT \
+			and _inventory.slot_amount(index) > 1:
+		split_requested.emit(index)
+		accept_event()
 
 
 func _set_hovered(value: bool) -> void:

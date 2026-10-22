@@ -97,6 +97,10 @@ locale/fallback="pt_BR"
 
 common/physics_interpolation=true
 
+[game]
+
+debug/starter_kit=true
+
 [gui]
 
 theme/custom="res://assets/ui/theme.tres"

@@ -38,9 +38,22 @@ func track_player(player_id: int) -> void:
 		_send(player_id, &"_skill_xp", [skill_id, xp]))
 
 
+## Cliente: pede ao host o estado completo do próprio jogador (todos os espaços e a
+## experiência). Chamado quando o personagem local chega: mensagens anteriores podem ter
+## chegado antes de o jogador existir aqui.
+func request_full_state() -> void:
+	if NetRules.is_online(multiplayer) and not multiplayer.is_server():
+		_full_state_requested.rpc_id(1)
+
+
 ## Jogador local quer mover o conteúdo de um espaço para outro.
 func request_move(from: int, to: int) -> void:
 	_request(&"_move_requested", [from, to])
+
+
+## Jogador local quer separar `amount` da pilha de `index` para o espaço à direita.
+func request_split(index: int, amount: int) -> void:
+	_request(&"_split_requested", [index, amount])
 
 
 ## Jogador local quer jogar fora o conteúdo de um espaço (cai no chão, só ele vê).
@@ -74,6 +87,13 @@ func _move_requested(from: int, to: int) -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
+func _split_requested(index: int, amount: int) -> void:
+	var inventory := session.get_inventory(_requester()) if multiplayer.is_server() else null
+	if inventory:
+		inventory.split(index, amount, Inventory.split_target(index))  # confere tudo
+
+
+@rpc("any_peer", "call_remote", "reliable")
 func _drop_requested(index: int) -> void:
 	if not multiplayer.is_server():
 		return
@@ -89,6 +109,19 @@ func _drop_requested(index: int) -> void:
 		DROP_DISTANCE.y, DROP_CLEARANCE)
 	spawner.spawn_pickup(items.get_item(content[0]), content[1], player_id, character.position, spot,
 		true)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _full_state_requested() -> void:
+	var player_id := multiplayer.get_remote_sender_id()
+	var inventory := session.get_inventory(player_id) if multiplayer.is_server() else null
+	if inventory == null:
+		return
+	for index in inventory.capacity():
+		_send(player_id, &"_slot", [index, inventory.slot_item(index), inventory.slot_amount(index)])
+	var progress := session.get_skills(player_id)
+	for skill in skills.entries():
+		_send(player_id, &"_skill_xp", [skill.id, progress.xp(skill.id)])
 
 
 @rpc("authority", "call_remote", "reliable")

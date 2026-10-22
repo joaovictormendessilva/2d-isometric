@@ -12,9 +12,13 @@ extends Node
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
 const SKILLS_DIR := "res://data/skills/"
 const SCREENSHOT_FRAMES := 45
+const STARTER_KIT := "res://data/debug/starter_kit.tres"
 
 ## Defina antes de adicionar à árvore para ignorar a linha de comando (testes de rede).
 var configure_network_from_command_line := true
+## Kit de itens para testes (`game/debug/starter_kit` no project.godot). Só existe em
+## compilações de desenvolvimento: um jogo exportado nunca dá itens de graça. Testes desligam.
+var use_debug_starter_kit := true
 
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
@@ -56,6 +60,9 @@ func _ready() -> void:
 	player_state.items = items
 	player_state.skills = skills
 	player_state.spawner = _spawner
+	if use_debug_starter_kit and OS.is_debug_build() \
+			and ProjectSettings.get_setting("game/debug/starter_kit", false):
+		_spawner.starter_kit = load(STARTER_KIT)
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
@@ -84,6 +91,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
 	_inventory_panel.setup(inventory, items, player_state)
+	player_state.request_full_state()
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem

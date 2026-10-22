@@ -35,5 +35,9 @@ NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
 NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)
 GATHER_INVENTORY_FULL,Inventário cheio,Inventory full
 INVENTORY_TITLE,Inventário,Inventory
-INVENTORY_HINT,Arraste para mover · solte fora para jogar no chão,Drag to move · drop outside to throw away
+INVENTORY_HINT,Arraste: mover · fora: jogar no chão · botão direito: dividir,Drag: move · outside: throw away · right click: split
 HUD_INVENTORY_KEY,[%s] Inventário,[%s] Inventory
+SPLIT_AMOUNT,Dividir: %d,Split: %d
+SPLIT_CONFIRM,Dividir,Split
+SPLIT_CANCEL,Cancelar,Cancel
+SPLIT_NEEDS_FREE_SLOT,Precisa de um espaço livre à direita,Needs a free slot to the right

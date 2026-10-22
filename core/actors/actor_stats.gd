@@ -28,5 +28,5 @@ extends Resource
 @export var pickup_radius: float = 16.0
 
 @export_group("Inventário")
-## Espaços do inventário (bolsas e equipamentos poderão somar, por jogador).
+## Espaços do inventário sem mochila (mochilas equipadas somarão, por jogador — Etapa E4).
 @export var inventory_slots: int = Inventory.DEFAULT_SLOTS

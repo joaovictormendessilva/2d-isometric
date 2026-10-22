@@ -261,6 +261,8 @@ func test_client_inventory_actions_go_through_host() -> void:
 	for bad: Array in [[-1, 0], [0, 999], [999, 0]]:
 		state.request_move(bad[0], bad[1])
 	state.request_drop(999)
+	state.request_split(0, 999)
+	state.request_split(0, -5)
 	await physics_frames(10)
 	check(on_host.slot_item(0) == &"stone" and on_client.slot_item(0) == &"stone", "troca feita no host e vista no cliente")
 	check(host_own.count(&"gel") == 1, "inventário do host intacto")
@@ -285,6 +287,7 @@ func test_wrong_protocol_is_refused() -> void:
 	tree.set_multiplayer(SceneMultiplayer.new(), viewport.get_path())
 	var client := MAIN_SCENE.instantiate()
 	client.configure_network_from_command_line = false
+	client.use_debug_starter_kit = false
 	var network: Network = client.get_node("Network")
 	network.role = Network.Role.CLIENT
 	network.port = PORT

@@ -299,13 +299,22 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 - **Status**: Hipótese (Etapa E2, aguardando validação do João)
 - **Decisões**:
-  - **Espaços com pilhas** (escolha do João): 30 espaços (`ActorStats.inventory_slots`);
-    cada espaço guarda um tipo de item até `ItemData.max_stack` (99; ferramentas 1).
+  - **Espaços com pilhas** (escolha do João): cada espaço guarda um tipo de item até
+    `ItemData.max_stack` (99; ferramentas 1).
+  - **Mochilas** (pedido do João, estilo Grand Fantasia/Forager): sem mochila, 12 espaços
+    (`ActorStats.inventory_slots`); mochilas equipadas somam espaços até um máximo — chegam
+    com os equipamentos (E4).
   - **Cheio**: drops esperam no chão; a coleta só começa/continua se couber o pior caso do
     rendimento (nada se perde no meio).
-  - **Tela** (I / Tab / botão Y): grade com ícone, quantidade e nome ao passar o mouse;
-    arrastar move, junta ou troca; soltar fora da janela joga no chão (item só do dono, que
-    só o pega de volta depois de se afastar). Não pausa o jogo (coop).
+  - **Janela livre** (pedido do João): I / Tab / botão Y abrem e fecham, Esc fecha; o jogador
+    arrasta a janela pela barra de título e ela lembra a posição (`UserSettings`, só neste
+    computador). Andar e lutar com ela aberta funcionam; cliques sobre a janela não atacam.
+    Grade com ícone, quantidade e nome ao passar o mouse; arrastar move, junta ou troca;
+    soltar fora da janela joga no chão (o dono só pega de volta depois de se afastar).
+  - **Dividir pilha** (botão direito): janelinha com régua de quantidade; a parte separada
+    vai para o espaço à direita, que precisa estar livre (senão a janela avisa).
+  - **Filtro por categoria** (ideia do João): preferido a abas, por manter a grade real e
+    só apagar o que não é da categoria. Entra quando houver consumíveis e itens de missão.
   - **Rede**: o host decide; o dono recebe cada espaço alterado e os ganhos como eventos
     separados (mover itens não gera aviso "+1"). Pedidos do dono (mover, jogar fora) são
     conferidos: só o próprio inventário, índices válidos. Estado por jogador em

@@ -46,6 +46,17 @@ func test_move_swaps_or_merges() -> void:
 	check(inventory.count(&"wood") == limit + 3, "mover não cria nem some itens")
 
 
+func test_split_moves_part_of_a_stack_to_the_right() -> void:
+	var inventory := Inventory.new(3, ItemDatabase.load_all())
+	inventory.add(&"wood", 10)
+	check(inventory.split(0, 4, Inventory.split_target(0)), "dividiu")
+	check(inventory.slot_amount(0) == 6 and inventory.slot_amount(1) == 4, "6 ficaram, 4 foram para a direita")
+	check(not inventory.split(0, 2, 1), "não divide para um espaço ocupado")
+	check(not inventory.split(0, 6, 2) and not inventory.split(0, 0, 2), "nem a pilha toda, nem zero")
+	check(not inventory.split(2, 1, 3), "nem a partir do último espaço (não há direita)")
+	check(inventory.count(&"wood") == 10, "nada se perdeu")
+
+
 func test_remove_is_all_or_nothing() -> void:
 	var inventory := Inventory.new(3, ItemDatabase.load_all())
 	inventory.add(&"wood", 4)
@@ -101,6 +112,24 @@ func test_inventory_screen_moves_and_throws_away() -> void:
 	check(inventory.slot_item(0) == &"stone" and inventory.slot_item(1) == &"wood", "soltar no espaço troca")
 	check(label.text == "2", "o quadrado atualizou")
 
-	panel._drop_data(Vector2.ZERO, {InventorySlot.DRAG_KEY: 1})
+	panel.drop_if_outside(1, Vector2(-50, -50))  # bem fora da janela
 	await physics_frames(2)
 	check(inventory.count(&"wood") == 0 and pickups(game).size() == 1, "soltar fora joga no chão")
+
+
+## Botão direito numa pilha: sem espaço à direita, avisa; com espaço, a janelinha divide.
+func test_split_from_the_screen() -> void:
+	var game := start_game()
+	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
+	inventory.add(&"wood", 10)
+	inventory.add(&"stone", 1)  # ocupa o espaço à direita da madeira
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel._on_split_requested(0)
+	check(panel._hint.text == Texts.get_text(&"SPLIT_NEEDS_FREE_SLOT"), "avisa que falta espaço")
+	check(not panel._split.visible, "a janelinha não abre")
+	inventory.move(1, 2)  # libera o espaço à direita
+	panel._on_split_requested(0)
+	check(panel._split.visible, "a janelinha abre")
+	panel._split._slider.value = 3
+	panel._split._confirm()
+	check(inventory.slot_amount(0) == 7 and inventory.slot_amount(1) == 3, "separou 3")
