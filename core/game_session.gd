@@ -43,6 +43,13 @@ func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
 
+## Jogador saiu (desconectou). Sem identidade persistente ainda (Etapa I), um retorno é um
+## jogador novo: o inventário vai junto.
+func remove_player(player_id: int) -> void:
+	_player_entities.erase(player_id)
+	_inventories.erase(player_id)
+
+
 func get_player_ids() -> Array[int]:
 	var ids: Array[int] = []
 	ids.assign(_player_entities.keys())

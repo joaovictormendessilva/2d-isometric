@@ -3,7 +3,9 @@ extends CharacterBody2D
 ## Corpo simulado de QUALQUER ator — jogador ou criatura. A origem fica nos PÉS (Y-sort).
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
-## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker.
+## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, NetSync ("Net").
+## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
+## o corpo pelos estados recebidos.
 
 signal died(character: Character)
 signal revived(character: Character)
@@ -26,6 +28,7 @@ var facing := Vector2.DOWN
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
 var health: Health
 var attacker: MeleeAttacker
+var net: NetSync
 
 var _footprint: Footprint
 var _move_intent := Vector2.ZERO
@@ -37,10 +40,12 @@ var _stun_left := 0.0
 func _enter_tree() -> void:
 	health = get_node_or_null("Health")
 	attacker = get_node_or_null("MeleeAttacker")
+	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 
 
 func _ready() -> void:
+	reset_physics_interpolation()  # nasce na posição dada, sem deslizar da origem
 	if health:
 		health.setup(roundi(stats.max_health * max_health_multiplier), stats.defense,
 			stats.invulnerability_time)
@@ -71,6 +76,13 @@ func request_attack(direction: Vector2) -> bool:
 	return true
 
 
+## Ataque decidido em outro computador (ver NetSync): ignora atordoamento, que pode diferir
+## por alguns milissegundos entre computadores.
+func play_remote_attack(direction: Vector2, tolerance: float) -> void:
+	if attacker and is_alive() and attacker.try_attack(direction, tolerance):
+		facing = direction.normalized()
+
+
 func add_ground_impulse(impulse: Vector2) -> void:
 	ground_velocity += impulse
 
@@ -87,6 +99,8 @@ func revive(at: Vector2) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if net and not net.is_simulating():
+		return
 	_stun_left = maxf(_stun_left - delta, 0.0)
 	var intent := _move_intent if is_alive() and _stun_left == 0.0 else Vector2.ZERO
 	var speed := stats.move_speed * Iso.move_speed_factor(intent, stats.horizontal_speed_factor)

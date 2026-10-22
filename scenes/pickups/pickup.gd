@@ -1,7 +1,7 @@
 class_name Pickup
 extends Area2D
 ## Item no chão que pertence a UM jogador (drop pessoal, `docs/04-multiplayer.md`).
-## Só o dono o vê e coleta; perto dele, o item é atraído. A coleta é feita pela autoridade.
+## Só o dono o vê e coleta; perto dele, o item é atraído. A coleta é decidida pelo host.
 
 signal collected(pickup: Pickup)
 
@@ -41,7 +41,7 @@ func _on_body_entered(body: Node2D) -> void:
 	var character := body as Character
 	if character == null or character.player_id != owner_player_id or not character.is_alive():
 		return
-	if not is_multiplayer_authority():
+	if not multiplayer.is_server():
 		return
 	session.get_inventory(owner_player_id).add(item.id, amount)
 	collected.emit(self)

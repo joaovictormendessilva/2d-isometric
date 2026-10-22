@@ -185,3 +185,64 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     mapa todo) e voltar a perseguir quem bate (abusável a distância).
 - **Consequências**: criaturas novas = dados + cena herdada + (opcional) outro cérebro.
   Custo medido: ~15 µs por criatura ativa (`docs/03-desempenho.md`).
+
+## ADR-012 — Replicação em rede: quem simula, quem decide
+
+- **Status**: Aceita para o LAN (validada pelo João na Etapa D+, 2026-10-22); revisar antes do online
+- **Decisão**:
+  - **Quem decide é o host** (ADR-004): dano, vida, morte, renascimento, IA, criação e remoção
+    de entidades, drops e inventários. Offline o jogo é o mesmo host, sem porta aberta.
+  - **Quem simula o movimento**: o próprio jogador simula o SEU personagem (resposta imediata
+    ao controle, sem esperar o host) e envia a posição ao host 20 vezes por segundo; o host
+    **valida** (ADR-013) e repassa. Todo o resto (criaturas, outros jogadores) o host simula.
+    Alternativa descartada por ora: predição com reconciliação (o host simula tudo e o cliente
+    "adivinha" e corrige) — muito mais complexa; reavaliar se o online exigir.
+  - **Entidades remotas são interpoladas**: desenhadas 0,1 s no passado, entre os dois
+    estados recebidos vizinhos. Saltos acima de 48 px viram teletransporte (renascer).
+  - **Criação** pelo `MultiplayerSpawner` ("Replicator"): o host chama `spawn_*`, cada
+    computador monta o nó com a mesma função a partir de dados simples (sem caminhos nem
+    objetos). Quem entra no meio da partida recebe tudo o que existe.
+  - **Eventos confiáveis** (dano, vida, imunidade, renascimento, ataques) e **estados não
+    confiáveis** (posição), por entidade, no componente `NetSync`. O host só manda mensagens
+    sobre uma entidade a quem já confirmou tê-la (evita mensagens para nós que ainda não
+    existem no cliente).
+  - Ataques do jogador rodam na hora no computador dele (golpe, bote) e são pedidos ao host,
+    que confere as próprias regras (vivo, ritmo) e decide o acerto com as posições que conhece.
+- **Consequências**: no LAN o acerto usa posições ~0,1 s atrasadas do outro lado — fino no
+  LAN, mas o online vai precisar de compensação de atraso. Custo medido: ~0,9 KB/s por
+  entidade do host para cada cliente (`docs/03-desempenho.md`); muitas criaturas online vão
+  pedir agrupamento de mensagens e "área de interesse".
+
+## ADR-013 — Segurança de rede e de software
+
+- **Status**: Aceita (regra permanente pedida pelo João, 2026-10-22)
+- **Princípio**: tudo o que vem de outro computador é **não confiável** — inclusive o host,
+  para o cliente. Nenhuma porta aberta sem necessidade, nenhuma "brecha para depois".
+- **Decisões (Etapa D+)**:
+  - **Porta só quando pedida**: offline não abre porta. `--host` escuta só em 127.0.0.1
+    (invisível para a rede); só `--host-lan` escuta na rede local (Etapa I). Porta UDP
+    padrão 24680; portas < 1024 recusadas.
+  - **Aperto de mão**: identificação do jogo + versão do protocolo, comparada byte a byte
+    (nada é interpretado). Errou ou não respondeu em 3 s: desconectado.
+  - **Sem repasse entre clientes** (`server_relay = false`): cliente só fala com o host,
+    que valida e repassa.
+  - **Sem objetos pela rede** (`allow_object_decoding = false`); dados de criação conferidos
+    campo a campo (tipo, faixa, item existente) e nunca carregam caminhos de arquivo,
+    recursos ou scripts.
+  - **RPCs mínimas e conferidas**: as do host → cliente são `authority` (cliente não pode
+    chamá-las); as poucas `any_peer` (posição, pedido de ataque, pedido de estado) conferem o
+    remetente (só o dono da entidade) e rejeitam NaN/infinito/valores fora de faixa.
+  - **Validação de movimento**: o host aceita no máximo 3× a velocidade do personagem
+    (cobre recuo e bote), medida no relógio DO HOST; teletransporte é recusado e o cliente
+    volta à última posição aceita. Estados chegando rápido demais são descartados.
+  - **Ritmo de ataque** conferido no host (folga de 0,05 s para variação de chegada).
+  - **Dano só no host**: `Health.apply_damage` não faz nada fora dele, nem por engano.
+  - **Limites**: no máximo 3 clientes; pacotes de sincronização até 1 KB.
+- **Pendências registradas** (antes do coop pela internet — não aceitar sem resolver):
+  - **Criptografia** (DTLS do ENet) e **código/senha da partida** — hoje desnecessários no
+    127.0.0.1, obrigatórios antes de LAN aberta (código) e internet (ambos).
+  - Detecção de atravessar paredes (hoje só velocidade é validada).
+  - Limite de mensagens por segundo por cliente, com desconexão de quem abusar.
+- **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
+  saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
+  `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.

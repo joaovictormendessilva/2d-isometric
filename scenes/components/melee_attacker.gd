@@ -2,7 +2,8 @@ class_name MeleeAttacker
 extends Node
 ## Executa ataques corpo a corpo do Character pai: preparação (telegrafia) → golpe → recuperação.
 ## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão.
-## Só a autoridade aplica o dano; todos os sinais servem para apresentação.
+## Só o HOST aplica o dano (`multiplayer.is_server()`; offline também é host). Nos outros
+## computadores o ataque roda igual, só para a apresentação e o bote.
 
 signal attack_started(direction: Vector2, attack: MeleeAttackData)  ## Início da preparação.
 signal attack_struck(direction: Vector2, attack: MeleeAttackData)  ## Instante do golpe.
@@ -31,9 +32,13 @@ func move_multiplier() -> float:
 	return attack.move_multiplier if is_attacking() else 1.0
 
 
-## `direction` no plano do chão. Retorna se o ataque começou.
-func try_attack(direction: Vector2) -> bool:
-	if attack == null or is_attacking() or direction == Vector2.ZERO:
+## `direction` no plano do chão. Retorna se o ataque começou. `tolerance` (s) aceita um
+## ataque que chega pela rede um pouco antes de a recuperação anterior terminar aqui
+## (variação de chegada dos pacotes), sem permitir golpes mais rápidos que o normal.
+func try_attack(direction: Vector2, tolerance: float = 0.0) -> bool:
+	if attack == null or direction == Vector2.ZERO:
+		return false
+	if _phase == Phase.WINDUP or (_phase == Phase.RECOVERY and _time_left > tolerance):
 		return false
 	_direction = direction.normalized()
 	_phase = Phase.WINDUP
@@ -65,7 +70,7 @@ func _strike() -> void:
 	_phase = Phase.RECOVERY
 	_time_left = attack.recovery
 	_body.add_ground_impulse(_direction * attack.lunge)
-	if _body.is_multiplayer_authority():
+	if multiplayer.is_server():
 		for target in _find_targets():
 			target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
 				attack.knockback, _body.entity_id, _body.player_id))
