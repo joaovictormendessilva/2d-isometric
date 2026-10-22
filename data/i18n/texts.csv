@@ -1,0 +1,36 @@
+keys,pt_BR,en
+ITEM_GEL,Gosma,Goo
+ITEM_WOOD,Madeira,Wood
+ITEM_OAK_WOOD,Madeira de carvalho,Oak wood
+ITEM_STONE,Pedra,Stone
+ITEM_COPPER_ORE,Minério de cobre,Copper ore
+ITEM_STONE_AXE,Machado de pedra,Stone axe
+ITEM_STONE_PICKAXE,Picareta de pedra,Stone pickaxe
+ITEM_COPPER_AXE,Machado de cobre,Copper axe
+SKILL_WOODCUTTING,Lenhador,Woodcutting
+SKILL_MINING,Minerador,Mining
+NODE_LUMBER_TREE,Árvore de lenha,Lumber tree
+NODE_COPPER_VEIN,Veio de cobre,Copper vein
+NODE_OLD_OAK,Carvalho antigo,Old oak
+MONSTER_SLIME,Slime,Slime
+COMBAT_IMMUNE,Imune,Immune
+HUD_HEALTH,%d / %d,%d / %d
+HUD_ITEM_COUNT,%s x%d,%s x%d
+HUD_SKILL_LEVEL,%s %d (%d%%),%s %d (%d%%)
+FEEDBACK_ITEM_GAINED,+%d %s,+%d %s
+FEEDBACK_LEVEL_UP,%s nível %d!,%s level %d!
+GATHER_NEEDS_TOOL,Precisa de ferramenta nível %d,Needs a tier %d tool
+GATHER_NEEDS_LEVEL,Precisa de %s nível %d,Needs %s level %d
+PROMPT_GATHER,[%s] %s,[%s] %s
+PROMPT_BLOCKED,%s: %s,%s: %s
+NET_CONNECTING,Conectando a %s:%d...,Connecting to %s:%d...
+NET_HOSTING_LOCAL,Host (só este PC) na porta %d,Host (this PC only) on port %d
+NET_HOSTING_LAN,Host (rede local) na porta %d,Host (local network) on port %d
+NET_CONNECTED,Conectado ao host,Connected to host
+NET_CONNECT_FAILED,Não foi possível conectar,Could not connect
+NET_HOST_LOST,Conexão com o host perdida,Lost connection to host
+NET_PLAYERS,%s · %d jogador(es),%s · %d player(s)
+NET_PING,%s · ping %d ms,%s · ping %d ms
+NET_BAD_PORT,Porta inválida: %d,Invalid port: %d
+NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
+NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)

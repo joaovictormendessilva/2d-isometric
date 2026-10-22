@@ -276,3 +276,21 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     pontos.
 - **Consequências**: novos recursos = dados + cena herdada de `resource_node.tscn`. Ainda
   não há como obter ferramentas no jogo (vem com o crafting, E3).
+
+## ADR-015 — Textos centralizados para tradução
+
+- **Status**: Aceita (pedido do João, 2026-10-22)
+- **Decisão**:
+  - Todo texto que o jogador vê vem de **uma tabela**: `data/i18n/texts.csv`, uma linha por
+    chave e uma coluna por idioma (sistema de tradução nativo da Godot). Hoje: `pt_BR` (base e
+    idioma reserva) e `en`.
+  - Código usa `Texts.get_text(chave)` / `Texts.format(chave, valores)`; nada de frase para o
+    jogador escrita no código ou nos dados. Textos de depuração (painel F3, logs) ficam fora.
+  - **Nomes vêm do id**: item `wood` → `ITEM_WOOD`; também `SKILL_`, `NODE_`, `MONSTER_`.
+    Os `.tres` não guardam nomes (`get_display_name()`).
+  - Idioma: o do sistema operacional; `-- --lang=en` força outro (menu de opções no futuro).
+  - Teclas mostradas ao jogador saem do mapa de entrada, no layout do teclado dele
+    (`Texts.action_key`).
+- **Consequências**: novo idioma = nova coluna na tabela (o teste confere que todo idioma
+  tem todos os textos, com os mesmos marcadores de valores). A fonte m5x7 cobre o alfabeto
+  latino com acentos; idiomas com outros alfabetos pedirão outra fonte.

@@ -40,7 +40,6 @@ max_amount = 2
 [resource]
 script = ExtResource("1_monster")
 id = &"slime"
-display_name = "Slime"
 stats = SubResource("Resource_stats")
 attack = SubResource("Resource_attack")
 aggro_radius = 110.0

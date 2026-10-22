@@ -37,7 +37,8 @@ func setup(character: Character, inventory: Inventory, progress: SkillProgress,
 
 func _on_item_added(item_id: StringName, amount: int) -> void:
 	var item := _items.get_item(item_id)
-	_show("+%d %s" % [amount, item.display_name if item else String(item_id)], GAIN_COLOR)
+	var item_name := item.get_display_name() if item else String(item_id)
+	_show(Texts.format(&"FEEDBACK_ITEM_GAINED", [amount, item_name]), GAIN_COLOR)
 
 
 func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
@@ -46,7 +47,7 @@ func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
 		return
 	var level := progress.level(skill)
 	if level > _levels.get(skill_id, 1):
-		_show("%s nível %d!" % [skill.display_name, level], LEVEL_COLOR)
+		_show(Texts.format(&"FEEDBACK_LEVEL_UP", [skill.get_display_name(), level]), LEVEL_COLOR)
 	_levels[skill_id] = level
 
 

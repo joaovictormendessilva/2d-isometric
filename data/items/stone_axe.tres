@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_tool")
 id = &"stone_axe"
-display_name = "Machado de pedra"
 icon = ExtResource("2_icon")
 skill = ExtResource("3_skill")
 tier = 1

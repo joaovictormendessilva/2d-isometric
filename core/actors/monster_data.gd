@@ -4,7 +4,6 @@ extends Resource
 ## criatura em `data/monsters/`.
 
 @export var id: StringName
-@export var display_name: String
 @export var stats: ActorStats
 @export var attack: MeleeAttackData
 @export_group("Comportamento (px no chão)")
@@ -14,3 +13,8 @@ extends Resource
 @export var leash_radius: float = 220.0
 @export_group("Recompensas")
 @export var drops: Array[DropEntry] = []
+
+
+## Nome no idioma atual (chave `MONSTER_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("MONSTER", id)

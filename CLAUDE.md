@@ -54,10 +54,14 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
 13. Não avance de etapa sem validar os resultados importantes com o João.
 14. **Código limpo e reutilização**: nada de copiar e colar lógica, formas ou números entre
     arquivos. Se algo aparece duas vezes, vira componente, função utilitária, cena base ou
-. **Segurança é inegociável** (rede e software, pedido do João): nada de portas abertas sem
+    dado em `data/`. Nomes claros, funções curtas, comentários explicando o *porquê*.
+15. **Segurança é inegociável** (rede e software, pedido do João): nada de portas abertas sem
     necessidade, nada de confiar em dados de outro computador, nada de "brecha para depois".
     Toda funcionalidade em rede valida remetente e dados no host; riscos e pendências vão para
     a ADR-013 e `docs/04-multiplayer.md`, e são mencionados nos relatos ao João.
+16. **Textos do jogador só pela tabela de tradução** (`data/i18n/texts.csv`, ADR-015): nunca
+    escrever frase para o jogador direto no código ou nos dados; criar a chave e preencher
+    todos os idiomas da tabela.
 
 ## Regras técnicas fixas (resumo — detalhes em `docs/01-decisoes.md`)
 

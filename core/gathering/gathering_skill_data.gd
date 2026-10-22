@@ -4,7 +4,6 @@ extends Resource
 ## deixa a coleta desse tipo mais rápida e mais rendosa. Valores em `data/skills/`.
 
 @export var id: StringName
-@export var display_name: String
 @export var max_level: int = 50
 @export_group("Experiência")
 ## Experiência para ir do nível N ao N+1: `base_xp * N ^ xp_growth`.
@@ -38,3 +37,8 @@ func xp_for_level(level: int) -> int:
 	for l in range(1, mini(level, max_level)):
 		total += xp_to_next(l)
 	return total
+
+
+## Nome no idioma atual (chave `SKILL_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("SKILL", id)

@@ -29,7 +29,7 @@ func setup(character: Character, inventory: Inventory, items: ItemDatabase,
 
 func _on_health_changed(current: int, maximum: int) -> void:
 	_bar_fill.size.x = _bar.custom_minimum_size.x * current / maxf(maximum, 1)
-	_health_label.text = "%d / %d" % [current, maximum]
+	_health_label.text = Texts.format(&"HUD_HEALTH", [current, maximum])
 
 
 func _on_inventory_changed(inventory: Inventory) -> void:
@@ -37,7 +37,8 @@ func _on_inventory_changed(inventory: Inventory) -> void:
 	var counts := inventory.get_counts()
 	for id in counts:
 		var item := _items.get_item(id)
-		parts.append("%s x%d" % [item.display_name if item else String(id), counts[id]])
+		var item_name := item.get_display_name() if item else String(id)
+		parts.append(Texts.format(&"HUD_ITEM_COUNT", [item_name, counts[id]]))
 	_inventory_label.text = "  ".join(parts)
 
 
@@ -48,5 +49,5 @@ func _on_skills_changed(progress: SkillProgress) -> void:
 		var level := progress.level(skill)
 		var into_level := progress.xp(skill.id) - skill.xp_for_level(level)
 		var percent := 100 * into_level / maxi(skill.xp_to_next(level), 1)
-		parts.append("%s %d (%d%%)" % [skill.display_name, level, percent])
+		parts.append(Texts.format(&"HUD_SKILL_LEVEL", [skill.get_display_name(), level, percent]))
 	_skills_label.text = "  ".join(parts)

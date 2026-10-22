@@ -6,5 +6,4 @@
 [resource]
 script = ExtResource("1_item")
 id = &"copper_ore"
-display_name = "Minério de cobre"
 icon = ExtResource("2_icon")

@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_tool")
 id = &"copper_axe"
-display_name = "Machado de cobre"
 icon = ExtResource("2_icon")
 skill = ExtResource("3_skill")
 tier = 2

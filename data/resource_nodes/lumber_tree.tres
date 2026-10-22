@@ -17,7 +17,6 @@ max_amount = 1
 [resource]
 script = ExtResource("1_node")
 id = &"lumber_tree"
-display_name = "Árvore de lenha"
 skill = ExtResource("2_skill")
 min_tool_tier = 0
 min_skill_level = 1

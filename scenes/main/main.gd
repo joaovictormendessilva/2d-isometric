@@ -7,6 +7,7 @@ extends Node
 ##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --port=<n>).
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
+##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
 const SKILLS_DIR := "res://data/skills/"
@@ -36,6 +37,7 @@ var _input_detached := false
 
 
 func _ready() -> void:
+	Texts.apply_command_line(OS.get_cmdline_user_args())
 	# A rede começa ANTES da região: os objetos da região (pontos de coleta) decidem no
 	# próprio `_ready` se pedem o estado ao host.
 	network.session = session

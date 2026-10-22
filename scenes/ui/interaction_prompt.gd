@@ -44,8 +44,9 @@ func _physics_process(delta: float) -> void:
 	position = node.position + Vector2(0.0, sprite.get_rect().position.y - MARGIN)
 	var refusal := GatheringTexts.refusal(node.data, gatherer.check(node))
 	if refusal.is_empty():
-		_label.text = "[E] %s" % node.data.display_name
+		_label.text = Texts.format(&"PROMPT_GATHER",
+			[Texts.action_key(&"interact"), node.data.get_display_name()])
 		_label.modulate = READY_COLOR
 	else:
-		_label.text = "%s: %s" % [node.data.display_name, refusal.to_lower()]
+		_label.text = Texts.format(&"PROMPT_BLOCKED", [node.data.get_display_name(), refusal])
 		_label.modulate = BLOCKED_COLOR
