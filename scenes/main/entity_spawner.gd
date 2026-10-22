@@ -54,6 +54,9 @@ var saves: SaveService
 var _next_pickup_id := 1
 var _next_structure_id := 1
 var _rng := RandomNumberGenerator.new()
+## Equipamento de cada jogador já ligado ao tamanho do inventário (uma vez: o personagem é
+## recriado a cada viagem, o equipamento continua).
+var _sized: Dictionary[int, Equipment] = {}
 
 
 func setup(p_session: GameSession, p_local_player_id: int, p_damage_numbers: DamageNumbers,
@@ -235,8 +238,8 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
 	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
-	# Uma ligação por jogador (o personagem é recriado a cada viagem; o equipamento continua).
-	if not equipment.slot_changed.is_connected(_fit_inventory):
+	if _sized.get(character.player_id) != equipment:
+		_sized[character.player_id] = equipment
 		equipment.slot_changed.connect(_fit_inventory.bind(character.player_id).unbind(1))
 	if not multiplayer.is_server():
 		player_state.request_equipment_of(character.player_id)
@@ -264,13 +267,15 @@ func _prepare_player(character: Character) -> void:
 		starter_kit.give_to(session.get_inventory(character.player_id))
 
 
-## Tamanho do inventário = base do jogador + espaços das mochilas vestidas (bônus já somados
-## por `Character.apply_equipment`, ligado antes).
+## Tamanho do inventário = base do jogador + espaços das mochilas vestidas, somados direto do
+## equipamento (não de `Character.bonuses`: a ordem das ligações muda quando o personagem é
+## recriado numa viagem, e os bônus dele podiam ainda ser os do equipamento anterior).
 func _fit_inventory(player_id: int) -> void:
 	var character := session.get_player_entity(player_id) as Character
 	var inventory := session.get_inventory(player_id)
 	if character and inventory:
-		inventory.resize(character.stats.inventory_slots + character.bonuses.inventory_slots)
+		var worn := StatBonuses.total(session.get_equipment(player_id).equipped())
+		inventory.resize(character.stats.inventory_slots + worn.inventory_slots)
 
 
 func _instantiate_monster(data: Dictionary, region: Region) -> Monster:

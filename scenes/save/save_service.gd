@@ -94,7 +94,8 @@ func restore_player(character: Character) -> bool:
 		return false
 	var player_id := character.player_id
 	var health := CharacterRecord.restore(record, _session.get_inventory(player_id),
-		_session.get_equipment(player_id), _session.get_skills(player_id), _skills, _items)
+		_session.get_equipment(player_id), _session.get_skills(player_id),
+		_session.get_wallet(player_id), _skills, _items)
 	if health > 0:
 		character.health.set_current(health)
 	return true
@@ -129,7 +130,7 @@ func _remember(player_id: int) -> void:
 	var health := character.health
 	var record := CharacterRecord.capture(_session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
-		health.max_health if health.is_dead() else health.current)
+		_session.get_wallet(player_id), health.max_health if health.is_dead() else health.current)
 	var region := Region.of(character)
 	if region:
 		record["region"] = String(region.region_id)

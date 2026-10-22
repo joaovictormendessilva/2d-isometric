@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=18 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://scenes/building/placement_preview.gd" id="14_placement"]
 [ext_resource type="Script" path="res://scenes/save/save_service.gd" id="15_saves"]
 [ext_resource type="Script" path="res://scenes/regions/region_worlds.gd" id="16_regions"]
+[ext_resource type="Script" path="res://scenes/ui/shop_panel.gd" id="17_shop"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -129,3 +130,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("13_inventory")
+
+[node name="ShopPanel" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("17_shop")

@@ -52,6 +52,14 @@ func _run_all() -> void:
 			continue
 		var script: GDScript = load(TEST_DIR + file)
 		print("%s" % file)
+		if script == null or not script.can_instantiate():
+			# Arquivo que não compila não pode passar em silêncio (os testes dele nem rodariam).
+			total += 1
+			failed += 1
+			print("  FALHA arquivo não compila:")
+			for error in _errors.take():
+				print("        - %s" % error)
+			continue
 		for method in script.get_script_method_list():
 			var method_name: String = method.name
 			if not method_name.begins_with("test_"):

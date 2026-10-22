@@ -11,6 +11,7 @@ var _player_entities: Dictionary[int, int] = {}  # player_id -> entity_id
 var _inventories: Dictionary[int, Inventory] = {}  # player_id -> inventário
 var _skills: Dictionary[int, SkillProgress] = {}  # player_id -> experiência de coleta
 var _equipment: Dictionary[int, Equipment] = {}  # player_id -> equipamento vestido
+var _wallets: Dictionary[int, Wallet] = {}  # player_id -> moedas
 var _items: ItemDatabase
 var _equipment_layout: EquipmentLayout
 
@@ -48,6 +49,7 @@ func add_player(player_id: int, entity_id: int,
 		_inventories[player_id] = Inventory.new(inventory_slots, _items)
 		_skills[player_id] = SkillProgress.new()
 		_equipment[player_id] = Equipment.new(_equipment_layout, _items)
+		_wallets[player_id] = Wallet.new()
 
 
 func get_inventory(player_id: int) -> Inventory:
@@ -62,6 +64,10 @@ func get_skills(player_id: int) -> SkillProgress:
 	return _skills.get(player_id)
 
 
+func get_wallet(player_id: int) -> Wallet:
+	return _wallets.get(player_id)
+
+
 func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
@@ -73,6 +79,7 @@ func remove_player(player_id: int) -> void:
 	_inventories.erase(player_id)
 	_skills.erase(player_id)
 	_equipment.erase(player_id)
+	_wallets.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

@@ -10,6 +10,7 @@ extends Node
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 ##   --open-inventory             abre o inventário antes da captura.
+##   --open-shop                  leva o jogador até o NPC da região e abre a loja dele.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
 
@@ -58,6 +59,7 @@ var _traveling: Dictionary[int, bool] = {}
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 @onready var _interaction_prompt: InteractionPrompt = $WorldText/InteractionPrompt
 @onready var _inventory_panel: InventoryPanel = $UI/InventoryPanel
+@onready var _shop_panel: ShopPanel = $UI/ShopPanel
 @onready var _placement_preview: PlacementPreview = $World/PlacementPreview
 
 
@@ -80,6 +82,8 @@ func _ready() -> void:
 	player_state.skills = skills
 	player_state.recipes = recipes
 	player_state.spawner = _spawner
+	_local_input.player_state = player_state
+	_interaction_prompt.player_state = player_state
 	if use_debug_starter_kit and OS.is_debug_build() \
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
 		_spawner.starter_kit = load(STARTER_KIT)
@@ -226,11 +230,27 @@ func _on_local_player_spawned(character: Character) -> void:
 		return
 	_local_ui_ready = true
 	var progress := session.get_skills(local_player_id())
+	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills)
-	_player_feedback.setup(inventory, progress, items, skills, _damage_numbers)
+	_player_feedback.setup(inventory, wallet, progress, items, skills, _damage_numbers)
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
+	_setup_shop(inventory, wallet)
 	player_state.request_full_state()
+
+
+## Loja dos NPCs: a tecla de interagir perto de um abre; o inventário abre e fecha junto (vender
+## é pelo menu do botão direito dele), e fechar o inventário encerra a conversa.
+func _setup_shop(inventory: Inventory, wallet: Wallet) -> void:
+	_shop_panel.setup(inventory, wallet, items, player_state, local_player_id())
+	_inventory_panel.shop = _shop_panel
+	_local_input.talk_requested.connect(_shop_panel.talk_to)
+	_shop_panel.toggled.connect(func(open: bool) -> void:
+		if _inventory_panel.visible != open:
+			_inventory_panel.set_open(open))
+	_inventory_panel.visibility_changed.connect(func() -> void:
+		if not _inventory_panel.visible:
+			_shop_panel.close())
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem
@@ -249,12 +269,15 @@ func _handle_command_line() -> void:
 	var screenshot_path := ""
 	var move := Vector2.ZERO
 	var open_inventory := false
+	var open_shop := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
 			move = Vector2(parts[0].to_float(), parts[1].to_float())
+		elif arg == "--open-shop":
+			open_shop = true
 		elif arg == "--open-inventory":
 			open_inventory = true
 	if screenshot_path.is_empty():
@@ -267,7 +290,21 @@ func _handle_command_line() -> void:
 			character.set_move_intent(move)
 	if open_inventory:
 		_inventory_panel.set_open(true)
+	if open_shop:
+		_talk_to_first_npc()
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)
 	get_tree().quit()
+
+
+## Captura de tela da loja: põe o jogador ao lado do primeiro NPC da região e abre a loja.
+func _talk_to_first_npc() -> void:
+	var character := session.get_player_entity(local_player_id()) as Character
+	for node in region.entities.get_children():
+		var npc := node as Npc
+		if npc and character:
+			character.position = npc.position + Iso.ground_to_screen(Vector2(-20, 0))
+			character.reset_physics_interpolation()
+			_shop_panel.talk_to(npc)
+			return

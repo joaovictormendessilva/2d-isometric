@@ -3,10 +3,14 @@ extends Node
 ## Lê teclado/mouse/controle do jogador LOCAL e entrega INTENÇÕES ao personagem dele.
 ## Movimento: direções da tela viram direções no plano do chão (cima na tela = "norte"),
 ## então as diagonais andam alinhadas às bordas dos tiles.
-## Interagir (E / botão A): coletar o ponto de coleta mais próximo.
+## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main) ou, sem NPC,
+## coletar o ponto de coleta mais próximo.
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
 ## mouse se ele foi o último dispositivo usado; senão, na direção em que o personagem olha.
 ## No coop, o personagem local age na hora e o NetSync pede ao host (ADR-012).
+
+## Interagiu com um NPC ao alcance (quem abre a loja é o Main).
+signal talk_requested(npc: Npc)
 
 ## Grupo de nós da interface que podem estar usando o mouse (método `captures_mouse()`),
 ## ex.: janela sendo arrastada, item na mão. Enquanto usam, o clique não é ataque.
@@ -16,6 +20,8 @@ const JOYPAD_ACTIVITY := 0.5
 
 var player_id := 0
 var target: Character
+## Diz qual NPC está ao alcance do jogador (sem ela, a interação só coleta).
+var player_state: PlayerStateSync
 
 var _aim_with_mouse := false
 ## O clique de mouse atual começou com o ponteiro livre? (Um clique que começou na interface
@@ -45,7 +51,11 @@ func _physics_process(_delta: float) -> void:
 		return
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if Input.is_action_just_pressed(&"interact"):
-		target.request_gather()
+		var npc := player_state.npc_near(player_id) if player_state else null
+		if npc:
+			talk_requested.emit(npc)
+		else:
+			target.request_gather()
 	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
 		target.request_attack(_aim_direction())

@@ -39,6 +39,31 @@ func test_walking_into_the_passage_goes_to_the_forest() -> void:
 			% (game.session as GameSession).get_entity_count())
 
 
+## Bug do João (F3a): depois de viajar (personagem recriado), vestir a mochila não abria os
+## espaços e tirá-la não os fechava — o tamanho usava os bônus do equipamento anterior.
+func test_backpack_resizes_the_inventory_after_traveling() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var inventory := session.get_inventory(1)
+	var state: PlayerStateSync = game.player_state
+	var base := inventory.capacity()
+	for trip: Array in [[&"forest", &"to_meadow"], [&"meadow", &"to_forest"]]:
+		game._travel(1, trip[0], trip[1])
+		await physics_frames(2)
+		inventory.add(&"simple_backpack", 1)
+		state.request_equip(slot_of(inventory, &"simple_backpack"))
+		check(inventory.capacity() > base,
+			"em %s, vestir a mochila abre os espaços (%d)" % [trip[0], inventory.capacity()])
+		var backpack_slot := session.get_equipment(1).index_of_type(EquipmentData.Slot.BACKPACK)
+		state.request_click_equipment(backpack_slot)  # tira para a mão
+		check(inventory.held_item() == &"simple_backpack" and inventory.capacity() == base,
+			"em %s, tirar a mochila fecha os espaços (%d)" % [trip[0], inventory.capacity()])
+		state.request_return_held()
+		await physics_frames(1)
+	inventory.remove(&"simple_backpack", 1)
+
+
 func test_region_left_behind_keeps_its_state() -> void:
 	var game := start_game()
 	calm_monsters(game)

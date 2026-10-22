@@ -11,6 +11,7 @@ inventory_slots = 6
 [resource]
 script = ExtResource("1_item")
 id = &"simple_backpack"
+sell_price = 30
 icon = ExtResource("2_icon")
 max_stack = 1
 slot = 5

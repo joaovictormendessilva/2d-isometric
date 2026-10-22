@@ -199,7 +199,7 @@ func test_client_gathering_is_decided_by_host() -> void:
 	stand_next_to(client_player, node)  # só para calcular o destino...
 	var target := client_player.position
 	client_player.position = spot
-	await _glide(client_player, target)  # ...e ir até lá a pé (o host recusa saltos)
+	await glide_to(client_player, target)  # ...e ir até lá a pé (o host recusa saltos)
 	await physics_frames(20)
 	check(client_player.request_gather(), "cliente começou a coletar")
 	var host_node := resource_node(host, &"lumber_tree")
@@ -405,17 +405,6 @@ func test_wrong_protocol_is_refused() -> void:
 
 
 # --- Auxiliares ------------------------------------------------------------------------------
-
-## Leva o personagem do cliente até `target` a uma velocidade aceita pelo host (o host
-## recusa teletransporte). Ignora colisões: o teste só precisa chegar.
-func _glide(character: Character, target: Vector2) -> void:
-	const STEP := 1.5  # px por quadro = 90 px/s
-	while character.position.distance_to(target) > STEP:
-		character.position = character.position.move_toward(target, STEP)
-		await tree.physics_frame
-	character.position = target
-
-
 
 func _start_pair() -> Array[Node]:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)

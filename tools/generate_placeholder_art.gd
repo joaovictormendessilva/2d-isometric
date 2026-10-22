@@ -93,6 +93,50 @@ const LEGS := [
 ]
 
 
+
+# Mercador 16x24 (F3): chapéu de aba larga (silhueta diferente do capuz do jogador) e túnica
+# verde até o chão; luz à esquerda, sombra fria à direita.
+const MERCHANT_PALETTE := {
+	"o": Color("1b1a26"),  # contorno
+	"H": Color("9c6a3e"),  # chapéu (luz)
+	"h": Color("7a4f2e"),  # chapéu
+	"d": Color("53332a"),  # chapéu (sombra)
+	"g": Color("e8c15a"),  # fita e botões dourados
+	"s": Color("f2c29b"),  # pele
+	"S": Color("d19a74"),  # pele (sombra)
+	"e": Color("1b1a26"),  # olhos
+	"R": Color("5fa082"),  # túnica (luz)
+	"r": Color("3f7f6a"),  # túnica
+	"q": Color("2c5a5a"),  # túnica (sombra)
+	"b": Color("4a3020"),  # cinto
+	"k": Color("3a2a2a"),  # botas
+}
+const MERCHANT := [
+	"......oooo......",
+	".....oHhhdo.....",
+	".....ohhhdo.....",
+	"....oggggggo....",
+	".oooHhhhhhhdooo.",
+	"oHhhhhhhhhhhhddo",
+	".ooosssssssSooo.",
+	"...osesssseSo...",
+	"...ossssssSSo...",
+	"....oSSSSSSo....",
+	"...oRrrrrrrqo...",
+	"..oRrrrrrrrrqo..",
+	".oRrrrrgrrrrqqo.",
+	".osRrrrrrrrrqSo.",
+	".oRrbbbbgbbbqqo.",
+	".oRrrrrrrrrrqqo.",
+	".oRrrrrgrrrrqqo.",
+	".oRrrrrrrrrrqqo.",
+	".oRrrrrrrrrqqqo.",
+	"..oqrrrrrrqqqo..",
+	"..oqqqqqqqqqqo..",
+	"...okkoo.okko...",
+	"...okkko.okkko..",
+	"...ooooo.ooooo..",
+]
 # Ícones de itens 8x8, desenhados por letra. Variações trocam letras (`ICONS[nome][1]`).
 const ICON_PALETTE := {
 	"o": Color("1b1a26"),  # contorno
@@ -108,6 +152,9 @@ const ICON_PALETTE := {
 	"c": Color("d9823b"),  # cobre
 	"d": Color("a85f28"),  # cobre (sombra)
 	"h": Color("8a5a3b"),  # cabo
+	"G": Color("f6dc7a"),  # ouro (luz)
+	"y": Color("e8b84a"),  # ouro
+	"Y": Color("b07a2a"),  # ouro (sombra)
 }
 const LOG := [
 	"........",
@@ -209,6 +256,16 @@ const RING := [
 	".od..do.",
 	"..oooo..",
 ]
+const COIN := [
+	"..oooo..",
+	".oGGyyo.",
+	"oGyyyyYo",
+	"oGyYYyYo",
+	"oyyYYyYo",
+	"oyyyyYYo",
+	".oyYYYo.",
+	"..oooo..",
+]
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -224,6 +281,7 @@ const ICONS := {
 	"copper_helmet": [HELMET, {}],
 	"simple_backpack": [BACKPACK, {}],
 	"magnet_ring": [RING, {}],
+	"coin": [COIN, {}],
 }
 
 
@@ -239,6 +297,7 @@ func _initialize() -> void:
 	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
 	_save(_rubble(), OUT_DIR + "rubble.png")
 	_save(_workbench(), OUT_DIR + "workbench.png")
+	_save(_sprite(MERCHANT, MERCHANT_PALETTE), OUT_DIR + "merchant.png")
 	for icon: String in ICONS:
 		_save(_icon(ICONS[icon][0], ICONS[icon][1]), OUT_DIR + "icon_%s.png" % icon)
 	_save(_shadow(), OUT_DIR + "shadow.png")
@@ -498,15 +557,24 @@ func _rubble() -> Image:
 	return img
 
 
-func _icon(rows: Array, swap: Dictionary) -> Image:
+## Sprite desenhado por letras com a paleta dada (letra fora da paleta = transparente).
+func _sprite(rows: Array, palette: Dictionary) -> Image:
 	var img := Image.create(rows[0].length(), rows.size(), false, Image.FORMAT_RGBA8)
 	for y in rows.size():
 		var row: String = rows[y]
+		assert(row.length() == img.get_width(), "linha %d com largura errada" % y)
 		for x in row.length():
-			var key: String = swap.get(row[x], row[x])
-			if ICON_PALETTE.has(key):
-				img.set_pixel(x, y, ICON_PALETTE[key])
+			if palette.has(row[x]):
+				img.set_pixel(x, y, palette[row[x]])
 	return img
+
+
+## Ícone com a paleta dos ícones; `swap` troca letras (variação de material).
+func _icon(rows: Array, swap: Dictionary) -> Image:
+	var palette := ICON_PALETTE.duplicate()
+	for key: String in swap:
+		palette[key] = ICON_PALETTE[swap[key]]
+	return _sprite(rows, palette)
 
 
 ## Bancada 28x22 vista do alto em losango (tampo de tábuas, lados em sombra) com uma morsa de

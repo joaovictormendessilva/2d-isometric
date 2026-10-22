@@ -110,6 +110,11 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - Tile isométrico: **32×16 px** (proporção 2:1).
   - Personagens: **~32 px de altura** (escala próxima da referência
     `docs/referencias/exemplo-de-personagens.png`).
+  - **Personagens e cosméticos** (João, 2026-10-22): `docs/referencias/exemplo-hero-siege.png`
+    é o "exemplo perfeito" de sprites de personagem e cosméticos (Hero Siege): silhueta
+    própria por classe (chapéus, capuzes, chifres, armas grandes), poucas cores fortes por
+    personagem, contorno escuro e leitura clara sobre chão escuro. Referência de intenção, sem
+    copiar personagens nem sprites.
   - Direções de animação: **4 (diagonais) com espelhamento**; avaliar 8 depois.
 - **Motivos**: 640×360 escala perfeitamente para 720p, 1080p e 1440p, mostra área suficiente
   para combate e mantém o custo de arte baixo; 32×16 é o padrão isométrico com mais recursos e
@@ -491,3 +496,34 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Limitações**: pontos de coleta de uma região sem ninguém não renascem enquanto ninguém está
   lá; itens no chão somem ao sair da região; a troca de região é um corte seco (sem
   transição).
+
+## ADR-021 — Moedas, NPCs fixos e loja
+
+- **Status**: Aceita (F3a validada pelo João, 2026-10-22)
+- **Direção do João (2026-10-22)**: moedas numa **carteira separada** do inventário (como a prata
+  do Albion e as moedas do Forager): não ocupam espaço nem caem no chão.
+- **Decisões**:
+  - **Carteira** (`Wallet`, por jogador na `GameSession`): só o host altera, tudo ou nada, teto
+    de 999.999.999. O dono recebe o valor oficial e cada ganho (aviso "+N moedas"). Vai no save
+    do personagem (`coins`, conferido por `SaveValues`).
+  - **De onde vêm** (escolha técnica, ajustável): por enquanto só da **venda ao mercador**.
+    Moedas caindo de criaturas ficam como opção para quando o João quiser.
+  - **Preços em dados**: `ItemData.sell_price` (quanto um mercador paga por unidade; 0 = ninguém
+    compra) e `NpcData.offers` (item → preço de compra). Teste garante que nada se compra por
+    menos do que se vende (sem moedas infinitas).
+  - **Regras puras** em `TradeRules`: comprar uma unidade; vender N de um espaço. Tudo ou nada
+    (sem moedas, inventário cheio, carteira no teto = nada muda).
+  - **NPC fixo** (`Npc` + `NpcData` em `data/npcs/`): faz parte da cena da região (igual em
+    todos os computadores, sem estado de jogo). O mercador é posto pelo gerador perto da entrada
+    da campina, depois de todo o sorteio (o resto do mapa e o save continuam iguais).
+  - **Rede**: o cliente pede "comprar item X" ou "vender N do espaço i"; o host usa o NPC que ELE
+    sabe estar ao alcance do jogador vivo e os preços dos dados dele, nunca algo dito pelo
+    cliente. Protocolo de rede: versão 6.
+  - **Interface**: a tecla de interagir perto de um NPC abre a loja (prioridade sobre a coleta);
+    o "[E] Mercador" aparece ao chegar perto. A loja abre junto com o inventário; comprar é
+    clicar na oferta (apagada com o motivo na dica quando não dá); vender é pelo menu do botão
+    direito do inventário ("Vender 1" / "Vender tudo", com quanto rende), o mesmo gesto de opções.
+    Afastar-se, interagir de novo ou fechar o inventário encerra a conversa.
+- **Consequências**: novo NPC = `NpcData` + cena + posição no gerador. A F3c (receitas de NPC)
+  pode usar o mesmo NPC como estação `NPC`. Pendência: navegar a loja só por teclado/controle
+  (como o inventário, ADR-018).

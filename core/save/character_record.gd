@@ -1,7 +1,7 @@
 class_name CharacterRecord
 extends RefCounted
 ## Progresso de UM personagem no save do mundo (ADR-019): inventário (com a mão), equipamento,
-## experiência de coleta e vida atual. `capture` monta o registro; `restore` aplica um registro
+## experiência de coleta, moedas e vida atual. `capture` monta o registro; `restore` aplica um registro
 ## lido do arquivo, que é dado NÃO confiável: o que não for válido é ignorado. Nunca cria item
 ## que não existe, pilha acima do limite nem equipamento fora do lugar.
 
@@ -12,7 +12,7 @@ const MAX_HEALTH := 1_000_000
 
 
 static func capture(inventory: Inventory, equipment: Equipment, skills: SkillProgress,
-		health: int) -> Dictionary:
+		wallet: Wallet, health: int) -> Dictionary:
 	var slots := []
 	for index in inventory.capacity():
 		slots.append([String(inventory.slot_item(index)), inventory.slot_amount(index)])
@@ -23,13 +23,14 @@ static func capture(inventory: Inventory, equipment: Equipment, skills: SkillPro
 	for skill_id in skills.all_xp():
 		xp[String(skill_id)] = skills.xp(skill_id)
 	return {"inventory": slots, "held": [String(inventory.held_item()), inventory.held_amount()],
-		"equipment": worn, "skills": xp, "health": health}
+		"equipment": worn, "skills": xp, "coins": wallet.coins(), "health": health}
 
 
 ## Aplica `record` num personagem recém-criado (inventário vazio, nada vestido). Retorna a vida
 ## salva, ou 0 se não houver uma válida (o personagem fica com a vida cheia).
 static func restore(record: Variant, inventory: Inventory, equipment: Equipment,
-		skills: SkillProgress, skill_catalog: DataCatalog, items: ItemDatabase) -> int:
+		skills: SkillProgress, wallet: Wallet, skill_catalog: DataCatalog,
+		items: ItemDatabase) -> int:
 	if not record is Dictionary:
 		return 0
 	var data: Dictionary = record
@@ -43,6 +44,7 @@ static func restore(record: Variant, inventory: Inventory, equipment: Equipment,
 				var value := SaveValues.to_int(xp[skill_id], 0, MAX_XP, -1)
 				if value > 0:
 					skills.replicate_xp(StringName(skill_id), value)
+	wallet.replicate(SaveValues.to_int(data.get("coins"), 0, Wallet.MAX_COINS, 0))
 	return SaveValues.to_int(data.get("health"), 1, MAX_HEALTH, 0)
 
 

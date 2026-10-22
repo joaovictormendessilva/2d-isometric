@@ -1,0 +1,11 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="1_prop"]
+[ext_resource type="Script" path="res://scenes/npc/npc.gd" id="2_npc"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/shadow.png" id="3_shadow"]
+
+[node name="Npc" instance=ExtResource("1_prop")]
+script = ExtResource("2_npc")
+
+[node name="Shadow" type="Sprite2D" parent="." index="0"]
+texture = ExtResource("3_shadow")
