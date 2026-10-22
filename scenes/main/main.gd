@@ -40,6 +40,8 @@ func spawn_player_character(player_id: int, at: Vector2) -> Character:
 	character.entity_id = session.allocate_entity_id()
 	character.player_id = player_id
 	character.position = at
+	if player_id == LOCAL_PLAYER_ID:
+		character.add_to_group(OccluderFade.VIEWER_GROUP)
 	region.entities.add_child(character)
 	character.reset_physics_interpolation()
 	session.register_entity(character.entity_id, character)

@@ -53,7 +53,7 @@ func _build_tile_set() -> TileSet:
 	ts.tile_layout = TileSet.TILE_LAYOUT_DIAMOND_DOWN
 	ts.tile_size = Iso.TILE_SIZE
 	ts.add_physics_layer()
-	ts.set_physics_layer_collision_layer(0, 1)  # camada "world"
+	ts.set_physics_layer_collision_layer(0, PhysicsLayers.WORLD)
 	ts.set_physics_layer_collision_mask(0, 0)
 
 	var source := TileSetAtlasSource.new()
