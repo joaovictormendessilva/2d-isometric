@@ -13,6 +13,8 @@ Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidad
 - **Albion Online** — coleta em pontos do mundo (árvores, minérios) com ferramenta própria e
   especialização por tipo de coleta; o jeito de lançar habilidades no combate.
 - **V Rising** — o mesmo estilo de lançar habilidades (teclas de habilidade, mira no cursor).
+- **Hero Siege** — referência de design (João, 2026-10-22): HUD, ambientação medieval que muda
+  conforme o mundo, cosméticos que mudam o personagem, skills, grind e mapas em pixel art.
 
 Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
 arquitetura considera **coop LAN** desde o início e uma possível evolução para online.

@@ -160,7 +160,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - **F1 – Save** ✅ (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
   host (escolha do João), estruturas colocadas e pontos de coleta; identidade por perfil;
   reconexão devolve o personagem. 105 testes. Validado pelo João, inclusive no coop (2026-10-22).
-- **F2 – Segunda região** ⬜: passagem entre regiões, cada uma com seu estado salvo (ADR-005).
+- **F2 – Segunda região** 🟡 (branch `stage-f/regions`): no coop cada jogador vai para onde quiser
+  (escolha do João, se o host aguentar). F2a: segunda região e passagem, sozinho (regiões já
+  prontas para várias ativas no host). F2b: benchmark do host com 2–4 regiões ativas. F2c: coop
+  com jogadores em regiões diferentes (cada cliente só recebe a sua).
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
@@ -212,7 +215,7 @@ Ordem proposta (cada um com validação do João antes do próximo):
 
 ## Pendências de decisão
 
-- Coop: jogadores em regiões diferentes ao mesmo tempo? (ADR-005, decidir até a Etapa H)
+- ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22), se o benchmark da F2b permitir.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
 

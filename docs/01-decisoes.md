@@ -78,7 +78,9 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     e libera a cena.
   - Chunks dentro de uma região só se medições mostrarem necessidade.
   - Dungeons temporárias/instanciadas: decidir quando forem implementadas.
-- **Ponto aberto para o coop**: jogadores em regiões diferentes ao mesmo tempo (o host
+- **Coop (decidido pelo João, 2026-10-22)**: jogadores podem estar em regiões diferentes; o host
+  simula toda região ocupada — condicionado ao benchmark da F2b. Texto original do ponto aberto:
+  jogadores em regiões diferentes ao mesmo tempo (o host
   precisaria simular mais de uma região). Decidir até a Etapa H.
 
 ## ADR-006 — Representação isométrica
