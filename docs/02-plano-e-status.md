@@ -10,7 +10,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | A | Escolher ambiente de vibe coding, engine e ferramentas | ✅ (ADR-001, ADR-002) |
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
-| D | Combate, vida, dano, primeiro inimigo, recompensas | ⬜ |
+| D | Combate, vida, dano, primeiro inimigo, recompensas | 🟡 aguardando validação do João |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
@@ -90,10 +90,36 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Validação de sensação (movimento, colisão, câmera nas bordas, F3) — João, 2026-10-21
 - [x] Merge na `main` — autorizado pelo João após os ajustes
 
+## Etapa D — checklist (branch `stage-d/combat`)
+
+- [x] Núcleo de combate em dados: `ActorStats` (vida, defesa, invulnerabilidade, recuo),
+      `MeleeAttackData` (dano, alcance, arco, recuo, bote, preparação/recuperação),
+      `CombatRules` (defesa com retorno decrescente, escala de vida por nº de jogadores)
+- [x] Componentes reutilizáveis: `Health`, `MeleeAttacker`, `ActorFeedback` (flash,
+      telegrafia, piscar, sumir)
+- [x] Espada: golpe em arco na direção do mouse (ou do olhar no teclado/controle), segurar
+      repete, recuo no alvo, rastro do golpe, números de dano
+- [x] Slime: persegue, telegrafa (encolhe e avermelha), dá o bote, volta para casa se
+      levado longe, morre e renasce (15–25 s) em 8 pontos da região
+- [x] Drops pessoais (gosma) com ímã; inventário por jogador; HUD com vida e itens
+- [x] Morte e renascimento do jogador no ponto de entrada (2,5 s)
+- [x] 25 testes automáticos (o executor agora também reprova erros de script)
+- [x] Estresse: 200 slimes em 3,1 ms/quadro (`docs/03-desempenho.md`)
+- [x] Primeira rodada de feedback do João (2026-10-22): bote telegrafado e recuo aprovados;
+      corrigidos a oscilação na borda da coleira e o stun-lock ao segurar o ataque (espada
+      mais lenta: 0,48 s por golpe; slime resiste 40% do recuo e o bote não é interrompido).
+      Valores ainda provisórios: o balanceamento real vem com mais armas e inimigos.
+- [x] Evasão na coleira: criatura que desiste volta imune e recupera a vida em casa
+      (pedido do João: antes dava para matá-la pelas costas enquanto voltava)
+- [ ] Validação de sensação do combate — **João**
+- [ ] Merge na `main` — só após o OK explícito do João
+
 ## Funcionalidades
 
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
 - Árvores (e futuros prédios) ficam semitransparentes quando o personagem está atrás delas.
+- Combate com espada (clique esquerdo, J ou botão X do controle; segurar repete) contra slimes;
+  gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 
 ## Problemas conhecidos
 
@@ -102,6 +128,10 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   de um balanço de 1 px.
 - O painel de debug mostra tempos altos nos primeiros quadros (carregamento); o custo em
   regime está em `docs/03-desempenho.md`.
+- Criaturas não têm busca de caminho: contornam obstáculos redondos, mas podem ficar presas
+  atrás de lagos. Avaliar navegação quando houver mapas mais fechados.
+- O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
+  preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 
 ## Pendências de decisão
 

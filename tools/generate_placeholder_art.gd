@@ -20,6 +20,10 @@ const STONE := [Color("7f7f93"), Color("5d5d70"), Color("a8a8b8")]
 const TRUNK := [Color("6b4a2f"), Color("4e3522")]
 const LEAVES_OUTLINE := Color("1c3320")
 const STONE_OUTLINE := Color("2a2a36")
+const SLIME := [Color("8a5cc7"), Color("6a42a3"), Color("b48ae8")]
+const SLIME_OUTLINE := Color("2a1840")
+const SLIME_EYES := Color("1b1a26")
+const SLASH := Color(1.0, 0.97, 0.85)
 const SHADOW := Color(0.05, 0.04, 0.1, 0.35)
 
 const CHARACTER_PALETTE := {
@@ -91,6 +95,9 @@ func _initialize() -> void:
 	_save(_tree(), OUT_DIR + "tree.png")
 	_save(_rock(), OUT_DIR + "rock.png")
 	_save(_shadow(), OUT_DIR + "shadow.png")
+	_save(_slime(), OUT_DIR + "slime.png")
+	_save(_gel(), OUT_DIR + "gel.png")
+	_save(_slash(), OUT_DIR + "slash.png")
 	quit(0)
 
 
@@ -246,4 +253,50 @@ func _shadow() -> Image:
 		for x in img.get_width():
 			if in_ellipse(x, y, half, half):
 				img.set_pixel(x, y, SHADOW)
+	return img
+
+
+## Gota de gosma sombreada com brilho; usada pelo slime e pelo item que ele derruba.
+func _blob(size: Vector2i, center: Vector2, radii: Vector2, band: float) -> Image:
+	var img := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
+	for y in size.y:
+		for x in size.x:
+			if in_ellipse(x, y, center, radii):
+				var v := (x - center.x) * 0.5 + (y - center.y) * 0.9
+				img.set_pixel(x, y, shade(SLIME, v, band, x, y))
+	var shine := Vector2i(center - radii * 0.45)
+	img.set_pixelv(shine, Color.WHITE)
+	outline(img, SLIME_OUTLINE)
+	return img
+
+
+func _slime() -> Image:
+	var img := _blob(Vector2i(16, 12), Vector2(8, 6.5), Vector2(7.5, 5.5), 2.5)
+	for eye in [Vector2i(6, 6), Vector2i(10, 6)]:
+		img.set_pixelv(eye, SLIME_EYES)
+		img.set_pixelv(eye + Vector2i.DOWN, SLIME_EYES)
+	return img
+
+
+func _gel() -> Image:
+	return _blob(Vector2i(8, 7), Vector2(4, 3.5), Vector2(3.5, 2.5), 1.0)
+
+
+## Rastro do golpe: arco em meia-lua apontando para a direita, mais opaco no meio.
+func _slash() -> Image:
+	var size := 48
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var center := Vector2(size, size) / 2.0
+	var half_arc := deg_to_rad(60.0)
+	for y in size:
+		for x in size:
+			var p := Vector2(x, y) + Vector2(0.5, 0.5) - center
+			var angle := absf(p.angle())
+			if p.length() < 17.0 or p.length() > 24.0 or angle > half_arc:
+				continue
+			# Mais grosso e opaco no centro do arco, afinando nas pontas.
+			var along := 1.0 - angle / half_arc
+			if p.length() < 24.0 - 7.0 * along:
+				continue
+			img.set_pixel(x, y, Color(SLASH, 0.35 + 0.65 * along))
 	return img

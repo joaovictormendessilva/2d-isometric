@@ -1,14 +1,21 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
 [ext_resource type="Script" path="res://scenes/input/local_player_input.gd" id="3_input"]
 [ext_resource type="Script" path="res://scenes/ui/debug_overlay.gd" id="4_debug"]
+[ext_resource type="Script" path="res://scenes/main/entity_spawner.gd" id="5_spawner"]
+[ext_resource type="Script" path="res://scenes/ui/damage_numbers.gd" id="6_numbers"]
+[ext_resource type="Script" path="res://scenes/ui/hud.gd" id="7_hud"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
 
 [node name="World" type="Node2D" parent="."]
+
+[node name="DamageNumbers" type="Node2D" parent="World"]
+z_index = 50
+script = ExtResource("6_numbers")
 
 [node name="Camera" type="Camera2D" parent="."]
 process_callback = 0
@@ -16,6 +23,9 @@ script = ExtResource("2_camera")
 
 [node name="LocalInput" type="Node" parent="."]
 script = ExtResource("3_input")
+
+[node name="EntitySpawner" type="Node" parent="."]
+script = ExtResource("5_spawner")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
@@ -28,3 +38,46 @@ theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 8
 script = ExtResource("4_debug")
+
+[node name="Hud" type="Control" parent="UI"]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = -30.0
+offset_right = 206.0
+offset_bottom = -4.0
+grow_vertical = 0
+mouse_filter = 2
+script = ExtResource("7_hud")
+
+[node name="HealthBar" type="ColorRect" parent="UI/Hud"]
+layout_mode = 0
+offset_right = 80.0
+offset_bottom = 8.0
+color = Color(0.1, 0.07, 0.12, 0.85)
+
+[node name="Fill" type="ColorRect" parent="UI/Hud/HealthBar"]
+layout_mode = 0
+offset_right = 80.0
+offset_bottom = 8.0
+
+[node name="Value" type="Label" parent="UI/Hud/HealthBar"]
+layout_mode = 0
+offset_left = 84.0
+offset_top = -3.0
+offset_right = 160.0
+offset_bottom = 10.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+
+[node name="Inventory" type="Label" parent="UI/Hud"]
+layout_mode = 0
+offset_top = 11.0
+offset_right = 200.0
+offset_bottom = 24.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8

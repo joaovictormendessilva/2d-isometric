@@ -1,0 +1,84 @@
+extends TestCase
+## IA das criaturas: percebe, persegue e ataca jogadores próximos; ignora os distantes.
+
+
+func test_slime_chases_and_hits_nearby_player() -> void:
+	var session := GameSession.new()
+	var player := spawn_character(Vector2.ZERO)
+	register_player(session, player, 1)
+	spawn_slime(Vector2(70, 0), session)
+	await physics_frames(240)
+	check(player.health.current < player.health.max_health,
+		"slime alcançou e feriu o jogador (vida %d)" % player.health.current)
+
+
+func test_slime_ignores_distant_player() -> void:
+	var session := GameSession.new()
+	var player := spawn_character(Vector2.ZERO)
+	register_player(session, player, 1)
+	var slime := spawn_slime(Vector2(300, 0), session)
+	await physics_frames(120)
+	check(slime.position.distance_to(Vector2(300, 0)) < 2.0, "slime ficou em casa")
+	check(player.health.current == player.health.max_health, "jogador intacto")
+
+
+## O ataque do slime precisa ser lento o bastante para ser telegrafado (ver ActorFeedback).
+func test_slime_attack_is_telegraphed() -> void:
+	var slime := spawn_slime(Vector2.ZERO)
+	check(slime.data.attack.windup >= ActorFeedback.TELEGRAPH_MIN_WINDUP,
+		"preparação do bote (%.2f s) é visível" % slime.data.attack.windup)
+
+
+## Jogador parado logo depois da coleira: o slime desiste e volta para casa de vez, em vez
+## de oscilar na borda (perceber → passar da coleira → voltar → perceber de novo...).
+## Voltando, ele é imune (não vira alvo fácil) e, em casa, recupera a vida toda.
+func test_slime_evades_at_leash_immune_and_heals_at_home() -> void:
+	var session := GameSession.new()
+	var player := spawn_character(Vector2(50, 0))
+	register_player(session, player, 1)
+	var slime := spawn_slime(Vector2.ZERO, session)
+	var brain: MonsterBrain = slime.get_node("Brain")
+	var leash := slime.data.leash_radius
+	var stop_x := leash + slime.data.aggro_radius * 0.5  # no eixo x, chão = tela
+	slime.health.apply_damage(DamageInfo.create(10, Vector2.RIGHT, 0, 0, 1))
+
+	# Atrai o slime ficando um pouco à frente dele (fora do alcance) e para depois da coleira.
+	var frames := 0
+	while not brain.is_returning() and frames < 20 * 60:
+		player.position = Vector2(minf(slime.position.x + 50.0, stop_x), 0)
+		await physics_frames(1)
+		frames += 1
+	check(brain.is_returning(), "slime desistiu ao passar da coleira")
+	var before := slime.health.current
+	check(not slime.health.apply_damage(DamageInfo.create(10, Vector2.RIGHT, 0, 0, 1)),
+		"golpe no slime em retirada não pega")
+	check(slime.health.current == before, "vida não mudou durante a retirada")
+
+	frames = 0
+	while brain.is_returning() and frames < 20 * 60:
+		await physics_frames(1)
+		frames += 1
+	check(not brain.is_returning(), "slime chegou em casa sem voltar a perseguir")
+	check(Iso.ground_distance(slime.position, Vector2.ZERO) <= MonsterBrain.HOME_TOLERANCE,
+		"está em casa")
+	check(slime.health.current == slime.health.max_health, "recuperou a vida toda")
+	check(not slime.health.is_immune(), "voltou a poder ser atingido")
+
+
+## Segurar o ataque não pode travar o slime: o bote telegrafado sai mesmo apanhando, então
+## quem só aperta o botão sem desviar leva dano.
+func test_holding_attack_does_not_stun_lock_slime() -> void:
+	var session := GameSession.new()
+	var player := spawn_character(Vector2.ZERO)
+	register_player(session, player, 1)
+	var slime := spawn_slime(Vector2(40, 0), session)
+	var frames := 0
+	while slime.is_alive() and frames < 15 * 60:
+		var to_slime := Iso.screen_to_ground(slime.position - player.position)
+		player.set_move_intent(to_slime.normalized())
+		player.request_attack(to_slime)
+		await physics_frames(1)
+		frames += 1
+	check(not slime.is_alive(), "o jogador venceu o duelo")
+	check(player.health.current < player.health.max_health,
+		"o slime acertou ao menos um bote (vida %d)" % player.health.current)

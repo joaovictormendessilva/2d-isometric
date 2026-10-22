@@ -14,3 +14,11 @@ extends Node2D
 
 func get_spawn_position() -> Vector2:
 	return _player_spawn.position
+
+
+func get_monster_spawn_points() -> Array[MonsterSpawnPoint]:
+	var points: Array[MonsterSpawnPoint] = []
+	var container := get_node_or_null("MonsterSpawns")
+	if container:
+		points.assign(container.get_children())
+	return points

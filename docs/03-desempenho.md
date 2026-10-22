@@ -35,7 +35,7 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 
 | Cena de teste | Parâmetros | Status |
 |---|---|---|
-| Muitos inimigos | 50 / 100 / 200 perseguindo | ⬜ |
+| Muitos inimigos | 50 / 100 / 200 perseguindo | ✅ 2026-10-21 (ver Resultados) |
 | Muitos projéteis | 200 / 500 / 1000 | ⬜ |
 | Partículas e auras | 10 / 30 / 60 auras ativas | ⬜ |
 | Itens no chão | 200 / 500 | ⬜ |
@@ -47,7 +47,11 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 
 | Data | Teste | Máquina | Resultado |
 |---|---|---|---|
-| 2026-10-21 | `tests/benchmark_region.gd` — região Prado (238 objetos, ~730 nós), personagem andando em círculo, sem vsync, 1200 quadros | PC de dev (RX 6600, Compatibility) | média **0,41 ms** (~2.400 FPS), p95 0,52–0,61 ms, pior 3,4–3,6 ms, 34 draw calls, 39,6 MB de memória estática |
+| 2026-10-21 | ~~`benchmark_region.gd` sem `--fixed-fps`~~ — média 0,41 ms | PC de dev | **Medição subestimada**: sem `--fixed-fps` a física (60 Hz) rodava só em ~1 de cada 40 quadros. Substituída pelas linhas abaixo. |
+| 2026-10-21 | `benchmark_region.gd --fixed-fps 60` — Prado com 238 objetos, 8 slimes, ~1180 nós, personagem andando, 1200 quadros | PC de dev (RX 6600, Compatibility) | média **0,82 ms**, p99 1,15 ms, pior 1,40 ms, 38 draw calls, 43 MB de memória estática |
+| 2026-10-21 | `benchmark_monsters.gd --fixed-fps 60` — N slimes perseguindo e atacando 1 jogador, 600 quadros | PC de dev | 50: **0,81 ms** (p99 1,21) · 100: **1,54 ms** (p99 2,07) · 200: **3,13 ms** (p99 4,03, pior 4,47) |
 
-Leitura: com folga de ~10× sobre a meta de 4 ms no PC de dev. Ainda não diz nada sobre o
-hardware modesto nem sobre muitos inimigos/efeitos — esses testes vêm nas próximas etapas.
+Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
+200 criaturas cabem na meta de 4 ms do PC de dev. Supondo que o hardware modesto seja 3–4×
+mais lento, ~100 criaturas ativas por região seguem dentro de 60 FPS. Ainda não diz nada sobre o
+hardware modesto real nem sobre projéteis e efeitos — esses testes vêm nas próximas etapas.

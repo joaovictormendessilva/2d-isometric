@@ -4,7 +4,8 @@ extends RefCounted
 ## executado por `tests/run_tests.gd`. Métodos podem usar `await` (ex.: esperar física).
 
 const MAIN_SCENE := preload("res://scenes/main/main.tscn")
-const CHARACTER_SCENE := preload("res://scenes/actors/character/character.tscn")
+const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
+const SLIME_SCENE := preload("res://scenes/actors/monsters/slime.tscn")
 
 var tree: SceneTree
 var failures := PackedStringArray()
@@ -36,7 +37,7 @@ func start_game() -> Node:
 
 
 func spawn_character(at: Vector2) -> Character:
-	var character: Character = CHARACTER_SCENE.instantiate()
+	var character: Character = PLAYER_SCENE.instantiate()
 	character.position = at
 	return add_to_tree(character)
 
@@ -51,3 +52,19 @@ func cleanup() -> void:
 		if is_instance_valid(node):
 			node.free()
 	_owned_nodes.clear()
+
+
+## Slime avulso; com `session`, a IA dele enxerga os jogadores dessa sessão.
+func spawn_slime(at: Vector2, session: GameSession = null) -> Monster:
+	var slime: Monster = SLIME_SCENE.instantiate()
+	slime.position = at
+	(slime.get_node("Brain") as MonsterBrain).session = session
+	return add_to_tree(slime)
+
+
+## Registra um personagem avulso como jogador de uma sessão de teste.
+func register_player(session: GameSession, character: Character, player_id: int) -> void:
+	character.player_id = player_id
+	character.entity_id = session.allocate_entity_id()
+	session.register_entity(character.entity_id, character)
+	session.add_player(player_id, character.entity_id)
