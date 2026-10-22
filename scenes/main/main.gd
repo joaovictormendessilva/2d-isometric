@@ -12,18 +12,23 @@ extends Node
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
 const SKILLS_DIR := "res://data/skills/"
 const SCREENSHOT_FRAMES := 45
+const STARTER_KIT := "res://data/debug/starter_kit.tres"
 
 ## Defina antes de adicionar à árvore para ignorar a linha de comando (testes de rede).
 var configure_network_from_command_line := true
+## Kit de itens para testes (`game/debug/starter_kit` no project.godot). Só existe em
+## compilações de desenvolvimento: um jogo exportado nunca dá itens de graça. Testes desligam.
+var use_debug_starter_kit := true
 
-var session := GameSession.new()
-var region: Region
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
+var session := GameSession.new(items)
+var region: Region
 
 var _input_detached := false
 
 @onready var network: Network = $Network
+@onready var player_state: PlayerStateSync = $PlayerState
 @onready var _world: Node2D = $World
 @onready var _camera: GameCamera = $Camera
 @onready var _local_input: LocalPlayerInput = $LocalInput
@@ -34,15 +39,13 @@ var _input_detached := false
 @onready var _debug_overlay: DebugOverlay = $UI/DebugOverlay
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 @onready var _interaction_prompt: InteractionPrompt = $World/InteractionPrompt
+@onready var _inventory_panel: InventoryPanel = $UI/InventoryPanel
 
 
 func _ready() -> void:
 	Texts.apply_command_line(OS.get_cmdline_user_args())
 	# A rede começa ANTES da região: os objetos da região (pontos de coleta) decidem no
 	# próprio `_ready` se pedem o estado ao host.
-	network.session = session
-	network.items = items
-	network.skills = skills
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	network.start()
@@ -52,7 +55,14 @@ func _ready() -> void:
 	_world.add_child(region)
 	_camera.set_bounds(region.camera_bounds)
 
-	_spawner.setup(session, region, local_player_id(), _damage_numbers, items, network)
+	_spawner.setup(session, region, local_player_id(), _damage_numbers, items, player_state)
+	player_state.session = session
+	player_state.items = items
+	player_state.skills = skills
+	player_state.spawner = _spawner
+	if use_debug_starter_kit and OS.is_debug_build() \
+			and ProjectSettings.get_setting("game/debug/starter_kit", false):
+		_spawner.starter_kit = load(STARTER_KIT)
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
@@ -77,9 +87,11 @@ func _on_local_player_spawned(character: Character) -> void:
 	_camera.follow(character)
 	var inventory := session.get_inventory(local_player_id())
 	var progress := session.get_skills(local_player_id())
-	_hud.setup(character, inventory, items, progress, skills)
+	_hud.setup(character, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
+	_inventory_panel.setup(inventory, items, player_state)
+	player_state.request_full_state()
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem

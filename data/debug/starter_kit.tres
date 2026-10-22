@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="ItemBundle" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/items/item_bundle.gd" id="1_bundle"]
+
+[resource]
+script = ExtResource("1_bundle")
+items = Dictionary[StringName, int]({
+&"wood": 120,
+&"copper_ore": 30,
+&"stone": 20,
+&"gel": 15,
+&"oak_wood": 5,
+&"stone_axe": 1,
+&"stone_pickaxe": 1
+})

@@ -23,9 +23,6 @@ const LOOPBACK := "127.0.0.1"
 var role := Role.OFFLINE
 var address := LOOPBACK
 var port := NetRules.DEFAULT_PORT
-var session: GameSession
-var items: ItemDatabase
-var skills: DataCatalog
 
 var _status := ""
 var _local_id := 1
@@ -106,35 +103,6 @@ func status_text() -> String:
 		return _status
 	var ping := host.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
 	return Texts.format(&"NET_PING", [_status, ping])
-
-
-## Host: envia ao dono cada mudança no inventário e na experiência de coleta dele (ambos
-## decididos no host).
-func track_player(player_id: int) -> void:
-	if not is_online() or not multiplayer.is_server() or player_id == local_player_id():
-		return
-	var inventory := session.get_inventory(player_id)
-	inventory.changed.connect(_send_to_player.bind(&"_inventory_item", player_id))
-	session.get_skills(player_id).changed.connect(_send_to_player.bind(&"_skill_xp", player_id))
-
-
-func _send_to_player(id: StringName, value: int, method: StringName, player_id: int) -> void:
-	if player_id in multiplayer.get_peers():
-		rpc_id(player_id, method, id, value)
-
-
-@rpc("authority", "call_remote", "reliable")
-func _skill_xp(skill_id: StringName, xp: int) -> void:
-	var progress := session.get_skills(local_player_id())
-	if progress != null and xp >= 0 and skills.has(skill_id):
-		progress.replicate_xp(skill_id, xp)
-
-
-@rpc("authority", "call_remote", "reliable")
-func _inventory_item(item_id: StringName, count: int) -> void:
-	var inventory := session.get_inventory(local_player_id())
-	if inventory != null and count >= 0 and items.get_item(item_id) != null:
-		inventory.replicate_count(item_id, count)
 
 
 func _on_peer_authenticating(peer_id: int) -> void:

@@ -14,6 +14,8 @@ const POP_HEIGHT := 10.0
 ## do dono, o item escorrega até ele (o "ímã", que equipamentos poderão aumentar).
 const COLLECT_RADIUS := 8.0
 const MAGNET_SPEED := 120.0
+## Quanto além do ímã o dono precisa ir para o item que ele jogou fora voltar a ser pegável.
+const LEAVE_MARGIN := 8.0
 const SPRITE_HEIGHT := 4.0
 const BOB_HZ := 1.5
 const BOB_HEIGHT := 1.5
@@ -25,6 +27,9 @@ var session: GameSession
 ## Onde o item nasce (posição da criatura); `position` é onde ele pousa. Definir os dois
 ## antes de adicionar à árvore (iguais = sem salto).
 var origin := Vector2.ZERO
+## Item que o próprio dono jogou fora: não volta sozinho para ele; só depois que o dono se
+## afastar além do ímã o item passa a poder ser pego.
+var waits_for_owner_to_leave := false
 
 var _time := 0.0
 
@@ -49,7 +54,13 @@ func _physics_process(delta: float) -> void:
 	var owner_body := session.get_player_entity(owner_player_id) as Character
 	if owner_body == null or not owner_body.is_alive():
 		return
+	var inventory := session.get_inventory(owner_player_id)
+	if inventory == null or not inventory.can_add(item.id, amount):
+		return  # inventário cheio: o item espera no chão
 	var distance := Iso.ground_distance(position, owner_body.position)
+	if waits_for_owner_to_leave:
+		waits_for_owner_to_leave = distance <= owner_body.stats.pickup_radius + LEAVE_MARGIN
+		return
 	if distance <= COLLECT_RADIUS:
 		_collect()
 	elif distance <= owner_body.stats.pickup_radius:

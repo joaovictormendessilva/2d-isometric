@@ -7,6 +7,8 @@ extends SceneTree
 ## (`--fixed-fps 60` faz cada quadro valer 1/60 s: a física roda rápida e determinística.)
 
 const TEST_DIR := "res://tests/"
+## Preferências de interface dos testes: arquivo próprio, zerado antes de cada teste.
+const TEST_SETTINGS := "user://test_settings.cfg"
 
 
 ## Captura erros reportados pela engine (SCRIPT ERROR, push_error...) enquanto um teste roda.
@@ -33,6 +35,7 @@ var _errors := ErrorCollector.new()
 
 func _initialize() -> void:
 	OS.add_logger(_errors)
+	UserSettings.path = TEST_SETTINGS
 	_run_all.call_deferred()
 
 
@@ -50,6 +53,7 @@ func _run_all() -> void:
 			if not method_name.begins_with("test_"):
 				continue
 			_errors.take()
+			UserSettings.clear()
 			var test: TestCase = script.new()
 			test.tree = self
 			await test.call(method_name)

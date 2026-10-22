@@ -294,3 +294,36 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: novo idioma = nova coluna na tabela (o teste confere que todo idioma
   tem todos os textos, com os mesmos marcadores de valores). A fonte m5x7 cobre o alfabeto
   latino com acentos; idiomas com outros alfabetos pedirão outra fonte.
+
+## ADR-016 — Inventário em espaços com pilhas
+
+- **Status**: Hipótese (Etapa E2, aguardando validação do João)
+- **Decisões**:
+  - **Espaços com pilhas** (escolha do João): cada espaço guarda um tipo de item até
+    `ItemData.max_stack` (99; ferramentas 1).
+  - **Mochilas** (pedido do João, estilo Grand Fantasia/Forager): sem mochila, 12 espaços
+    (`ActorStats.inventory_slots`); mochilas equipadas somam espaços até um máximo — chegam
+    com os equipamentos (E4).
+  - **Cheio**: drops esperam no chão; a coleta só começa/continua se couber o pior caso do
+    rendimento (nada se perde no meio).
+  - **Janela livre** (pedido do João): I / Tab / botão Y abrem e fecham, Esc fecha; o jogador
+    arrasta a janela pela barra de título e ela lembra a posição (`UserSettings`, só neste
+    computador). Andar e lutar com ela aberta funcionam; cliques sobre a janela não atacam.
+    Grade com ícone, quantidade e nome ao passar o mouse.
+  - **Clicar para segurar** (pedido do João, no lugar de arrastar): um clique pega a pilha, que
+    segue o ponteiro; clicar num espaço põe, junta ou troca (o item do espaço vem para a mão);
+    clicar fora da janela joga no chão (o dono só pega de volta depois de se afastar); fechar
+    o inventário devolve a mão aos espaços. A **mão é estado do host** (parte do inventário):
+    nada some nem se duplica no coop.
+  - **Dividir pilha** (botão direito, mão vazia): janelinha com régua; a parte separada vai
+    para a mão (pode ser posta em qualquer espaço ou jogada fora).
+  - **Clique da interface não ataca**: um clique de mouse só vira ataque se começou com o
+    cursor livre (fora de janelas, sem item na mão, sem arrastar janela).
+  - **Filtro por categoria** (ideia do João): preferido a abas, por manter a grade real e
+    só apagar o que não é da categoria. Entra quando houver consumíveis e itens de missão.
+  - **Rede**: o host decide; o dono recebe cada espaço alterado e os ganhos como eventos
+    separados (mover itens não gera aviso "+1"). Pedidos do dono (mover, jogar fora) são
+    conferidos: só o próprio inventário, índices válidos. Estado por jogador em
+    `PlayerStateSync` (separado da conexão em `Network`).
+- **Consequências**: crafting (E3) usa `Inventory.remove`/`can_add_all`; equipamentos (E4)
+  e bolsas mudarão o tamanho por jogador.

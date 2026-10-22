@@ -14,3 +14,4 @@ invulnerability_time = 0.6
 hit_stun = 0.2
 knockback_resistance = 0.0
 pickup_radius = 16.0
+inventory_slots = 12

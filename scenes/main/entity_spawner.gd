@@ -35,7 +35,9 @@ var region: Region
 var local_player_id := 0
 var damage_numbers: DamageNumbers
 var items: ItemDatabase
-var network: Network
+var player_state: PlayerStateSync
+## Kit de testes dado a cada jogador ao entrar (só em compilações de desenvolvimento; ver main).
+var starter_kit: ItemBundle
 
 var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
@@ -45,13 +47,14 @@ var _rng := RandomNumberGenerator.new()
 
 
 func setup(p_session: GameSession, p_region: Region, p_local_player_id: int,
-		p_damage_numbers: DamageNumbers, p_items: ItemDatabase, p_network: Network) -> void:
+		p_damage_numbers: DamageNumbers, p_items: ItemDatabase,
+		p_player_state: PlayerStateSync) -> void:
 	session = p_session
 	region = p_region
 	local_player_id = p_local_player_id
 	damage_numbers = p_damage_numbers
 	items = p_items
-	network = p_network
+	player_state = p_player_state
 	_monster_points = region.get_monster_spawn_points()
 	_rng.randomize()
 	_replicator.spawn_path = _replicator.get_path_to(region.entities)
@@ -83,12 +86,14 @@ func spawn_monster(point_index: int) -> Monster:
 
 
 ## `from`: onde o item nasce (a criatura); `at`: onde ele pousa.
+## `dropped_by_owner`: o próprio dono jogou fora (ele só pega de volta depois de se afastar).
 func spawn_pickup(item: ItemData, amount: int, owner_player_id: int, from: Vector2,
-		at: Vector2) -> Pickup:
+		at: Vector2, dropped_by_owner: bool = false) -> Pickup:
 	var pickup_id := _next_pickup_id
 	_next_pickup_id += 1
 	return _replicator.spawn({"kind": Kind.PICKUP, "pickup_id": pickup_id, "item": String(item.id),
-		"amount": amount, "owner": owner_player_id, "origin": from, "position": at})
+		"amount": amount, "owner": owner_player_id, "origin": from, "position": at,
+		"dropped": dropped_by_owner})
 
 
 # --- Todos os computadores: monta o nó a partir dos dados ------------------------------------
@@ -114,7 +119,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 	character.player_id = data["player_id"]
 	character.position = data["position"]
 	_register(character, data["entity_id"])
-	session.add_player(character.player_id, character.entity_id)
+	session.add_player(character.player_id, character.entity_id, character.stats.inventory_slots)
 	var gatherer: Gatherer = character.get_node("Gatherer")
 	gatherer.session = session
 	gatherer.items = items
@@ -126,7 +131,9 @@ func _instantiate_player(data: Dictionary) -> Character:
 		character.ready.connect(visual.set_tint.bind(OTHER_PLAYER_TINT), CONNECT_ONE_SHOT)
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
-		network.track_player(character.player_id)
+		player_state.track_player(character.player_id)
+		if starter_kit:
+			starter_kit.give_to(session.get_inventory(character.player_id))
 	return character
 
 
@@ -151,6 +158,7 @@ func _instantiate_pickup(data: Dictionary) -> Pickup:
 	pickup.session = session
 	pickup.origin = data["origin"]
 	pickup.position = data["position"]
+	pickup.waits_for_owner_to_leave = data["dropped"]
 	# Drop pessoal: cada computador só mostra os itens do seu jogador local.
 	pickup.visible = pickup.owner_player_id == local_player_id
 	return pickup
@@ -185,7 +193,8 @@ func _valid_kind(data: Variant) -> int:
 		Kind.PICKUP:
 			var item: Variant = d.get("item")
 			if _is_id(d, "pickup_id") and _is_id(d, "owner") and _is_position(d, "position") \
-					and _is_position(d, "origin") and item is String and items.get_item(StringName(item)) != null \
+					and _is_position(d, "origin") and d.get("dropped") is bool \
+					and item is String and items.get_item(StringName(item)) != null \
 					and d.get("amount") is int and d["amount"] >= 1 and d["amount"] <= MAX_PICKUP_AMOUNT:
 				return Kind.PICKUP
 	return -1

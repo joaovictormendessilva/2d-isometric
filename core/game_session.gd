@@ -10,6 +10,12 @@ var _entities: Dictionary[int, Node] = {}
 var _player_entities: Dictionary[int, int] = {}  # player_id -> entity_id
 var _inventories: Dictionary[int, Inventory] = {}  # player_id -> inventário
 var _skills: Dictionary[int, SkillProgress] = {}  # player_id -> experiência de coleta
+var _items: ItemDatabase
+
+
+## `items` dá o limite de pilha de cada item nos inventários (sem ele: limite padrão).
+func _init(items: ItemDatabase = null) -> void:
+	_items = items
 
 
 func allocate_entity_id() -> int:
@@ -30,10 +36,12 @@ func get_entity(entity_id: int) -> Node:
 	return _entities.get(entity_id)
 
 
-func add_player(player_id: int, entity_id: int) -> void:
+## `inventory_slots`: tamanho do inventário, criado só na primeira vez (renascer não o zera).
+func add_player(player_id: int, entity_id: int,
+		inventory_slots: int = Inventory.DEFAULT_SLOTS) -> void:
 	_player_entities[player_id] = entity_id
 	if not _inventories.has(player_id):
-		_inventories[player_id] = Inventory.new()
+		_inventories[player_id] = Inventory.new(inventory_slots, _items)
 		_skills[player_id] = SkillProgress.new()
 
 

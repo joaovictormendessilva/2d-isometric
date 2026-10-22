@@ -32,7 +32,9 @@ func add_to_tree(node: Node) -> Node:
 
 ## Cria o jogo completo (cena principal) com o controle local desligado.
 func start_game() -> Node:
-	var game := add_to_tree(MAIN_SCENE.instantiate())
+	var game := MAIN_SCENE.instantiate()
+	game.use_debug_starter_kit = false  # testes contam itens: começam de mãos vazias
+	add_to_tree(game)
 	game.detach_local_input()
 	return game
 
@@ -84,6 +86,7 @@ func start_network_game(instance_name: String, role: Network.Role, port: int) ->
 	_multiplayer_roots.append(viewport.get_path())
 	var game := MAIN_SCENE.instantiate()
 	game.configure_network_from_command_line = false
+	game.use_debug_starter_kit = false
 	var network: Network = game.get_node("Network")
 	network.role = role
 	network.port = port

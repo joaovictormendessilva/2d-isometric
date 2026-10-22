@@ -4,6 +4,8 @@ extends Resource
 
 @export var id: StringName
 @export var icon: Texture2D
+## Quantos cabem num espaço do inventário (ferramentas: 1).
+@export var max_stack: int = 99
 
 
 ## Nome no idioma atual (chave `ITEM_<ID>` em `data/i18n/texts.csv`).

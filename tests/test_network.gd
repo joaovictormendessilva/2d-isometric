@@ -240,6 +240,49 @@ func test_host_rejects_bad_gather_requests() -> void:
 	check(far_node.charges_left == far_node.data.charges, "o ponto longe ficou intacto")
 
 
+## O cliente mexe no próprio inventário pedindo ao host; o host aplica e devolve o resultado.
+## Pedidos adulterados (espaços inexistentes) não fazem nada, e ninguém mexe no alheio.
+func test_client_inventory_actions_go_through_host() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client: Node = games[1]
+	var client_id: int = client.local_player_id()
+	var on_host := (host.session as GameSession).get_inventory(client_id)
+	var on_client := (client.session as GameSession).get_inventory(client_id)
+	var host_own := (host.session as GameSession).get_inventory(host.local_player_id())
+	host_own.add(&"gel", 1)
+	on_host.add(&"wood", 5)
+	on_host.add(&"stone", 2)
+	await physics_frames(10)
+	check(on_client.slot_item(0) == &"wood" and on_client.slot_amount(1) == 2, "cliente recebeu os espaços")
+
+	var state: PlayerStateSync = client.player_state
+	for bad in [-1, 999]:
+		state.request_click(bad)
+	state.request_split(0, 999)
+	state.request_split(0, -5)
+	state.request_drop_held()  # mão vazia: nada
+	state.request_click(0)  # pega as madeiras
+	state.request_click(1)  # troca com as pedras
+	await physics_frames(10)
+	check(on_host.slot_item(1) == &"wood" and on_client.slot_item(1) == &"wood"
+		and on_client.held_item() == &"stone", "troca feita no host; cliente vê espaços e mão")
+	check(host_own.count(&"gel") == 1 and pickups(client).is_empty(), "nada além disso mudou")
+
+	state.request_click(0)  # põe as pedras
+	state.request_click(1)  # pega as 5 madeiras
+	state.request_drop_held()
+	var dropped := await wait_until(func() -> bool: return pickups(client).size() == 1, 30)
+	check(dropped and on_client.count(&"wood") == 0, "jogou fora: saiu do inventário e caiu no chão")
+	if dropped:
+		var pickup: Pickup = pickups(client)[0]
+		check(pickup.visible and pickup.owner_player_id == client_id and pickup.amount == 5,
+			"o item no chão é do cliente, com as 5 madeiras")
+		await physics_frames(60)
+		check(is_instance_valid(pickup) and on_client.count(&"wood") == 0,
+			"parado ao lado, o item jogado fora não volta sozinho")
+
+
 func test_wrong_protocol_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	var viewport := SubViewport.new()
@@ -248,6 +291,7 @@ func test_wrong_protocol_is_refused() -> void:
 	tree.set_multiplayer(SceneMultiplayer.new(), viewport.get_path())
 	var client := MAIN_SCENE.instantiate()
 	client.configure_network_from_command_line = false
+	client.use_debug_starter_kit = false
 	var network: Network = client.get_node("Network")
 	network.role = Network.Role.CLIENT
 	network.port = PORT

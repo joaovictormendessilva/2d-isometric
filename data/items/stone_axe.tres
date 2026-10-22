@@ -11,3 +11,4 @@ icon = ExtResource("2_icon")
 skill = ExtResource("3_skill")
 tier = 1
 speed = 1.0
+max_stack = 1

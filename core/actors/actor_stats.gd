@@ -26,3 +26,7 @@ extends Resource
 ## até ele. Equipamentos futuros poderão aumentá-lo, como um bônus por jogador somado a este
 ## valor (nunca alterando este recurso, que é compartilhado por todos os jogadores).
 @export var pickup_radius: float = 16.0
+
+@export_group("Inventário")
+## Espaços do inventário sem mochila (mochilas equipadas somarão, por jogador — Etapa E4).
+@export var inventory_slots: int = Inventory.DEFAULT_SLOTS
