@@ -174,5 +174,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     escalada por jogador extra (`data/balance/player_scaling.tres`).
   - **Drops pessoais**: a tabela é sorteada por jogador; cada um só vê e coleta os seus.
   - Apresentação (números de dano em pool, rastro, flash, HUD) só **lê** sinais.
+  - **Bote comprometido** (`MeleeAttackData.interruptible = false` no slime): levar dano não
+    cancela a preparação do inimigo. Sem isso, segurar o ataque travava o slime para sempre
+    (stun-lock, apontado pelo João). Teste `test_holding_attack_does_not_stun_lock_slime`.
+  - **Coleira com retorno**: ao passar da coleira, a criatura volta até casa antes de
+    perceber alguém de novo (antes oscilava na borda — apontado pelo João).
 - **Consequências**: criaturas novas = dados + cena herdada + (opcional) outro cérebro.
   Custo medido: ~15 µs por criatura ativa (`docs/03-desempenho.md`).

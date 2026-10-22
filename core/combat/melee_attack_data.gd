@@ -16,5 +16,8 @@ extends Resource
 @export var windup: float = 0.05
 @export var recovery: float = 0.3
 @export_group("")
+## Se falso, levar dano não interrompe a preparação: o bote telegrafado sempre sai.
+## Evita que golpes seguidos travem o inimigo (stun-lock) e premia quem lê o aviso.
+@export var interruptible: bool = true
 ## Velocidade de movimento do atacante durante o ataque (1 = normal).
 @export_range(0.0, 1.0) var move_multiplier: float = 0.4

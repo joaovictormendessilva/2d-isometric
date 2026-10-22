@@ -2,6 +2,8 @@ class_name MonsterBrain
 extends Node
 ## IA simples e reutilizável: percebe o jogador mais próximo dentro do raio de agressão,
 ## persegue, ataca quando no alcance e volta para casa se for longe demais.
+## Ao desistir, volta até casa antes de perceber alguém de novo: sem isso, ela oscila na
+## borda da coleira quando o jogador para logo depois dela.
 ## Gera só INTENÇÕES para o Monster pai — igual a um jogador, mas automatizado.
 ## Sem busca de caminho por enquanto: as pegadas redondas deslizam em volta dos obstáculos.
 
@@ -16,6 +18,7 @@ var session: GameSession
 
 var _home := Vector2.ZERO
 var _target: Character
+var _returning := false
 var _think_left := 0.0
 
 @onready var _body: Monster = get_parent()
@@ -27,13 +30,18 @@ func _ready() -> void:
 	_think_left = randf() * THINK_INTERVAL  # espalha o custo entre quadros
 
 
+## Desistiu da perseguição e está voltando para casa (ignora jogadores até chegar).
+func is_returning() -> bool:
+	return _returning
+
+
 func _physics_process(delta: float) -> void:
 	if not _body.is_alive() or session == null:
 		return
 	_think_left -= delta
 	if _think_left <= 0.0:
 		_think_left = THINK_INTERVAL
-		_target = _pick_target()
+		_think()
 	if _target == null:
 		_return_home()
 		return
@@ -46,10 +54,14 @@ func _physics_process(delta: float) -> void:
 		_body.set_move_intent(to_target.normalized())
 
 
-## Jogador vivo mais próximo dentro do raio de agressão, desde que perto de casa.
-func _pick_target() -> Character:
+func _think() -> void:
 	if Iso.ground_distance(_body.position, _home) > _body.data.leash_radius:
-		return null
+		_returning = true
+	_target = null if _returning else _pick_target()
+
+
+## Jogador vivo mais próximo dentro do raio de agressão.
+func _pick_target() -> Character:
 	var best: Character
 	var best_distance := _body.data.aggro_radius
 	for player_id in session.get_player_ids():
@@ -66,6 +78,7 @@ func _pick_target() -> Character:
 func _return_home() -> void:
 	var to_home := Iso.screen_to_ground(_home - _body.position)
 	if to_home.length() <= HOME_TOLERANCE:
+		_returning = false
 		_body.set_move_intent(Vector2.ZERO)
 	else:
 		_body.set_move_intent(to_home.normalized() * RETURN_SPEED)

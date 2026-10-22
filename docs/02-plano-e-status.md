@@ -103,8 +103,12 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
       levado longe, morre e renasce (15–25 s) em 8 pontos da região
 - [x] Drops pessoais (gosma) com ímã; inventário por jogador; HUD com vida e itens
 - [x] Morte e renascimento do jogador no ponto de entrada (2,5 s)
-- [x] 23 testes automáticos (o executor agora também reprova erros de script)
+- [x] 25 testes automáticos (o executor agora também reprova erros de script)
 - [x] Estresse: 200 slimes em 3,1 ms/quadro (`docs/03-desempenho.md`)
+- [x] Primeira rodada de feedback do João (2026-10-22): bote telegrafado e recuo aprovados;
+      corrigidos a oscilação na borda da coleira e o stun-lock ao segurar o ataque (espada
+      mais lenta: 0,48 s por golpe; slime resiste 40% do recuo e o bote não é interrompido).
+      Valores ainda provisórios: o balanceamento real vem com mais armas e inimigos.
 - [ ] Validação de sensação do combate — **João**
 - [ ] Merge na `main` — só após o OK explícito do João
 
@@ -124,8 +128,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   regime está em `docs/03-desempenho.md`.
 - Criaturas não têm busca de caminho: contornam obstáculos redondos, mas podem ficar presas
   atrás de lagos. Avaliar navegação quando houver mapas mais fechados.
-- O recuo da espada empurra o slime para fora do alcance: é preciso avançar a cada golpe.
-  Intencional por ora (dá ritmo); ajustável em `data/weapons/sword.tres`.
+- O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
+  preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 
 ## Pendências de decisão
 

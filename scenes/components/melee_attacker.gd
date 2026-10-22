@@ -42,9 +42,10 @@ func try_attack(direction: Vector2) -> bool:
 	return true
 
 
-## Interrompe a preparação (ex.: atingido). Golpes já desferidos não são desfeitos.
-func cancel() -> void:
-	if _phase == Phase.WINDUP:
+## Ao ser atingido: interrompe a preparação, se o ataque permitir. Golpes já desferidos
+## não são desfeitos.
+func interrupt() -> void:
+	if _phase == Phase.WINDUP and attack.interruptible:
 		_finish()
 
 

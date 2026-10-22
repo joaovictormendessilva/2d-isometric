@@ -106,7 +106,7 @@ func _on_damaged(info: DamageInfo) -> void:
 	_stun_left = stats.hit_stun
 	ground_velocity = info.direction * info.knockback * (1.0 - stats.knockback_resistance)
 	if attacker:
-		attacker.cancel()
+		attacker.interrupt()
 
 
 func _on_died() -> void:
