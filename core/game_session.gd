@@ -9,6 +9,7 @@ var _next_entity_id := 1
 var _entities: Dictionary[int, Node] = {}
 var _player_entities: Dictionary[int, int] = {}  # player_id -> entity_id
 var _inventories: Dictionary[int, Inventory] = {}  # player_id -> inventário
+var _skills: Dictionary[int, SkillProgress] = {}  # player_id -> experiência de coleta
 
 
 func allocate_entity_id() -> int:
@@ -33,10 +34,15 @@ func add_player(player_id: int, entity_id: int) -> void:
 	_player_entities[player_id] = entity_id
 	if not _inventories.has(player_id):
 		_inventories[player_id] = Inventory.new()
+		_skills[player_id] = SkillProgress.new()
 
 
 func get_inventory(player_id: int) -> Inventory:
 	return _inventories.get(player_id)
+
+
+func get_skills(player_id: int) -> SkillProgress:
+	return _skills.get(player_id)
 
 
 func get_player_entity(player_id: int) -> Node:
@@ -44,10 +50,11 @@ func get_player_entity(player_id: int) -> Node:
 
 
 ## Jogador saiu (desconectou). Sem identidade persistente ainda (Etapa I), um retorno é um
-## jogador novo: o inventário vai junto.
+## jogador novo: inventário e experiência vão junto.
 func remove_player(player_id: int) -> void:
 	_player_entities.erase(player_id)
 	_inventories.erase(player_id)
+	_skills.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

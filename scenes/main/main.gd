@@ -9,6 +9,7 @@ extends Node
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
+const SKILLS_DIR := "res://data/skills/"
 const SCREENSHOT_FRAMES := 45
 
 ## Defina antes de adicionar à árvore para ignorar a linha de comando (testes de rede).
@@ -17,6 +18,7 @@ var configure_network_from_command_line := true
 var session := GameSession.new()
 var region: Region
 var items := ItemDatabase.load_all()
+var skills := DataCatalog.new(SKILLS_DIR)
 
 var _input_detached := false
 
@@ -29,19 +31,23 @@ var _input_detached := false
 @onready var _hud: Hud = $UI/Hud
 @onready var _net_status: NetStatus = $UI/NetStatus
 @onready var _debug_overlay: DebugOverlay = $UI/DebugOverlay
+@onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 
 
 func _ready() -> void:
-	region = START_REGION.instantiate()
-	_world.add_child(region)
-	_camera.set_bounds(region.camera_bounds)
-
+	# A rede começa ANTES da região: os objetos da região (pontos de coleta) decidem no
+	# próprio `_ready` se pedem o estado ao host.
 	network.session = session
 	network.items = items
+	network.skills = skills
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	network.start()
 	_net_status.network = network
+
+	region = START_REGION.instantiate()
+	_world.add_child(region)
+	_camera.set_bounds(region.camera_bounds)
 
 	_spawner.setup(session, region, local_player_id(), _damage_numbers, items, network)
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
@@ -66,7 +72,10 @@ func _on_local_player_spawned(character: Character) -> void:
 	if _local_input.target == null and not _input_detached:
 		_local_input.target = character
 	_camera.follow(character)
-	_hud.setup(character, session.get_inventory(local_player_id()), items)
+	var inventory := session.get_inventory(local_player_id())
+	var progress := session.get_skills(local_player_id())
+	_hud.setup(character, inventory, items, progress, skills)
+	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem

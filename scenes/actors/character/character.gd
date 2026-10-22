@@ -3,7 +3,7 @@ extends CharacterBody2D
 ## Corpo simulado de QUALQUER ator — jogador ou criatura. A origem fica nos PÉS (Y-sort).
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
-## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, NetSync ("Net").
+## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, Gatherer, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
@@ -28,6 +28,7 @@ var facing := Vector2.DOWN
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
 var health: Health
 var attacker: MeleeAttacker
+var gatherer: Gatherer
 var net: NetSync
 
 var _footprint: Footprint
@@ -40,6 +41,7 @@ var _stun_left := 0.0
 func _enter_tree() -> void:
 	health = get_node_or_null("Health")
 	attacker = get_node_or_null("MeleeAttacker")
+	gatherer = get_node_or_null("Gatherer")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 
@@ -51,6 +53,8 @@ func _ready() -> void:
 			stats.invulnerability_time)
 		health.damaged.connect(_on_damaged)
 		health.died.connect(_on_died.unbind(1))
+	if attacker and gatherer:
+		attacker.attack_started.connect(gatherer.stop.unbind(2))  # atacar larga a coleta
 
 
 func is_alive() -> bool:
@@ -74,6 +78,24 @@ func request_attack(direction: Vector2) -> bool:
 		return false
 	facing = direction.normalized()
 	return true
+
+
+## Pede para coletar o ponto de coleta mais próximo ao alcance. Retorna se começou.
+func request_gather() -> bool:
+	if gatherer == null or not is_alive() or _stun_left > 0.0 \
+			or (attacker and attacker.is_attacking()):
+		return false
+	if not gatherer.try_gather(gatherer.find_node()):
+		return false
+	face_towards(gatherer.current_node().position)
+	return true
+
+
+## Vira para um ponto da tela (ex.: o que está coletando).
+func face_towards(screen_point: Vector2) -> void:
+	var direction := Iso.screen_to_ground(screen_point - position)
+	if not direction.is_zero_approx():
+		facing = direction.normalized()
 
 
 ## Ataque decidido em outro computador (ver NetSync): ignora atordoamento, que pode diferir
@@ -117,6 +139,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_damaged(info: DamageInfo) -> void:
+	if gatherer:
+		gatherer.stop()  # apanhar interrompe a coleta
 	_stun_left = stats.hit_stun
 	ground_velocity = info.direction * info.knockback * (1.0 - stats.knockback_resistance)
 	if attacker:
@@ -128,4 +152,6 @@ func _on_died() -> void:
 	collision_layer = 0
 	if attacker:
 		attacker.stop()  # sem bote "fantasma" depois da morte
+	if gatherer:
+		gatherer.stop()
 	died.emit(self)
