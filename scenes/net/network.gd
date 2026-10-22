@@ -50,7 +50,7 @@ func start() -> Error:
 	if role == Role.OFFLINE:
 		return OK
 	if port < 1024 or port > 65535:
-		return _fail(ERR_INVALID_PARAMETER, "Porta inválida: %d" % port)
+		return _fail(ERR_INVALID_PARAMETER, Texts.format(&"NET_BAD_PORT", [port]))
 	var api := multiplayer as SceneMultiplayer
 	api.server_relay = false  # clientes não falam entre si: o host valida e repassa
 	api.allow_object_decoding = false
@@ -65,22 +65,23 @@ func start() -> Error:
 	var error: Error
 	if role == Role.CLIENT:
 		if not address.is_valid_ip_address():
-			return _fail(ERR_INVALID_PARAMETER, "Endereço inválido: %s" % address)
+			return _fail(ERR_INVALID_PARAMETER, Texts.format(&"NET_BAD_ADDRESS", [address]))
 		error = peer.create_client(address, port)
-		_status = "Conectando a %s:%d..." % [address, port]
+		_status = Texts.format(&"NET_CONNECTING", [address, port])
 	else:
 		peer.set_bind_ip(LOOPBACK if role == Role.HOST else "*")
 		error = peer.create_server(port, NetRules.MAX_CLIENTS)
-		_status = "Host (%s) na porta %d" % ["só este PC" if role == Role.HOST else "rede local", port]
+		var hosting := &"NET_HOSTING_LOCAL" if role == Role.HOST else &"NET_HOSTING_LAN"
+		_status = Texts.format(hosting, [port])
 	if error != OK:
-		return _fail(error, "Não foi possível abrir a rede (porta %d em uso?)" % port)
+		return _fail(error, Texts.format(&"NET_OPEN_FAILED", [port]))
 	multiplayer.multiplayer_peer = peer
 	_local_id = multiplayer.get_unique_id()
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.connected_to_server.connect(func() -> void: _status = "Conectado ao host")
-	multiplayer.connection_failed.connect(func() -> void: _status = "Não foi possível conectar")
-	multiplayer.server_disconnected.connect(func() -> void: _status = "Conexão com o host perdida")
+	multiplayer.connected_to_server.connect(_set_status.bind(&"NET_CONNECTED"))
+	multiplayer.connection_failed.connect(_set_status.bind(&"NET_CONNECT_FAILED"))
+	multiplayer.server_disconnected.connect(_set_status.bind(&"NET_HOST_LOST"))
 	return OK
 
 
@@ -99,11 +100,12 @@ func status_text() -> String:
 	if not is_online() or enet.get_connection_status() != MultiplayerPeer.CONNECTION_CONNECTED:
 		return _status
 	if multiplayer.is_server():
-		return "%s · %d jogador(es)" % [_status, multiplayer.get_peers().size() + 1]
+		return Texts.format(&"NET_PLAYERS", [_status, multiplayer.get_peers().size() + 1])
 	var host := enet.get_peer(1)
 	if host == null:
 		return _status
-	return "%s · ping %d ms" % [_status, host.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)]
+	var ping := host.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
+	return Texts.format(&"NET_PING", [_status, ping])
 
 
 ## Host: envia ao dono cada mudança no inventário e na experiência de coleta dele (ambos
@@ -163,6 +165,10 @@ func _on_peer_disconnected(peer_id: int) -> void:
 	if multiplayer.is_server():
 		print("[net] jogador %d saiu" % peer_id)
 		player_left.emit(peer_id)
+
+
+func _set_status(key: StringName) -> void:
+	_status = Texts.get_text(key)
 
 
 func _fail(error: Error, message: String) -> Error:

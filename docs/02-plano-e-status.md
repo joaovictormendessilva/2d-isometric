@@ -186,11 +186,10 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   foi coincidência entre os dois jogos); de onde vêm as habilidades fica para decidir.
   Registrar ADR quando o sistema de habilidades começar.
 
-## Pendência técnica: textos centralizados para tradução (pedido do João, 2026-10-22)
+## Textos e idiomas
 
-- Hoje os textos estão em pt-BR direto no código e nos dados (`display_name`). Próxima task
-  depois do E1: chaves de texto + tabela de traduções da Godot (CSV), com pt-BR como base,
-  para o jogo poder ganhar outros idiomas sem caçar textos pelo código.
+- Feito (`chore/localization`, ADR-015): todos os textos do jogador vêm de
+  `data/i18n/texts.csv` (pt-BR e en). `-- --lang=en` testa em inglês.
 
 ## Ideias futuras (backlog criativo)
 

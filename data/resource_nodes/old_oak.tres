@@ -25,7 +25,6 @@ max_amount = 1
 [resource]
 script = ExtResource("1_node")
 id = &"old_oak"
-display_name = "Carvalho antigo"
 skill = ExtResource("2_skill")
 min_tool_tier = 2
 min_skill_level = 5

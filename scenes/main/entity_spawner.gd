@@ -23,7 +23,6 @@ const DROP_DISTANCE_MAX := 24.0
 const DROP_CLEARANCE := 4.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
-const IMMUNE_TEXT := "Imune"
 const IMMUNE_COLOR := Color("a0a0b4")
 ## Tom dos personagens dos OUTROS jogadores, para cada um se reconhecer no coop.
 const OTHER_PLAYER_TINT := Color(0.6, 1.0, 0.75)
@@ -208,7 +207,7 @@ func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 
 
 func _on_entity_blocked(entity: Character) -> void:
-	damage_numbers.show_text(entity.position, IMMUNE_TEXT, IMMUNE_COLOR)
+	damage_numbers.show_text(entity.position, Texts.get_text(&"COMBAT_IMMUNE"), IMMUNE_COLOR)
 
 
 # --- Ciclo de vida -----------------------------------------------------------------------------

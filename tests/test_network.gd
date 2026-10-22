@@ -181,7 +181,7 @@ func test_client_survives_host_leaving() -> void:
 	var client: Node = games[1]
 	(games[0] as Node).get_parent().free()  # host fecha o jogo
 	await physics_frames(60)
-	check((client.network as Network).status_text() == "Conexão com o host perdida",
+	check((client.network as Network).status_text() == Texts.get_text(&"NET_HOST_LOST"),
 		"cliente avisa que perdeu o host (\"%s\")" % (client.network as Network).status_text())
 
 

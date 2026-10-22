@@ -6,7 +6,6 @@ extends Resource
 ## `data/resource_nodes/`.
 
 @export var id: StringName
-@export var display_name: String
 @export var skill: GatheringSkillData
 @export_group("Requisitos")
 ## Nível mínimo de ferramenta (0 = as mãos servem).
@@ -22,3 +21,8 @@ extends Resource
 @export_group("Aparência")
 @export var texture: Texture2D
 @export var depleted_texture: Texture2D
+
+
+## Nome no idioma atual (chave `NODE_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("NODE", id)

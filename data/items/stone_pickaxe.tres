@@ -7,7 +7,6 @@
 [resource]
 script = ExtResource("1_tool")
 id = &"stone_pickaxe"
-display_name = "Picareta de pedra"
 icon = ExtResource("2_icon")
 skill = ExtResource("3_skill")
 tier = 1

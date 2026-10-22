@@ -3,5 +3,9 @@ extends Resource
 ## Definição de um item (um arquivo por item em `data/items/`).
 
 @export var id: StringName
-@export var display_name: String
 @export var icon: Texture2D
+
+
+## Nome no idioma atual (chave `ITEM_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("ITEM", id)
