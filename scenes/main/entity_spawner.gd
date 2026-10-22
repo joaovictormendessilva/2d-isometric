@@ -116,6 +116,9 @@ func _instantiate_player(data: Dictionary) -> Character:
 	character.position = data["position"]
 	_register(character, data["entity_id"])
 	session.add_player(character.player_id, character.entity_id)
+	var gatherer: Gatherer = character.get_node("Gatherer")
+	gatherer.session = session
+	gatherer.items = items
 	if character.player_id == local_player_id:
 		character.add_to_group(OccluderFade.VIEWER_GROUP)
 		character.ready.connect(local_player_spawned.emit.bind(character), CONNECT_ONE_SHOT)
@@ -124,7 +127,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 		character.ready.connect(visual.set_tint.bind(OTHER_PLAYER_TINT), CONNECT_ONE_SHOT)
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
-		network.track_inventory(character.player_id, session.get_inventory(character.player_id))
+		network.track_player(character.player_id)
 	return character
 
 

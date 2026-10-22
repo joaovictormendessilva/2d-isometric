@@ -1,0 +1,6 @@
+m5x7 — fonte pixel art de Daniel Linssen (managore)
+Origem: https://managore.itch.io/m5x7 (baixado em 2026-10-22, SHA-256
+47C3F0B01F0FD417B3A44C2888A71D3072F750E76F3E6E946A6A9B188D988CBF)
+Licença: Creative Commons Zero v1.0 Universal (CC0 1.0) — domínio público, uso comercial livre.
+O autor diz: "free to use but attribution appreciated" — damos crédito nos créditos do jogo.
+Tamanho de uso: múltiplos de 16 (16, 32, 48...).

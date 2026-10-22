@@ -20,6 +20,8 @@ const TELEPORT_DISTANCE := 48.0
 const BUFFER_SIZE := 8
 ## Folga de chegada para ataques pela rede (ver `MeleeAttacker.try_attack`).
 const ATTACK_TOLERANCE := 0.05
+## Folga de alcance e de movimento para coletas pedidas pela rede (o host vê o dono atrasado).
+const GATHER_SLACK := 8.0
 ## Validação de movimento no host: velocidade máxima aceita, em múltiplos da velocidade do
 ## personagem (cobre recuo e bote), e quanto deslocamento pode acumular (pacotes atrasados).
 const MAX_SPEED_FACTOR := 3.0
@@ -35,9 +37,11 @@ var _last_sender_time := -INF
 var _accepted_position := Vector2.ZERO
 var _move_budget := 0.0
 var _last_accept_time := -INF
-## Host: clientes que já têm esta entidade (pediram o estado completo). Mensagens sobre ela
-## só vão para eles: uma entidade recém-criada ainda não existe no cliente.
-var _ready_peers: Dictionary[int, bool] = {}
+var _broadcast: HostBroadcast
+# Coleta pela rede: cada coleta do dono tem um número, para uma ordem de parar atrasada não
+# derrubar uma coleta mais nova.
+var _gather_seq := 0
+var _stopping_on_request := false
 ## Calculados ao nascer: a conexão e o dono não mudam durante a vida da entidade, e estas
 ## perguntas são feitas todo quadro por todas as criaturas.
 var _online := false
@@ -59,10 +63,11 @@ func _ready() -> void:
 		_body.health.changed.connect(_on_health_changed)
 		_body.health.blocked.connect(_on_blocked.unbind(1))
 		_body.health.immunity_changed.connect(_on_immunity_changed)
-	if is_online() and multiplayer.is_server():
-		multiplayer.peer_disconnected.connect(func(peer: int) -> void: _ready_peers.erase(peer))
-	elif is_online():
-		_request_full_state.rpc_id(1)
+	if _body.gatherer:
+		_body.gatherer.started.connect(_on_gather_started.unbind(1))
+		_body.gatherer.stopped.connect(_on_gather_stopped)
+	_broadcast = HostBroadcast.new(self)
+	HostBroadcast.request_from_host(self, &"_request_full_state")
 
 
 func is_online() -> bool:
@@ -182,11 +187,7 @@ func _teleport(position: Vector2) -> void:
 ## Host → clientes que já têm esta entidade. `include_owner`: o dono também precisa (ex.:
 ## dano no próprio personagem); estado e ataques ele mesmo gerou.
 func _send_to_clients(method: StringName, args: Array, include_owner: bool) -> void:
-	if not is_online() or not multiplayer.is_server():
-		return
-	for peer in _ready_peers:
-		if include_owner or peer != owner_peer():
-			callv(&"rpc_id", [peer, method] + args)
+	_broadcast.send(method, args, 0 if include_owner else owner_peer())
 
 
 # --- Ataques -------------------------------------------------------------------------------
@@ -215,6 +216,64 @@ func _attack_played(direction: Vector2) -> void:
 	direction = NetRules.clean_direction(direction)
 	if direction != Vector2.ZERO:
 		_body.play_remote_attack(direction, ATTACK_TOLERANCE)
+
+
+# --- Coleta ------------------------------------------------------------------------------
+
+func _on_gather_started(node: ResourceNode) -> void:
+	if is_online() and is_simulating() and not multiplayer.is_server():
+		_gather_seq += 1
+		_request_gather.rpc_id(1, String(node.name), _gather_seq)
+
+
+func _on_gather_stopped() -> void:
+	if not is_online():
+		return
+	if is_simulating() and not multiplayer.is_server():
+		_stop_gather.rpc_id(1, _gather_seq)
+	elif multiplayer.is_server() and owner_peer() != 1 and not _stopping_on_request:
+		_gather_stopped.rpc_id(owner_peer(), _gather_seq)
+
+
+## Dono → host. O host confere tudo de novo (alcance, ferramenta, nível) antes de aceitar.
+@rpc("any_peer", "call_remote", "reliable")
+func _request_gather(node_name: String, seq: int) -> void:
+	if not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+		return
+	_stop_silently()  # a coleta anterior acabou a pedido do dono: não avisar de volta
+	_gather_seq = seq
+	var node := _sibling_resource_node(node_name)
+	if node == null or not _body.is_alive() or not _body.gatherer.try_gather(node, GATHER_SLACK):
+		_gather_stopped.rpc_id(owner_peer(), seq)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _stop_gather(seq: int) -> void:
+	if multiplayer.is_server() and multiplayer.get_remote_sender_id() == owner_peer() \
+			and seq == _gather_seq:
+		_stop_silently()
+
+
+func _stop_silently() -> void:
+	_stopping_on_request = true
+	_body.gatherer.stop()
+	_stopping_on_request = false
+
+
+## Host → dono: a coleta acabou no host (recusada, esgotou, apanhou...).
+@rpc("authority", "call_remote", "reliable")
+func _gather_stopped(seq: int) -> void:
+	if seq == _gather_seq:
+		_body.gatherer.stop()
+
+
+## Ponto de coleta irmão do corpo, pelo nome recebido da rede. Só nomes simples (sem "/",
+## "..", ":" etc.): o cliente não pode apontar para outro lugar da árvore.
+func _sibling_resource_node(node_name: String) -> ResourceNode:
+	if node_name.is_empty() or node_name.validate_node_name() != node_name \
+			or node_name.contains(".."):
+		return null
+	return _body.get_parent().get_node_or_null(NodePath(node_name)) as ResourceNode
 
 
 # --- Vida, decidida pelo host ----------------------------------------------------------------
@@ -283,9 +342,8 @@ func _correct(position: Vector2) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _request_full_state() -> void:
 	var peer := multiplayer.get_remote_sender_id()
-	if not multiplayer.is_server() or _ready_peers.has(peer):
+	if not multiplayer.is_server() or not _broadcast.add_peer(peer):
 		return
-	_ready_peers[peer] = true
 	_full_state.rpc_id(peer, _body.position, _body.health.current, _body.health.is_immune())
 
 

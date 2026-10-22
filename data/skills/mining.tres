@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="GatheringSkillData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/gathering/gathering_skill_data.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"mining"
+display_name = "Minerador"

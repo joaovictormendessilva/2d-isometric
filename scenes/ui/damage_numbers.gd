@@ -7,7 +7,8 @@ const POOL_SIZE := 32
 const RISE := 14.0
 const LIFETIME := 0.6
 const HEIGHT_ABOVE_FEET := 30.0
-const LABEL_SIZE := Vector2(40, 12)
+## Largo o bastante para avisos curtos ("Precisa de ferramenta nível 2"), centralizados.
+const LABEL_SIZE := Vector2(160, 12)
 
 var _pool: Array[Label] = []
 var _tweens: Array[Tween] = []
@@ -16,8 +17,8 @@ var _next := 0
 
 func _ready() -> void:
 	var settings := LabelSettings.new()
-	settings.font_size = 8
-	settings.outline_size = 3
+	settings.font_size = 16
+	settings.outline_size = 4
 	settings.outline_color = Color.BLACK
 	for i in POOL_SIZE:
 		var label := Label.new()
@@ -34,7 +35,9 @@ func show_number(feet_position: Vector2, amount: int, color: Color) -> void:
 	show_text(feet_position, str(amount), color)
 
 
-func show_text(feet_position: Vector2, text: String, color: Color) -> void:
+## `lifetime`: avisos para ler ficam mais que números de dano.
+func show_text(feet_position: Vector2, text: String, color: Color,
+		lifetime: float = LIFETIME) -> void:
 	var i := _next
 	_next = (_next + 1) % POOL_SIZE
 	var label := _pool[i]
@@ -45,8 +48,8 @@ func show_text(feet_position: Vector2, text: String, color: Color) -> void:
 	label.position = feet_position - Vector2(LABEL_SIZE.x / 2.0, HEIGHT_ABOVE_FEET)
 	label.visible = true
 	var tween := create_tween().set_parallel()
-	tween.tween_property(label, "position:y", label.position.y - RISE, LIFETIME) \
+	tween.tween_property(label, "position:y", label.position.y - RISE, lifetime) \
 		.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
-	tween.tween_property(label, "modulate:a", 0.0, LIFETIME).set_ease(Tween.EASE_IN)
+	tween.tween_property(label, "modulate:a", 0.0, lifetime).set_ease(Tween.EASE_IN)
 	tween.chain().tween_callback(label.hide)
 	_tweens[i] = tween

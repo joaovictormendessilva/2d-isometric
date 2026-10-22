@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="ResourceNodeData" format=3]
+
+[ext_resource type="Script" path="res://core/gathering/resource_node_data.gd" id="1_node"]
+[ext_resource type="Resource" path="res://data/skills/woodcutting.tres" id="2_skill"]
+[ext_resource type="Script" path="res://core/items/drop_entry.gd" id="3_drop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/lumber_tree.png" id="4_texture"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/stump.png" id="5_depleted"]
+[ext_resource type="Resource" path="res://data/items/wood.tres" id="6_wood"]
+
+[sub_resource type="Resource" id="Yield_1"]
+script = ExtResource("3_drop")
+item = ExtResource("6_wood")
+chance = 1.0
+min_amount = 1
+max_amount = 1
+
+[resource]
+script = ExtResource("1_node")
+id = &"lumber_tree"
+display_name = "Árvore de lenha"
+skill = ExtResource("2_skill")
+min_tool_tier = 0
+min_skill_level = 1
+gather_time = 1.2
+charges = 4
+respawn_time = 45.0
+xp_per_gather = 5
+yields = Array[ExtResource("3_drop")]([SubResource("Yield_1")])
+texture = ExtResource("4_texture")
+depleted_texture = ExtResource("5_depleted")

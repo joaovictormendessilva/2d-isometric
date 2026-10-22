@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/actor.tscn" id="1_actor"]
 [ext_resource type="Resource" path="res://data/actors/player.tres" id="2_stats"]
@@ -6,6 +6,8 @@
 [ext_resource type="Script" path="res://scenes/actors/character/character_visual.gd" id="4_visual"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/character.png" id="5_body"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/slash.png" id="6_slash"]
+[ext_resource type="Script" path="res://scenes/components/gatherer.gd" id="7_gatherer"]
+[ext_resource type="Script" path="res://scenes/ui/gather_bar.gd" id="8_bar"]
 
 [node name="Player" instance=ExtResource("1_actor")]
 stats = ExtResource("2_stats")
@@ -31,3 +33,11 @@ scale = Vector2(1, 0.5)
 
 [node name="Slash" type="Sprite2D" parent="Visual/SlashPivot"]
 texture = ExtResource("6_slash")
+
+[node name="Gatherer" type="Node" parent="."]
+script = ExtResource("7_gatherer")
+
+[node name="GatherBar" type="Node2D" parent="." node_paths=PackedStringArray("gatherer")]
+z_index = 20
+script = ExtResource("8_bar")
+gatherer = NodePath("../Gatherer")

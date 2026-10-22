@@ -20,6 +20,10 @@ const STONE := [Color("7f7f93"), Color("5d5d70"), Color("a8a8b8")]
 const TRUNK := [Color("6b4a2f"), Color("4e3522")]
 const LEAVES_OUTLINE := Color("1c3320")
 const STONE_OUTLINE := Color("2a2a36")
+const LUMBER_LEAVES := [Color("7a9a3a"), Color("5b7a2c"), Color("a8c45a")]
+const OAK_LEAVES := [Color("2f6a3a"), Color("234f2c"), Color("4f8a4a")]
+const OAK_TRUNK := [Color("4e3522"), Color("3a271a")]
+const COPPER := [Color("d9823b"), Color("a85f28"), Color("f2b06a")]
 const SLIME := [Color("8a5cc7"), Color("6a42a3"), Color("b48ae8")]
 const SLIME_OUTLINE := Color("2a1840")
 const SLIME_EYES := Color("1b1a26")
@@ -89,11 +93,87 @@ const LEGS := [
 ]
 
 
+# Ícones de itens 8x8, desenhados por letra. Variações trocam letras (`ICONS[nome][1]`).
+const ICON_PALETTE := {
+	"o": Color("1b1a26"),  # contorno
+	"w": Color("a3784a"),  # madeira
+	"W": Color("6b4a2f"),  # madeira (sombra)
+	"K": Color("6b4a2f"),  # carvalho
+	"k": Color("3a271a"),  # carvalho (sombra)
+	"r": Color("d8b07a"),  # anéis da madeira
+	"l": Color("a8a8b8"),  # pedra (luz)
+	"s": Color("7f7f93"),  # pedra
+	"S": Color("5d5d70"),  # pedra (sombra)
+	"C": Color("f2b06a"),  # cobre (luz)
+	"c": Color("d9823b"),  # cobre
+	"d": Color("a85f28"),  # cobre (sombra)
+	"h": Color("8a5a3b"),  # cabo
+}
+const LOG := [
+	"........",
+	".oooooo.",
+	"owwwwwro",
+	"oWwwwrro",
+	"oWWWWWro",
+	".oooooo.",
+	"........",
+	"........",
+]
+const PEBBLE := [
+	"........",
+	"...ooo..",
+	"..olsoo.",
+	".olsssSo",
+	".osssSSo",
+	"..oSSSo.",
+	"...ooo..",
+	"........",
+]
+const AXE := [
+	".....oo.",
+	"....olso",
+	"...ohsSo",
+	"..oho.o.",
+	".oho....",
+	"oho.....",
+	"oo......",
+	"........",
+]
+const PICKAXE := [
+	".oooooo.",
+	"olsssSSo",
+	".ooohoo.",
+	"...oho..",
+	"...oho..",
+	"...oho..",
+	"...oho..",
+	"....o...",
+]
+const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
+const ICONS := {
+	"wood": [LOG, {}],
+	"oak_wood": [LOG, {"w": "K", "W": "k"}],
+	"stone": [PEBBLE, {}],
+	"copper_ore": [PEBBLE, {"l": "C", "S": "d"}],
+	"stone_axe": [AXE, {}],
+	"stone_pickaxe": [PICKAXE, {}],
+	"copper_axe": [AXE, COPPER_SWAP],
+}
+
+
 func _initialize() -> void:
 	_save(_terrain_atlas(), TerrainAtlas.TEXTURE_PATH)
 	_save(_character_sheet(), OUT_DIR + "character.png")
-	_save(_tree(), OUT_DIR + "tree.png")
+	_save(_tree(LEAVES, TRUNK), OUT_DIR + "tree.png")
 	_save(_rock(), OUT_DIR + "rock.png")
+	_save(_marked_tree(LUMBER_LEAVES, TRUNK, 2), OUT_DIR + "lumber_tree.png")
+	_save(_marked_tree(OAK_LEAVES, OAK_TRUNK, 3), OUT_DIR + "old_oak.png")
+	_save(_stump(TRUNK), OUT_DIR + "stump.png")
+	_save(_stump(OAK_TRUNK), OUT_DIR + "oak_stump.png")
+	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
+	_save(_rubble(), OUT_DIR + "rubble.png")
+	for icon: String in ICONS:
+		_save(_icon(ICONS[icon][0], ICONS[icon][1]), OUT_DIR + "icon_%s.png" % icon)
 	_save(_shadow(), OUT_DIR + "shadow.png")
 	_save(_slime(), OUT_DIR + "slime.png")
 	_save(_gel(), OUT_DIR + "gel.png")
@@ -215,33 +295,37 @@ func _character_sheet() -> Image:
 	return img
 
 
-## Árvore 32x48: tronco + copa feita de 4 círculos, sombreada e contornada.
-func _tree() -> Image:
+## Árvore 32x48: tronco + copa feita de 4 círculos, sombreada e contornada. `trunk_width`
+## engrossa o tronco (árvores antigas).
+func _tree(leaves: Array, trunk: Array, trunk_width: int = 2) -> Image:
 	var img := Image.create(32, 48, false, Image.FORMAT_RGBA8)
 	var blobs := [[Vector2(16, 15), 11.0], [Vector2(9, 21), 8.0], [Vector2(23, 21), 8.0],
 		[Vector2(16, 25), 9.0]]
 	for y in img.get_height():
 		for x in img.get_width():
-			var in_trunk := (x >= 14 and x <= 17 and y >= 28 and y <= 45) \
-				or (y == 45 and x >= 13 and x <= 18)
-			if in_trunk:
-				img.set_pixel(x, y, TRUNK[1] if x >= 17 else TRUNK[0])
+			if _in_trunk(x, y, trunk_width, 28):
+				img.set_pixel(x, y, trunk[1] if x >= 15 + trunk_width else trunk[0])
 			for blob: Array in blobs:
 				if in_ellipse(x, y, blob[0], Vector2.ONE * blob[1]):
 					var v := (x - 16.0) * 0.5 + (y - 18.0) * 0.8
-					img.set_pixel(x, y, shade(LEAVES, v, 5.0, x, y))
+					img.set_pixel(x, y, shade(leaves, v, 5.0, x, y))
 					break
 	outline(img, LEAVES_OUTLINE)
 	return img
 
 
-func _rock() -> Image:
+## Pedra 20x14. Com `ore`, ganha pontos de minério (veio).
+func _rock(ore: Array = []) -> Image:
 	var img := Image.create(20, 14, false, Image.FORMAT_RGBA8)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 77
 	for y in img.get_height():
 		for x in img.get_width():
 			if in_ellipse(x, y, Vector2(10, 7.5), Vector2(8.5, 5.5)):
 				var v := (x - 10.0) * 0.4 + (y - 7.0) * 0.9
 				img.set_pixel(x, y, shade(STONE, v, 2.5, x, y))
+				if not ore.is_empty() and rng.randf() < 0.16:
+					img.set_pixel(x, y, ore[2] if v < 0.0 else ore[0])
 	outline(img, STONE_OUTLINE)
 	return img
 
@@ -299,4 +383,60 @@ func _slash() -> Image:
 			if p.length() < 24.0 - 7.0 * along:
 				continue
 			img.set_pixel(x, y, Color(SLASH, 0.35 + 0.65 * along))
+	return img
+
+
+## Tronco centrado em x = 16 com meia-largura `half_width`, de `top` até a base (y 45), que
+## alarga um pixel de cada lado.
+static func _in_trunk(x: int, y: int, half_width: int, top: int) -> bool:
+	return (x >= 16 - half_width and x <= 15 + half_width and y >= top and y <= 45) \
+		or (y == 45 and x >= 15 - half_width and x <= 16 + half_width)
+
+
+## Árvore coletável: a marca de todo ponto de madeira é o corte de machado no tronco e a lenha
+## empilhada ao pé (o resto do cenário não tem), na cor da própria madeira.
+func _marked_tree(leaves: Array, trunk: Array, trunk_width: int) -> Image:
+	var img := _tree(leaves, trunk, trunk_width)
+	for y in range(37, 40):
+		img.set_pixel(16 - trunk_width, y, ICON_PALETTE["r"])
+	for log_row: Array in [[43, 20, 27], [41, 21, 26]]:
+		for x in range(log_row[1] + trunk_width - 2, log_row[2] + trunk_width - 1):
+			var end: bool = x == log_row[2] + trunk_width - 2
+			img.set_pixel(x, log_row[0], ICON_PALETTE["r"] if end else trunk[0])
+			img.set_pixel(x, log_row[0] + 1, trunk[1])
+	return img
+
+
+## Toco (ponto de madeira esgotado), no mesmo quadro 32x48 da árvore para alinhar.
+func _stump(trunk: Array) -> Image:
+	var img := Image.create(32, 48, false, Image.FORMAT_RGBA8)
+	for y in img.get_height():
+		for x in img.get_width():
+			if _in_trunk(x, y, 3, 39):
+				img.set_pixel(x, y, ICON_PALETTE["r"] if y == 39 else (trunk[1] if x >= 18 else trunk[0]))
+	outline(img, LEAVES_OUTLINE)
+	return img
+
+
+## Cascalho (veio esgotado), no mesmo quadro 20x14 da pedra.
+func _rubble() -> Image:
+	var img := Image.create(20, 14, false, Image.FORMAT_RGBA8)
+	for stone: Array in [[Vector2(6, 10), Vector2(3.5, 2.5)], [Vector2(13, 10.5), Vector2(4, 2.5)],
+			[Vector2(10, 7.5), Vector2(2.5, 2)]]:
+		for y in img.get_height():
+			for x in img.get_width():
+				if in_ellipse(x, y, stone[0], stone[1]):
+					img.set_pixel(x, y, shade(STONE, (y - stone[0].y) * 0.9, 0.8, x, y))
+	outline(img, STONE_OUTLINE)
+	return img
+
+
+func _icon(rows: Array, swap: Dictionary) -> Image:
+	var img := Image.create(rows[0].length(), rows.size(), false, Image.FORMAT_RGBA8)
+	for y in rows.size():
+		var row: String = rows[y]
+		for x in row.length():
+			var key: String = swap.get(row[x], row[x])
+			if ICON_PALETTE.has(key):
+				img.set_pixel(x, y, ICON_PALETTE[key])
 	return img

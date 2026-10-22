@@ -110,3 +110,26 @@ func first_monster(game: Node) -> Monster:
 
 func pickups(game: Node) -> Array:
 	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Pickup)
+
+
+## Desliga a IA de todas as criaturas (testes que não querem ser interrompidos por ataques).
+func calm_monsters(game: Node) -> void:
+	for node in (game.region as Region).entities.get_children():
+		if node is Monster:
+			node.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+
+
+## Primeiro ponto de coleta do tipo dado (`ResourceNodeData.id`) na região.
+func resource_node(game: Node, data_id: StringName) -> ResourceNode:
+	for node in (game.region as Region).entities.get_children():
+		if node is ResourceNode and node.data.id == data_id:
+			return node
+	return null
+
+
+## Põe o personagem encostado no ponto de coleta (à esquerda dele, no plano do chão).
+func stand_next_to(character: Character, node: ResourceNode) -> void:
+	var footprint: Footprint = node.get_node("Footprint")
+	var gap := footprint.radius + character.footprint_radius() + 2.0
+	character.position = node.position - Iso.ground_to_screen(Vector2(gap, 0))
+	character.reset_physics_interpolation()

@@ -185,6 +185,61 @@ func test_client_survives_host_leaving() -> void:
 		"cliente avisa que perdeu o host (\"%s\")" % (client.network as Network).status_text())
 
 
+## O cliente coleta na hora; o host confere, entrega itens e experiência, e o ponto esgota
+## para todos.
+func test_client_gathering_is_decided_by_host() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client: Node = games[1]
+	calm_monsters(host)
+	var client_id: int = client.local_player_id()
+	var client_player := _local_player(client)
+	var node := resource_node(client, &"lumber_tree")
+	var spot := client_player.position
+	stand_next_to(client_player, node)  # só para calcular o destino...
+	var target := client_player.position
+	client_player.position = spot
+	await _glide(client_player, target)  # ...e ir até lá a pé (o host recusa saltos)
+	await physics_frames(20)
+	check(client_player.request_gather(), "cliente começou a coletar")
+	var host_node := resource_node(host, &"lumber_tree")
+	var done := await wait_until(func() -> bool: return node.is_depleted(), 60 * 15)
+	check(done and host_node.is_depleted(), "ponto esgotou no host e no cliente")
+	var host_count := (host.session as GameSession).get_inventory(client_id).count(&"wood")
+	check(host_count == node.data.charges, "host deu %d madeiras ao cliente" % host_count)
+	await physics_frames(10)
+	check((client.session as GameSession).get_inventory(client_id).count(&"wood") == host_count,
+		"cliente vê as mesmas madeiras")
+	check((client.session as GameSession).get_skills(client_id).xp(&"woodcutting")
+		== node.data.charges * node.data.xp_per_gather, "cliente vê a experiência")
+
+
+## Quem entra com a partida em andamento vê os pontos que já foram esgotados.
+func test_late_joiner_sees_depleted_nodes() -> void:
+	var host := start_network_game("Host", Network.Role.HOST, PORT)
+	var host_node := resource_node(host, &"copper_vein")
+	for i in host_node.data.charges:
+		host_node.take_charge()
+	var client := start_network_game("Client", Network.Role.CLIENT, PORT)
+	var node := resource_node(client, &"copper_vein")
+	var synced := await wait_until(func() -> bool: return node.is_depleted())
+	check(synced, "cliente recebeu o ponto esgotado")
+
+
+## Pedidos adulterados: ponto longe, nome que tenta sair da pasta, ponto que não existe.
+func test_host_rejects_bad_gather_requests() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client_player := _local_player(games[1])
+	var on_host := _replica(host, client_player)
+	var far_node := resource_node(host, &"copper_vein")
+	for name: String in [String(far_node.name), "../../Network", "NaoExiste", ""]:
+		client_player.net._request_gather.rpc_id(1, name, 99)
+	await physics_frames(20)
+	check(not on_host.gatherer.is_gathering(), "host não coletou nada para o cliente")
+	check(far_node.charges_left == far_node.data.charges, "o ponto longe ficou intacto")
+
+
 func test_wrong_protocol_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	var viewport := SubViewport.new()
@@ -206,6 +261,17 @@ func test_wrong_protocol_is_refused() -> void:
 
 
 # --- Auxiliares ------------------------------------------------------------------------------
+
+## Leva o personagem do cliente até `target` a uma velocidade aceita pelo host (o host
+## recusa teletransporte). Ignora colisões: o teste só precisa chegar.
+func _glide(character: Character, target: Vector2) -> void:
+	const STEP := 1.5  # px por quadro = 90 px/s
+	while character.position.distance_to(target) > STEP:
+		character.position = character.position.move_toward(target, STEP)
+		await tree.physics_frame
+	character.position = target
+
+
 
 func _start_pair() -> Array[Node]:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)

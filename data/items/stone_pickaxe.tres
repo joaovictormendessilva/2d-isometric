@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ToolData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://core/items/tool_data.gd" id="1_tool"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_stone_pickaxe.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/skills/mining.tres" id="3_skill"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"stone_pickaxe"
+display_name = "Picareta de pedra"
+icon = ExtResource("2_icon")
+skill = ExtResource("3_skill")
+tier = 1
+speed = 1.0

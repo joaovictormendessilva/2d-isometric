@@ -1,23 +1,23 @@
 class_name ItemDatabase
-extends RefCounted
-## Catálogo de itens: carrega todos os `ItemData` de `data/items/` e busca por id.
+extends DataCatalog
+## Catálogo de itens: todos os `ItemData` de `data/items/` (inclui ferramentas).
 
 const ITEMS_DIR := "res://data/items/"
 
-var _items: Dictionary[StringName, ItemData] = {}
-
 
 static func load_all(directory: String = ITEMS_DIR) -> ItemDatabase:
-	var db := ItemDatabase.new()
-	for file in DirAccess.get_files_at(directory):
-		# Em jogos exportados os recursos aparecem como "*.tres.remap".
-		var path := directory + file.trim_suffix(".remap")
-		if path.ends_with(".tres"):
-			var item := load(path) as ItemData
-			if item:
-				db._items[item.id] = item
-	return db
+	return ItemDatabase.new(directory)
 
 
 func get_item(id: StringName) -> ItemData:
-	return _items.get(id)
+	return get_entry(id) as ItemData
+
+
+## Ferramentas entre os itens que o inventário tem.
+func tools_in(inventory: Inventory) -> Array[ToolData]:
+	var tools: Array[ToolData] = []
+	for id in inventory.get_counts():
+		var tool := get_entry(id) as ToolData
+		if tool and inventory.count(id) > 0:
+			tools.append(tool)
+	return tools

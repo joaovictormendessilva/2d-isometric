@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
@@ -9,6 +9,8 @@
 [ext_resource type="Script" path="res://scenes/ui/hud.gd" id="7_hud"]
 [ext_resource type="Script" path="res://scenes/net/network.gd" id="8_network"]
 [ext_resource type="Script" path="res://scenes/ui/net_status.gd" id="9_net_status"]
+[ext_resource type="Script" path="res://scenes/ui/player_feedback.gd" id="10_feedback"]
+[ext_resource type="Script" path="res://scenes/ui/interaction_prompt.gd" id="11_prompt"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -22,6 +24,10 @@ script = ExtResource("8_network")
 z_index = 50
 script = ExtResource("6_numbers")
 
+[node name="InteractionPrompt" type="Node2D" parent="World"]
+z_index = 50
+script = ExtResource("11_prompt")
+
 [node name="Camera" type="Camera2D" parent="."]
 process_callback = 0
 script = ExtResource("2_camera")
@@ -34,6 +40,9 @@ script = ExtResource("5_spawner")
 
 [node name="Replicator" type="MultiplayerSpawner" parent="EntitySpawner"]
 
+[node name="PlayerFeedback" type="Node" parent="."]
+script = ExtResource("10_feedback")
+
 [node name="UI" type="CanvasLayer" parent="."]
 
 [node name="DebugOverlay" type="Label" parent="UI"]
@@ -41,9 +50,6 @@ offset_left = 4.0
 offset_top = 2.0
 offset_right = 400.0
 offset_bottom = 60.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
 script = ExtResource("4_debug")
 
 [node name="NetStatus" type="Label" parent="UI"]
@@ -57,50 +63,43 @@ offset_right = -4.0
 offset_bottom = 14.0
 grow_horizontal = 0
 horizontal_alignment = 2
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
 script = ExtResource("9_net_status")
 
-[node name="Hud" type="Control" parent="UI"]
-layout_mode = 3
+[node name="Hud" type="VBoxContainer" parent="UI"]
 anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 6.0
-offset_top = -30.0
-offset_right = 206.0
+offset_top = -4.0
+offset_right = 306.0
 offset_bottom = -4.0
 grow_vertical = 0
 mouse_filter = 2
 script = ExtResource("7_hud")
 
-[node name="HealthBar" type="ColorRect" parent="UI/Hud"]
-layout_mode = 0
-offset_right = 80.0
-offset_bottom = 8.0
+[node name="HealthRow" type="HBoxContainer" parent="UI/Hud"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HealthBar" type="ColorRect" parent="UI/Hud/HealthRow"]
+custom_minimum_size = Vector2(80, 8)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
 color = Color(0.1, 0.07, 0.12, 0.85)
 
-[node name="Fill" type="ColorRect" parent="UI/Hud/HealthBar"]
+[node name="Fill" type="ColorRect" parent="UI/Hud/HealthRow/HealthBar"]
 layout_mode = 0
 offset_right = 80.0
 offset_bottom = 8.0
+mouse_filter = 2
 
-[node name="Value" type="Label" parent="UI/Hud/HealthBar"]
-layout_mode = 0
-offset_left = 84.0
-offset_top = -3.0
-offset_right = 160.0
-offset_bottom = 10.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
+[node name="Value" type="Label" parent="UI/Hud/HealthRow"]
+layout_mode = 2
 
 [node name="Inventory" type="Label" parent="UI/Hud"]
-layout_mode = 0
-offset_top = 11.0
-offset_right = 200.0
-offset_bottom = 24.0
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 8
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="Skills" type="Label" parent="UI/Hud"]
+layout_mode = 2

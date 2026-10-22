@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/gathering/resource_node.tscn" id="1_node"]
+[ext_resource type="Resource" path="res://data/resource_nodes/copper_vein.tres" id="2_data"]
+
+[node name="CopperVein" instance=ExtResource("1_node")]
+data = ExtResource("2_data")
+
+[node name="Sprite" parent="." index="0"]
+offset = Vector2(-10, -12)
+
+[node name="Footprint" parent="." index="1"]
+radius = 8.0
