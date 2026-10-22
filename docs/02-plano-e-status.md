@@ -11,7 +11,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
-| D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | 🟡 aguardando validação do João |
+| D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
@@ -127,7 +127,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Desempenho offline preservado (200 slimes: 3,2–3,3 ms); tráfego ~0,9 KB/s por entidade
 - [x] Validação de sensação (João, 2026-10-22): movimento do outro jogador suave, sem atraso
       perceptível; drops individuais em cada janela
-- [ ] Merge na `main` — só após o OK explícito do João
+- [x] Merge na `main` — autorizado pelo João
 
 ## Funcionalidades
 
