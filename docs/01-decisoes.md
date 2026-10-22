@@ -297,7 +297,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-016 — Inventário em espaços com pilhas
 
-- **Status**: Hipótese (Etapa E2, aguardando validação do João)
+- **Status**: Aceita (validada pelo João na Etapa E2, 2026-10-22)
 - **Decisões**:
   - **Espaços com pilhas** (escolha do João): cada espaço guarda um tipo de item até
     `ItemData.max_stack` (99; ferramentas 1).
@@ -327,3 +327,25 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     `PlayerStateSync` (separado da conexão em `Network`).
 - **Consequências**: crafting (E3) usa `Inventory.remove`/`can_add_all`; equipamentos (E4)
   e bolsas mudarão o tamanho por jogador.
+
+## ADR-017 — Fabricação em três níveis: mão, bancada e NPC
+
+- **Status**: Hipótese (Etapa E3, em andamento)
+- **Direção do João (2026-10-22)**: coisas simples são feitas **na mão**, outras só **numa
+  bancada**, e algumas só **com NPCs específicos**.
+- **Decisões**:
+  - **Receitas em dados** (`RecipeData`, um `.tres` por receita em `data/recipes/`):
+    ingredientes (id → quantidade), resultado e lugar (`HAND`, `WORKBENCH`, `NPC`).
+  - **Regras puras** em `CraftingRules`: confere lugar, ingredientes e espaço; a troca é
+    tudo-ou-nada. Os ingredientes liberam espaço antes de o resultado entrar
+    (`Inventory.can_exchange`), então dá para fabricar com o inventário cheio se uma pilha
+    acabar.
+  - **Rede**: o dono pede por id; o host confere tudo de novo (id desconhecido, lugar fora de
+    alcance ou falta de ingrediente = nada acontece) e só ele mexe no inventário (ADR-013).
+  - **Bancada**: estação no mundo; as receitas dela valem perto dela, e o host confere a
+    distância. **NPC**: receitas ficam indisponíveis até haver NPCs (Etapa F), que dirão
+    quais ensinam.
+  - Uma unidade por pedido, instantânea (tempo de fabricação e "fazer N" ficam para depois,
+    se o João quiser).
+- **Consequências**: nova receita = novo `.tres`; o teste confere que ingredientes e
+  resultado existem.

@@ -283,6 +283,34 @@ func test_client_inventory_actions_go_through_host() -> void:
 			"parado ao lado, o item jogado fora não volta sozinho")
 
 
+## O cliente pede para fabricar; o host confere lugar e ingredientes e só ele mexe no inventário.
+func test_client_crafting_is_decided_by_host() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client: Node = games[1]
+	var client_id: int = client.local_player_id()
+	var on_host := (host.session as GameSession).get_inventory(client_id)
+	var on_client := (client.session as GameSession).get_inventory(client_id)
+	on_host.add(&"wood", 10)
+	on_host.add(&"stone", 10)
+	on_host.add(&"copper_ore", 10)
+	await physics_frames(10)
+
+	var state: PlayerStateSync = client.player_state
+	state.request_craft(&"no_such_recipe")
+	state.request_craft(&"../../data/items/wood")
+	state.request_craft(&"copper_axe")  # precisa de bancada
+	await physics_frames(10)
+	check(on_host.count(&"wood") == 10 and on_host.count(&"copper_axe") == 0,
+		"pedidos inválidos ou sem bancada não mudam nada")
+
+	state.request_craft(&"stone_axe")
+	var crafted := await wait_until(func() -> bool: return on_client.count(&"stone_axe") == 1, 30)
+	check(crafted and on_host.count(&"stone_axe") == 1, "machado feito no host e visto pelo cliente")
+	check(on_client.count(&"wood") == on_host.count(&"wood") and on_host.count(&"wood") < 10,
+		"ingredientes gastos nos dois lados")
+
+
 func test_wrong_protocol_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	var viewport := SubViewport.new()

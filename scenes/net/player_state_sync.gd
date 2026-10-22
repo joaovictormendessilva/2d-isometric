@@ -3,8 +3,8 @@ extends Node
 ## Estado de cada jogador que só o host decide: inventário (com a mão) e experiência de
 ## coleta (ADR-012). Host: envia ao dono cada espaço que mudou, a mão, cada ganho (para os
 ## avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
-## dividir, jogar fora o que está na mão, devolver a mão); o host confere e aplica. Offline, os
-## pedidos são aplicados na hora.
+## dividir, jogar fora o que está na mão, devolver a mão, fabricar); o host confere e aplica.
+## Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -16,6 +16,7 @@ const DROP_CLEARANCE := 4.0
 var session: GameSession
 var items: ItemDatabase
 var skills: DataCatalog
+var recipes: RecipeDatabase
 var spawner: EntitySpawner
 
 var _rng := RandomNumberGenerator.new()
@@ -65,6 +66,17 @@ func request_drop_held() -> void:
 ## Jogador local fechou o inventário com algo na mão: volta para os espaços.
 func request_return_held() -> void:
 	_request(&"_return_held_requested", [])
+
+
+## Jogador local quer fazer a receita `recipe_id` uma vez.
+func request_craft(recipe_id: StringName) -> void:
+	_request(&"_craft_requested", [recipe_id])
+
+
+## Lugares de fabricação ao alcance do jogador. Por enquanto só a mão (bancadas no mundo:
+## próximo passo do E3).
+func stations_of(_player_id: int) -> Array[RecipeData.Station]:
+	return [RecipeData.Station.HAND]
 
 
 func _request(method: StringName, args: Array) -> void:
@@ -133,6 +145,15 @@ func _drop_held_requested() -> void:
 		DROP_DISTANCE.y, DROP_CLEARANCE)
 	spawner.spawn_pickup(items.get_item(content[0]), content[1], player_id, character.position,
 		spot, true)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _craft_requested(recipe_id: StringName) -> void:
+	var inventory := _requester_inventory()
+	var recipe := recipes.get_recipe(recipe_id) if recipes else null  # id desconhecido: nada
+	if inventory and recipe:
+		# Confere de novo lugar, ingredientes e espaço: o pedido pode ser velho ou forjado.
+		CraftingRules.craft(recipe, inventory, stations_of(_requester()))
 
 
 @rpc("any_peer", "call_remote", "reliable")

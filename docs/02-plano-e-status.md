@@ -137,7 +137,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - **E2 – Inventário** ✅: espaços com pilhas (12 sem mochila), janela livre (I/Tab/Esc),
   clicar para segurar, jogar fora e dividir, inventário cheio tratado, coop (ADR-016). Kit para
   testes em compilações de desenvolvimento. 69 testes passando. Validado pelo João (2026-10-22).
-- **E3 – Crafting** ⬜: receitas com materiais de coleta e de criaturas; primeiras ferramentas.
+- **E3 – Crafting** 🟡 (branch `stage-e/crafting`, ADR-017): na mão, na bancada e com NPCs.
+  Passo 1 ✅ receitas em dados e fabricação decidida pelo host (75 testes). Passo 2 ⬜ aba de
+  fabricação no inventário. Passo 3 ⬜ bancada no mundo.
 - **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
 
 ## Funcionalidades

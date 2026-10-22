@@ -22,6 +22,7 @@ var use_debug_starter_kit := true
 
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
+var recipes := RecipeDatabase.load_all()
 var session := GameSession.new(items)
 var region: Region
 
@@ -59,6 +60,7 @@ func _ready() -> void:
 	player_state.session = session
 	player_state.items = items
 	player_state.skills = skills
+	player_state.recipes = recipes
 	player_state.spawner = _spawner
 	if use_debug_starter_kit and OS.is_debug_build() \
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
