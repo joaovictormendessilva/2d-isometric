@@ -146,6 +146,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   regime está em `docs/03-desempenho.md`.
 - Criaturas não têm busca de caminho: contornam obstáculos redondos, mas podem ficar presas
   atrás de lagos. Avaliar navegação quando houver mapas mais fechados.
+- Corrigido (`fix/death-cancels-attack`): criatura que morria no meio da preparação ainda dava
+  o bote ("fantasma", sem acertar). Agora a morte encerra qualquer ataque.
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 

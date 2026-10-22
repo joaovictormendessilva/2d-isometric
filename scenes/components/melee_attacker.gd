@@ -47,6 +47,12 @@ func try_attack(direction: Vector2, tolerance: float = 0.0) -> bool:
 	return true
 
 
+## Encerra qualquer ataque em andamento, mesmo os que não se interrompem (ex.: ao morrer).
+func stop() -> void:
+	if is_attacking():
+		_finish()
+
+
 ## Ao ser atingido: interrompe a preparação, se o ataque permitir. Golpes já desferidos
 ## não são desfeitos.
 func interrupt() -> void:

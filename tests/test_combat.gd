@@ -94,3 +94,20 @@ func test_monster_respawns_after_death() -> void:
 	check(session.get_entity_count() == before - 1, "criatura morta sai do registro")
 	await physics_frames(26 * 60)  # tempo máximo de renascimento gerado: 25 s
 	check(session.get_entity_count() == before, "criatura renasceu")
+
+
+## Morrer no meio da preparação cancela o ataque: nada de bote "fantasma" depois da morte
+## (o bote do slime não é interrompido por golpes, mas a morte encerra tudo).
+func test_death_cancels_pending_attack() -> void:
+	var slime := spawn_slime(Vector2.ZERO)
+	await physics_frames(1)
+	check(slime.request_attack(Vector2.RIGHT), "bote começou")
+	var struck := [false]
+	slime.attacker.attack_struck.connect(func(_d: Vector2, _a: MeleeAttackData) -> void: struck[0] = true)
+	await physics_frames(5)
+	slime.health.apply_damage(DamageInfo.create(9999, Vector2.LEFT, 0, 0, 1))
+	var at_death := slime.position
+	await physics_frames(roundi(slime.data.attack.windup * 60) + 10)
+	check(not struck[0], "o bote não saiu depois da morte")
+	check(slime.position.distance_to(at_death) < 1.0,
+		"o corpo não avançou (andou %.1f px)" % slime.position.distance_to(at_death))

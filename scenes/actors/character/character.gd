@@ -126,4 +126,6 @@ func _on_damaged(info: DamageInfo) -> void:
 func _on_died() -> void:
 	# Corpo deixa de ser alvo e de bloquear; quem o criou decide remover ou reviver.
 	collision_layer = 0
+	if attacker:
+		attacker.stop()  # sem bote "fantasma" depois da morte
 	died.emit(self)
