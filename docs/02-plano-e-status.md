@@ -12,7 +12,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 (coleta) aguardando validação do João |
+| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 (coleta) ✅; E2–E4 a fazer |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
@@ -131,9 +131,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 
 ## Etapa E — incrementos (branch `stage-e/gathering` para o E1)
 
-- **E1 – Coleta** 🟡: árvores de lenha, veios de cobre e carvalhos antigos; mãos, ferramentas,
+- **E1 – Coleta** ✅: árvores de lenha, veios de cobre e carvalhos antigos; mãos, ferramentas,
   níveis de Lenhador e Minerador, regeneração, coop (ADR-014). 55 testes passando.
-  Aguardando validação do João.
+  Validado pelo João (2026-10-22).
 - **E2 – Inventário** ⬜: tela com espaços e quantidades.
 - **E3 – Crafting** ⬜: receitas com materiais de coleta e de criaturas; primeiras ferramentas.
 - **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).

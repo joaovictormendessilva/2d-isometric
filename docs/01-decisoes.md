@@ -253,7 +253,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-014 — Coleta: pontos no mundo, ferramentas e níveis por tipo
 
-- **Status**: Hipótese (Etapa E1, aguardando validação de sensação do João)
+- **Status**: Aceita (validada pelo João na Etapa E1, 2026-10-22)
 - **Direção do João**: coleta no estilo Albion; monstros também dropam (tabelas com chance).
 - **Decisões**:
   - **Pontos próprios de coleta** (`ResourceNode`), marcados visualmente (árvore de lenha,
