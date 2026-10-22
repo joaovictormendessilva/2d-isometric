@@ -132,7 +132,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 ## Etapa E — incrementos (branch `stage-e/gathering` para o E1)
 
 - **E1 – Coleta** 🟡: árvores de lenha, veios de cobre e carvalhos antigos; mãos, ferramentas,
-  níveis de Lenhador e Minerador, regeneração, coop (ADR-014). 59 testes passando.
+  níveis de Lenhador e Minerador, regeneração, coop (ADR-014). 55 testes passando.
   Aguardando validação do João.
 - **E2 – Inventário** ⬜: tela com espaços e quantidades.
 - **E3 – Crafting** ⬜: receitas com materiais de coleta e de criaturas; primeiras ferramentas.
