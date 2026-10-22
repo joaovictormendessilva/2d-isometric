@@ -333,7 +333,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-017 — Fabricação em três níveis: mão, bancada e NPC
 
-- **Status**: Hipótese (Etapa E3, em andamento)
+- **Status**: Aceita (validada pelo João na Etapa E3, 2026-10-22)
 - **Direção do João (2026-10-22)**: coisas simples são feitas **na mão**, outras só **numa
   bancada**, e algumas só **com NPCs específicos**.
 - **Decisões**:
