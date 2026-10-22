@@ -35,9 +35,7 @@ var _last_sender_time := -INF
 var _accepted_position := Vector2.ZERO
 var _move_budget := 0.0
 var _last_accept_time := -INF
-## Host: clientes que já têm esta entidade (pediram o estado completo). Mensagens sobre ela
-## só vão para eles: uma entidade recém-criada ainda não existe no cliente.
-var _ready_peers: Dictionary[int, bool] = {}
+var _broadcast: HostBroadcast
 ## Calculados ao nascer: a conexão e o dono não mudam durante a vida da entidade, e estas
 ## perguntas são feitas todo quadro por todas as criaturas.
 var _online := false
@@ -59,10 +57,8 @@ func _ready() -> void:
 		_body.health.changed.connect(_on_health_changed)
 		_body.health.blocked.connect(_on_blocked.unbind(1))
 		_body.health.immunity_changed.connect(_on_immunity_changed)
-	if is_online() and multiplayer.is_server():
-		multiplayer.peer_disconnected.connect(func(peer: int) -> void: _ready_peers.erase(peer))
-	elif is_online():
-		_request_full_state.rpc_id(1)
+	_broadcast = HostBroadcast.new(self)
+	HostBroadcast.request_from_host(self, &"_request_full_state")
 
 
 func is_online() -> bool:
@@ -182,11 +178,7 @@ func _teleport(position: Vector2) -> void:
 ## Host → clientes que já têm esta entidade. `include_owner`: o dono também precisa (ex.:
 ## dano no próprio personagem); estado e ataques ele mesmo gerou.
 func _send_to_clients(method: StringName, args: Array, include_owner: bool) -> void:
-	if not is_online() or not multiplayer.is_server():
-		return
-	for peer in _ready_peers:
-		if include_owner or peer != owner_peer():
-			callv(&"rpc_id", [peer, method] + args)
+	_broadcast.send(method, args, 0 if include_owner else owner_peer())
 
 
 # --- Ataques -------------------------------------------------------------------------------
@@ -283,9 +275,8 @@ func _correct(position: Vector2) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _request_full_state() -> void:
 	var peer := multiplayer.get_remote_sender_id()
-	if not multiplayer.is_server() or _ready_peers.has(peer):
+	if not multiplayer.is_server() or not _broadcast.add_peer(peer):
 		return
-	_ready_peers[peer] = true
 	_full_state.rpc_id(peer, _body.position, _body.health.current, _body.health.is_immune())
 
 

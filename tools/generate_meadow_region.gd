@@ -33,6 +33,15 @@ const MONSTER_SPAWN_SPACING := 150.0
 ## Os primeiros pontos ficam perto da entrada, para o combate começar sem longas caminhadas.
 const NEAR_MONSTER_SPAWNS := 2
 const NEAR_MONSTER_DISTANCE := Vector2(150.0, 260.0)
+## Pontos de coleta: [cena, quantidade, quantos perto da entrada].
+const RESOURCE_NODES := [
+	["res://scenes/gathering/lumber_tree.tscn", 12, 2],
+	["res://scenes/gathering/copper_vein.tscn", 8, 1],
+	["res://scenes/gathering/old_oak.tscn", 3, 0],
+]
+const NEAR_RESOURCE_DISTANCE := Vector2(90.0, 220.0)
+const RESOURCE_DISTANCE := Vector2(200.0, 900.0)
+const RESOURCE_SPACING := 60.0
 
 
 func _initialize() -> void:
@@ -111,7 +120,11 @@ func _build_region(tile_set: TileSet) -> Node2D:
 	# Semente própria: mudar as criaturas não muda o resto do mapa.
 	var monster_rng := RandomNumberGenerator.new()
 	monster_rng.seed = SEED + 2
-	_place_monster_spawns(region, ground, grass_cells, spawn.position, props, monster_rng)
+	var monsters := _place_monster_spawns(region, ground, grass_cells, spawn.position, props, monster_rng)
+	var resource_rng := RandomNumberGenerator.new()
+	resource_rng.seed = SEED + 3
+	_place_resource_nodes(entities, region, ground, grass_cells, spawn.position, props + monsters,
+		resource_rng)
 	return region
 
 
@@ -204,36 +217,67 @@ func _surrounded_by_land(ground: TileMapLayer, cell: Vector2i) -> bool:
 
 
 ## Pontos de criaturas em grama firme, longe do ponto de entrada, dos objetos e entre si.
+## Retorna as posições.
 func _place_monster_spawns(region: Node2D, ground: TileMapLayer, grass_cells: Array[Vector2i],
-		spawn: Vector2, props: Array[Vector2], rng: RandomNumberGenerator) -> void:
+		spawn: Vector2, props: Array[Vector2], rng: RandomNumberGenerator) -> Array[Vector2]:
 	var container := Node2D.new()
 	container.name = "MonsterSpawns"
 	_add_owned(region, container, region)
-	var candidates := _shuffled(grass_cells, rng)
-	var placed: Array[Vector2] = []
-	for cell: Vector2i in candidates + candidates:  # 1ª passada: perto; 2ª: o resto
-		if placed.size() >= MONSTER_SPAWN_COUNT:
-			break
-		var p := ground.map_to_local(cell)
-		var near := placed.size() < NEAR_MONSTER_SPAWNS
-		var limits := NEAR_MONSTER_DISTANCE if near else MONSTER_SPAWN_DISTANCE
-		var from_spawn := Iso.ground_distance(p, spawn)
-		if from_spawn < limits.x or from_spawn > limits.y:
-			continue
-		if not _surrounded_by_land(ground, cell):
-			continue
-		if props.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < MIN_PROP_DISTANCE):
-			continue
-		if placed.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < MONSTER_SPAWN_SPACING):
-			continue
+	var placed := _pick_spots(ground, _shuffled(grass_cells, rng), spawn, props, MONSTER_SPAWN_COUNT,
+		NEAR_MONSTER_SPAWNS, NEAR_MONSTER_DISTANCE, MONSTER_SPAWN_DISTANCE, MONSTER_SPAWN_SPACING)
+	for p in placed:
 		var point := Marker2D.new()
 		point.set_script(load(SPAWN_POINT_SCRIPT))
 		point.position = p
 		point.set(&"monster_scene", load(SLIME_SCENE))
 		point.set(&"respawn_time", rng.randf_range(15.0, 25.0))
 		_add_owned(container, point, region)
-		placed.append(p)
 	print("[gen] monster spawns: %d" % placed.size())
+	return placed
+
+
+## Pontos de coleta (`RESOURCE_NODES`) em grama firme, longe de objetos, criaturas e entre si;
+## alguns de cada tipo perto da entrada, para a coleta começar logo.
+func _place_resource_nodes(entities: Node2D, region: Node2D, ground: TileMapLayer,
+		grass_cells: Array[Vector2i], spawn: Vector2, avoid: Array[Vector2],
+		rng: RandomNumberGenerator) -> void:
+	var candidates := _shuffled(grass_cells, rng)
+	var taken := avoid.duplicate()
+	for entry: Array in RESOURCE_NODES:
+		var scene: PackedScene = load(entry[0])
+		var placed := _pick_spots(ground, candidates, spawn, taken, entry[1], entry[2],
+			NEAR_RESOURCE_DISTANCE, RESOURCE_DISTANCE, RESOURCE_SPACING)
+		for p in placed:
+			var node: Node2D = scene.instantiate()
+			node.position = p
+			_add_owned(entities, node, region)
+		taken.append_array(placed)
+		print("[gen] %s: %d" % [String(entry[0]).get_file(), placed.size()])
+
+
+## Até `count` posições de células da lista (na ordem dada) em grama firme, longe de `avoid`
+## e entre si (`spacing`, no chão). As `near_count` primeiras ficam a `near_limits` do ponto
+## de entrada; as outras, a `far_limits`. Não sorteia nada: a ordem vem de quem chama.
+func _pick_spots(ground: TileMapLayer, cells: Array[Vector2i], spawn: Vector2,
+		avoid: Array[Vector2], count: int, near_count: int, near_limits: Vector2,
+		far_limits: Vector2, spacing: float) -> Array[Vector2]:
+	var placed: Array[Vector2] = []
+	for cell: Vector2i in cells + cells:  # 1ª passada: perto; 2ª: o resto
+		if placed.size() >= count:
+			break
+		var p := ground.map_to_local(cell)
+		var limits := near_limits if placed.size() < near_count else far_limits
+		var from_spawn := Iso.ground_distance(p, spawn)
+		if from_spawn < limits.x or from_spawn > limits.y:
+			continue
+		if not _surrounded_by_land(ground, cell):
+			continue
+		if avoid.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < MIN_PROP_DISTANCE):
+			continue
+		if placed.any(func(q: Vector2) -> bool: return Iso.ground_distance(p, q) < spacing):
+			continue
+		placed.append(p)
+	return placed
 
 
 ## Cópia embaralhada com a semente dada (`Array.shuffle` usa o sorteio global, não determinístico).
