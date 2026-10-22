@@ -120,6 +120,9 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
       `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd`, `.../benchmark_monsters.gd` e
       `.../benchmark_regions.gd` (várias regiões ativas no host)
     - Testes reprovam também qualquer erro de script registrado durante o teste.
+    - Verificações de imagem (com janela; os testes acima não enxergam pixels):
+      `G --path . --fixed-fps 60 -s res://tests/render_checks.gd` (textos do mundo visíveis antes e
+      depois de viajar). Rodar ao mexer em câmera, camadas, regiões ou textos do mundo.
     - Só alguns arquivos de teste: `... -s res://tests/run_tests.gd -- network` (filtro no nome).
     - Coop local (duas janelas, host + cliente): `tools/coop-local.bat`, ou
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`.

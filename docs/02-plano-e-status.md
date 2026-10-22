@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 (segunda região) aguardando teste |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 (NPC) a seguir |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -160,7 +160,7 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - **F1 – Save** ✅ (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
   host (escolha do João), estruturas colocadas e pontos de coleta; identidade por perfil;
   reconexão devolve o personagem. 105 testes. Validado pelo João, inclusive no coop (2026-10-22).
-- **F2 – Segunda região** 🟡 (branch `stage-f/regions`): no coop cada jogador vai para onde quiser
+- **F2 – Segunda região** ✅ (branch `stage-f/regions`): no coop cada jogador vai para onde quiser
   (escolha do João, se o host aguentar). F2a: segunda região e passagem, sozinho (regiões já
   prontas para várias ativas no host). F2b: benchmark do host com 2–4 regiões ativas. F2c: coop
   com jogadores em regiões diferentes (cada cliente só recebe a sua).
@@ -171,7 +171,8 @@ Ordem proposta (cada um com validação do João antes do próximo):
   dev, viável (detalhes em `docs/03-desempenho.md`).
   F2c ✅ implementado (ADR-020): cada região num mundo próprio; no coop cada jogador vai para
   onde quiser e cada cliente só recebe a própria região; viajar recria o personagem lá. 111
-  testes. Aguardando teste do João.
+  testes. Validado pelo João, inclusive no coop (2026-10-22). Correção do teste dele: os textos
+  do mundo (dano, itens, "[E]") sumiam; agora há verificação com imagem (`tests/render_checks.gd`).
 - **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.

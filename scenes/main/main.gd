@@ -201,6 +201,12 @@ func _show_region(shown: Region) -> void:
 	region = shown
 	worlds.show_region(shown)
 	_camera.set_bounds(shown.camera_bounds)
+	# A Godot solta a camada que segue a câmera (textos do mundo) quando o mundo da janela
+	# troca; tirar e pôr de volta na árvore a liga ao mundo novo (ver tests/render_checks.gd).
+	var world_text := _damage_numbers.get_parent()
+	remove_child(world_text)
+	add_child(world_text)
+	move_child(world_text, _camera.get_index())
 
 
 ## O personagem do jogador local chegou (no host, na hora; no cliente, quando o host o cria).

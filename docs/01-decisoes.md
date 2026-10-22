@@ -440,7 +440,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-020 — Várias regiões, passagens e viagem
 
-- **Status**: Hipótese (F2a validada pelo João, 2026-10-22; F2b medida; F2c implementada, aguardando teste do João)
+- **Status**: Aceita (F2 validada pelo João, inclusive no coop, 2026-10-22)
 - **Contexto**: segunda região (floresta densa, escolha do João) ligada à campina. No coop,
   cada jogador poderá estar numa região diferente (decisão do João, ADR-005), se o benchmark
   da F2b mostrar que o host aguenta.
@@ -486,6 +486,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     entidades da nova e o personagem dele. Quem entra na partida segue o mesmo caminho e volta
     para a região onde estava (save).
   - Protocolo de rede: versão 5.
+  - **Textos do mundo**: a Godot solta a camada que segue a câmera ao trocar o mundo da janela;
+    o Main a recoloca na árvore a cada troca. Verificado com imagem (`tests/render_checks.gd`).
 - **Limitações**: pontos de coleta de uma região sem ninguém não renascem enquanto ninguém está
   lá; itens no chão somem ao sair da região; a troca de região é um corte seco (sem
   transição).
