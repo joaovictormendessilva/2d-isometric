@@ -58,6 +58,9 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 - Vida das criaturas não é recalculada quando alguém entra no meio da luta.
 - Identidade por segredo do perfil (ADR-019) trafega sem criptografia na LAN (ver ADR-013).
 - Tráfego ~0,9 KB/s por entidade por cliente: muitas criaturas online pedem agrupamento.
+- Regiões no coop (F2c): o host simula toda região com jogador (até uma por jogador); cada
+  cliente só recebe a própria. Trocar de região recria o personagem (o anterior fica 1 s parado
+  no host, ignorando mensagens atrasadas).
 
 ## Plano de testes
 
@@ -66,7 +69,7 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Movimento e câmera | ✅ | ✅ automático (2 instâncias no mesmo processo) | ⬜ |
 | Combate e dano | ✅ testes automáticos | ✅ automático (host decide, cliente vê) | ⬜ |
 | Drops pessoais | ✅ | ✅ automático em rede (só o dono vê e coleta) | ⬜ |
-| Transição de região | ✅ automático (passagem, estado da região deixada, save da região) | ⬜ F2c (hoje a passagem não viaja no coop) | ⬜ |
+| Transição de região | ✅ automático (passagem, estado da região deixada, save da região) | ✅ automático (cliente sozinho em outra região; cada um só recebe a sua; host e cliente se reencontram; região vazia liberada) | ⬜ |
 | Morte e respawn | ✅ | ✅ automático (host ordena, cliente renasce) | ⬜ |
 | Inventário | ✅ | ✅ automático (host decide; pedidos adulterados recusados) | ⬜ |
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |

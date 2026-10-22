@@ -53,6 +53,7 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 | 2026-10-22 | Mesmo `benchmark_monsters.gd -- 200` com a camada de rede (offline) | PC de dev | 200: **3,2–3,3 ms** (p99 4,0–4,5): +~4% pelo componente NetSync; ele se desliga offline |
 | 2026-10-22 | Tráfego em rede: host + 1 cliente, 10 entidades, 10 s de jogo andando | PC de dev (127.0.0.1) | host → cliente **8,8 KB/s**, cliente → host **1,0 KB/s** (~0,9 KB/s por entidade replicada) |
 | 2026-10-22 | `benchmark_regions.gd` — N regiões ativas, cada uma num SubViewport (física própria, só a 1ª desenhada), 1 jogador andando por região; calmo = criaturas dos pontos; combate = +25 slimes perseguindo cada jogador; 900 quadros, 2 rodadas | PC de dev | calmo: 1 → **0,57 ms** · 2 → **0,76 ms** · 4 → **1,0–1,1 ms** (p99 1,8). Combate: 1 → **1,0 ms** · 2 → **1,6 ms** · 4 → **2,8–3,0 ms** (p99 4,5–5,2, pior 6,3). Memória 45 → 59 → 80 MB; nós 1,3k → 3,7k → 7,4k |
+| 2026-10-22 | `benchmark_region.gd` depois da F2c (regiões em mundos próprios), campina, sem save | PC de dev | média **0,87–0,88 ms**, p99 1,4–1,5 ms, 55,6 draw calls, 56 MB (conteúdo da Etapa E incluso; antes da F2c o teste lia o save de quem joga, agora não) |
 
 Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
 200 criaturas cabem na meta de 4 ms do PC de dev. Supondo que o hardware modesto seja 3–4×
