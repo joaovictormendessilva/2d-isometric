@@ -9,7 +9,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 |---|---|---|
 | A | Escolher ambiente de vibe coding, engine e ferramentas | ✅ (ADR-001, ADR-002) |
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
-| C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | 🟡 aguardando validação do João |
+| C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ⬜ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
@@ -84,13 +84,16 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] Y-sort: personagem passa atrás/na frente de árvores conforme a posição dos pés
 - [x] Câmera seguindo o jogador local, limitada à região; interpolação de física ligada
 - [x] Painel de debug (F3): FPS, tempo de quadro, draw calls, posição
-- [x] 9 testes automáticos passando (`tests/`), benchmark de desempenho registrado
-- [ ] Validação de sensação (movimento, câmera, leitura visual, escala) — **João**
-- [ ] Merge na `main` — só após o OK explícito do João
+- [x] Ajustes pedidos pelo João: velocidade lateral reduzida (ADR-006) e objetos altos
+      transparentes com o personagem atrás (ADR-010)
+- [x] 13 testes automáticos passando (`tests/`), benchmark de desempenho registrado
+- [x] Validação de sensação (movimento, colisão, câmera nas bordas, F3) — João, 2026-10-21
+- [x] Merge na `main` — autorizado pelo João após os ajustes
 
 ## Funcionalidades
 
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
+- Árvores (e futuros prédios) ficam semitransparentes quando o personagem está atrás delas.
 
 ## Problemas conhecidos
 
@@ -105,3 +108,12 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Coop: jogadores em regiões diferentes ao mesmo tempo? (ADR-005, decidir até a Etapa H)
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
+
+## Ideias futuras (backlog criativo)
+
+Ideias do João para considerar nas etapas certas — não são compromissos ainda.
+
+- **Atravessar água**: buff, poção ou montaria que permite andar sobre a água (ou nadar),
+  abrindo atalhos e áreas escondidas. Técnica prevista: mover a colisão da água para uma
+  camada de física própria (hoje está em "world") e o efeito tiraria essa camada da máscara
+  de colisão do personagem. (Etapa E/J — montarias)
