@@ -49,6 +49,9 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
 12. Registre decisões importantes em `docs/01-decisoes.md` e mantenha
     `docs/02-plano-e-status.md` atualizado ao final de cada incremento.
 13. Não avance de etapa sem validar os resultados importantes com o João.
+14. **Código limpo e reutilização**: nada de copiar e colar lógica, formas ou números entre
+    arquivos. Se algo aparece duas vezes, vira componente, função utilitária, cena base ou
+    dado em `data/`. Nomes claros, funções curtas, comentários explicando o *porquê*.
 
 ## Regras técnicas fixas (resumo — detalhes em `docs/01-decisoes.md`)
 
@@ -76,9 +79,10 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   1. Todo trabalho começa numa branch a partir da `main` atualizada
      (`stage-c/...`, `feat/...`, `fix/...`, `chore/...`, `docs/...`).
   2. Commits pequenos na branch; `git push -u origin <branch>` para ter backup no GitHub.
-  3. Quando o incremento estiver validado (testes do Claude passando e, quando houver
-     validação visual/de sensação, aprovação do João): merge na `main` com `--no-ff`
-     (preserva o "degrau" no histórico) e `git push origin main`.
+  3. Uma branch = uma task. Merge na `main` **só quando a task inteira estiver finalizada**
+     e o João confirmar explicitamente ("pode mandar para a main"). Nada de merges
+     intermediários: a `main` só recebe trabalho com certeza absoluta. Então: merge com
+     `--no-ff` (preserva o "degrau" no histórico) e `git push origin main`.
   4. Branches mescladas ficam no GitHub como histórico; nunca apagar sem pedir.
   5. Se algo der errado, a `main` continua no último estado bom.
 
