@@ -42,8 +42,8 @@ entidades remotas desde o início), para não quebrar quando formos para o onlin
 | Teste | 1 jogador | 2 jogadores | 3–4 jogadores |
 |---|---|---|---|
 | Movimento e câmera | ⬜ | ⬜ | ⬜ |
-| Combate e dano | ⬜ | ⬜ | ⬜ |
-| Drops pessoais | ⬜ | ⬜ | ⬜ |
+| Combate e dano | ✅ testes automáticos | ⬜ | ⬜ |
+| Drops pessoais | ✅ | ✅ simulado (2 jogadores na mesma sessão, sem rede) | ⬜ |
 | Transição de região | ⬜ | ⬜ | ⬜ |
 | Morte e respawn | ⬜ | ⬜ | ⬜ |
 | Desconexão/reconexão | — | ⬜ | ⬜ |

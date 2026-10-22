@@ -153,3 +153,26 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Motivo**: o jogador nunca deve perder o próprio personagem de vista.
 - **Consequências**: só apresentação (cada máquina do coop decide pelo seu jogador local);
   custo medido desprezível (0,43 ms/quadro com 164 árvores).
+
+## ADR-011 — Arquitetura de combate: controladores, corpo único e componentes
+
+- **Status**: Hipótese (Etapa D, aguardando validação de sensação do João)
+- **Decisão**:
+  - **Um corpo para todos**: jogador e criaturas usam o mesmo `Character` (movimento, recuo,
+    morte, renascimento). O que muda é o **controlador** que gera intenções: `LocalPlayerInput`
+    (teclado/mouse/controle) ou `MonsterBrain` (IA). No coop, um terceiro controlador vai
+    receber intenções pela rede — sem mudar o corpo.
+  - **Componentes reutilizáveis** na cena base `scenes/actors/actor.tscn`: `Footprint`,
+    `Health`, `MeleeAttacker`, `ActorFeedback`. Jogador e slime são cenas herdadas.
+  - **Dano só na autoridade**: `MeleeAttacker` só aplica dano se `is_multiplayer_authority()`;
+    `DamageInfo` carrega `source_player_id` para drops pessoais.
+  - **Ataques em fases** (preparação → golpe → recuperação), definidos em dados. Preparação
+    ≥ 0,2 s é telegrafada automaticamente (tom avermelhado) — regra testada.
+  - **Acerto no plano do chão**: busca física larga + filtro exato de distância e ângulo
+    no chão, para o arco ser justo em todas as direções.
+  - **Defesa com retorno decrescente** (`dano × 100 / (100 + defesa)`) e vida das criaturas
+    escalada por jogador extra (`data/balance/player_scaling.tres`).
+  - **Drops pessoais**: a tabela é sorteada por jogador; cada um só vê e coleta os seus.
+  - Apresentação (números de dano em pool, rastro, flash, HUD) só **lê** sinais.
+- **Consequências**: criaturas novas = dados + cena herdada + (opcional) outro cérebro.
+  Custo medido: ~15 µs por criatura ativa (`docs/03-desempenho.md`).

@@ -101,7 +101,9 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   - Comandos (rodar na raiz do repositório, `G` = executável acima):
     - Importar recursos: `G --headless --path . --import`
     - Testes automáticos: `G --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd`
-    - Desempenho (com janela): `G --path . -s res://tests/benchmark_region.gd`
+    - Desempenho (com janela; `--fixed-fps 60` = 1 passo de física por quadro, sem espera):
+      `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd` e `.../benchmark_monsters.gd`
+    - Testes reprovam também qualquer erro de script registrado durante o teste.
     - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
       importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
