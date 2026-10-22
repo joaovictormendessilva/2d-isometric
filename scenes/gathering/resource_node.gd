@@ -41,7 +41,6 @@ func is_depleted() -> bool:
 	return charges_left <= 0
 
 
-## Host: gasta uma carga (uma coleta concluída). Ao esgotar, agenda o renascimento.
 ## Onde fica, encostado à esquerda deste ponto (no plano do chão), quem tem pegada de raio
 ## `radius` (testes e capturas de animação posicionam o personagem aqui).
 func approach_point(radius: float) -> Vector2:
@@ -49,6 +48,26 @@ func approach_point(radius: float) -> Vector2:
 	return position - Iso.ground_to_screen(Vector2(footprint.radius + radius + 2.0, 0))
 
 
+## Save do mundo (ADR-019): cargas e tempo que falta para renascer.
+func save_state() -> Array:
+	return [charges_left, _respawn_left]
+
+
+## Host, ao carregar o mundo. Dado do arquivo (não confiável): limitado ao que o tipo permite.
+func load_state(state: Variant) -> void:
+	if not (state is Array and state.size() == 2):
+		return
+	var was_depleted := is_depleted()
+	charges_left = SaveValues.to_int(state[0], 0, data.charges, data.charges)
+	_respawn_left = SaveValues.to_float(state[1], 0.0, data.respawn_time, data.respawn_time) \
+		if is_depleted() else 0.0
+	set_physics_process(is_depleted())
+	if was_depleted != is_depleted():
+		_sprite.texture = data.depleted_texture if is_depleted() else data.texture
+		depletion_changed.emit(is_depleted())
+
+
+## Host: gasta uma carga (uma coleta concluída). Ao esgotar, agenda o renascimento.
 func take_charge() -> void:
 	if is_depleted():
 		return

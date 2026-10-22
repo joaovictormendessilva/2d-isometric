@@ -12,8 +12,8 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) em andamento |
-| F | Região jogável com progressão, NPCs e mini boss | ⬜ |
+| E | Coleta, inventário, equipamentos, crafting | ✅ |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 (segunda região) a seguir |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -142,7 +142,7 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   janela do inventário. Passo 3 ✅ bancada fabricada e colocada pelo jogador; receitas de
   bancada por perto. Ajustes do João: Fabricar recolhível e menu do botão direito (Dividir /
   Soltar). 80 testes. Validado pelo João (2026-10-22).
-- **E4 – Equipamentos** 🟡 (branch `stage-e/equipment`, ADR-018): espaços estilo Terraria/Forager
+- **E4 – Equipamentos** ✅ (branch `stage-e/equipment`, ADR-018): espaços estilo Terraria/Forager
   com 2 acessórios e mãos estilo Path of Exile. Passo 1 ✅ núcleo (espaços, regras de mão,
   trocas com o inventário, host decide). Passo 2a ✅ bônus de atributos, arma define o golpe
   (espada vestida ao entrar; sem arma, soco, nunca mais rápido que a espada), equipamento
@@ -151,7 +151,19 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   menu, dica com bônus), receitas com rolagem e 4 itens de bancada (escudo de madeira, elmo de
   cobre, mochila simples, anel magnético). Correções do teste do João: trocar equipamento não
   cura nem fere (vida atual não muda) e a defesa pequena agora reduz dano (97 testes).
-  Aguardando validação do João.
+  Validado pelo João (2026-10-22).
+
+## Etapa F — incrementos
+
+Ordem proposta (cada um com validação do João antes do próximo):
+
+- **F1 – Save** ✅ (branch `stage-f/save`, ADR-019): progresso de cada personagem no mundo do
+  host (escolha do João), estruturas colocadas e pontos de coleta; identidade por perfil;
+  reconexão devolve o personagem. 105 testes. Validado pelo João, inclusive no coop (2026-10-22).
+- **F2 – Segunda região** ⬜: passagem entre regiões, cada uma com seu estado salvo (ADR-005).
+- **F3 – NPC** ⬜: moedas, compra e venda, poções de vida (cura do jogador), receitas de NPC.
+- **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
+- **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
 ## Funcionalidades
 
@@ -171,6 +183,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   Bloqueia a passagem; ainda não dá para recolher (pendência).
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,
   liga/desliga em `game/debug/starter_kit` no project.godot). Jogo exportado nunca tem kit.
+- Save: o mundo é guardado sozinho (ao fechar a janela, quando alguém sai e a cada 30 s) em
+  `%APPDATA%\Godot\app_userdata\2D Isometric\saves\world.json`. Para começar do zero, apague
+  esse arquivo. No coop, o progresso do amigo fica no save de quem hospeda.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

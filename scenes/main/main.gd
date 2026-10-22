@@ -21,6 +21,8 @@ var configure_network_from_command_line := true
 ## Kit de itens para testes (`game/debug/starter_kit` no project.godot). Só existe em
 ## compilações de desenvolvimento: um jogo exportado nunca dá itens de graça. Testes desligam.
 var use_debug_starter_kit := true
+## Save do mundo (só o host usa); vazio = não lê nem grava. Capturas de tela não usam save.
+var save_path := SaveService.default_path
 
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
@@ -32,6 +34,7 @@ var _input_detached := false
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
+@onready var saves: SaveService = $Saves
 @onready var _world: Node2D = $World
 @onready var _camera: GameCamera = $Camera
 @onready var _local_input: LocalPlayerInput = $LocalInput
@@ -73,6 +76,11 @@ func _ready() -> void:
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():
+		if _is_screenshot_run():
+			save_path = ""
+		saves.setup(save_path, session, _spawner, region, network, items, skills,
+			_spawner.structures)
+		_spawner.saves = saves
 		_spawner.spawn_player(local_player_id())
 		_spawner.spawn_region_monsters()
 		network.player_joined.connect(_spawner.spawn_player)
@@ -107,6 +115,11 @@ func _on_local_player_spawned(character: Character) -> void:
 func detach_local_input() -> void:
 	_input_detached = true
 	_local_input.target = null
+
+
+static func _is_screenshot_run() -> bool:
+	return Array(OS.get_cmdline_user_args()).any(
+		func(arg: String) -> bool: return arg.begins_with("--screenshot="))
 
 
 func _handle_command_line() -> void:

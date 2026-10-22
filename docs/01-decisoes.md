@@ -68,7 +68,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-005 — Regiões como cenas, estado persistente à parte
 
-- **Status**: Hipótese (uma região funcionando na Etapa C; transições e estado salvo na Etapa F)
+- **Status**: Hipótese (uma região funcionando na Etapa C; estado salvo na F1 — ADR-019, pelo `SaveService`; transições na F2)
 - **Decisão**:
   - Cada região é **uma cena Godot** (TileMapLayers + entidades), carregada uma por vez no
     single-player.
@@ -247,6 +247,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     127.0.0.1, obrigatórios antes de LAN aberta (código) e internet (ambos).
   - Detecção de atravessar paredes (hoje só velocidade é validada).
   - Limite de mensagens por segundo por cliente, com desconexão de quem abusar.
+  - **Segredo do perfil sem criptografia** (ADR-019): na LAN, quem escuta a rede poderia
+    copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
 - **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
   saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
   `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.
@@ -399,3 +401,32 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   proporção ia baixando a vida no arredondamento. Defesa: o ponto de "metade
   do dano" saiu do código para `data/balance/combat.tres` e caiu de 100 para 20 — com 100, a
   defesa 2 do escudo sumia no arredondamento.
+
+## ADR-019 — Save do mundo no host, com o progresso de todos os personagens
+
+- **Status**: Aceita (validada pelo João na Etapa F1, inclusive no coop, 2026-10-22)
+- **Contexto**: sem save não há progressão. Escolha do João: o progresso fica **no mundo do
+  host** (como o coop do Stardew Valley), não num arquivo de personagem que viaja entre mundos
+  (Terraria). O amigo continua de onde parou sempre que entra no mesmo mundo; o personagem dele
+  não vai para outros mundos. Ganho de segurança: nada do progresso vem do PC do amigo.
+- **Decisões**:
+  - **Um arquivo por mundo** (`user://saves/world.json`; vários mundos e menu vêm depois):
+    personagens por chave de jogador e estado de cada região (estruturas colocadas, cargas e
+    renascimento dos pontos de coleta). `WorldSave` (arquivo), `CharacterRecord` (personagem:
+    inventário com a mão, equipamento, experiência, vida atual), `SaveService` (host).
+  - **Não são guardados**: itens no chão e criaturas (o mundo volta com criaturas novas) nem a
+    posição do jogador (volta ao ponto de entrada da região).
+  - **Quando grava**: jogador saiu, janela fechada e a cada 30 s. Parar pelo editor da Godot
+    mata o processo: perde no máximo 30 s.
+  - **Arquivo = dado não confiável**: JSON puro (nunca objetos, recursos ou scripts), até 4 MB,
+    versão conferida; cada valor passa por `SaveValues` (número finito na faixa). Item que não
+    existe, pilha acima do limite e equipamento fora do lugar são ignorados. Gravação segura
+    (temporário + troca; o anterior vira `.bak`). Arquivo ilegível nunca é sobrescrito: vai
+    para `.corrupt-<hora>`; se nem isso der, o save desliga.
+  - **Identidade do jogador**: cada computador cria um segredo aleatório de 32 bytes
+    (`user://profile.cfg`, `PlayerProfile`) e o envia no aperto de mão; o host guarda só o
+    SHA-256 como chave. Quem hospeda usa a chave `host`. A mesma chave conectada duas vezes é
+    recusada. Protocolo de rede: versão 4.
+  - **Kit de testes** só para personagem novo (quem volta não ganha outro).
+- **Consequências**: reconexão funciona (quem volta recebe o próprio personagem). Testes,
+  capturas de tela e `capture_frames` não leem nem gravam o save de quem joga.

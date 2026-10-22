@@ -12,6 +12,13 @@ func xp(skill_id: StringName) -> int:
 	return _xp.get(skill_id, 0)
 
 
+## Tipos com alguma experiência (save do mundo).
+func all_xp() -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(_xp.keys())
+	return ids
+
+
 func level(skill: GatheringSkillData) -> int:
 	return skill.level_for_xp(xp(skill.id))
 
@@ -21,6 +28,7 @@ func add_xp(skill_id: StringName, amount: int) -> void:
 	changed.emit(skill_id, _xp[skill_id])
 
 
+## Cliente (valor oficial do host) e host ao carregar o save (CharacterRecord).
 func replicate_xp(skill_id: StringName, value: int) -> void:
 	_xp[skill_id] = value
 	changed.emit(skill_id, value)

@@ -69,6 +69,12 @@ func apply_damage(info: DamageInfo) -> bool:
 	return true
 
 
+## Host: vida guardada no save de quem voltou ao mundo (entre 1 e o máximo).
+func set_current(value: int) -> void:
+	current = clampi(value, 1, max_health)
+	changed.emit(current, max_health)
+
+
 func restore_full() -> void:
 	current = max_health
 	_invulnerable_left = 0.0

@@ -56,7 +56,7 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
   compensação de atraso.
 - O host valida velocidade, não paredes: um cliente adulterado poderia atravessar árvores.
 - Vida das criaturas não é recalculada quando alguém entra no meio da luta.
-- Sem identidade persistente: quem sai e volta é um jogador novo (inventário vazio).
+- Identidade por segredo do perfil (ADR-019) trafega sem criptografia na LAN (ver ADR-013).
 - Tráfego ~0,9 KB/s por entidade por cliente: muitas criaturas online pedem agrupamento.
 
 ## Plano de testes
@@ -72,5 +72,5 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |
 | Fabricação e estruturas | ✅ | ✅ automático (host confere receita, bancada por perto, ponto e item na mão) | ⬜ |
 | Equipamento | ✅ | ✅ automático (host decide; equipamento de cada jogador enviado a todos como lista inteira; cliente pede o de quem aparece, 1 resposta por pedido) | ⬜ |
-| Desconexão/reconexão | — | ✅ desconexão (host e cliente); reconexão ⬜ | ⬜ |
-| Salvamento | ⬜ | ⬜ | ⬜ |
+| Desconexão/reconexão | — | ✅ automático (desconexão de host e cliente; quem volta com o mesmo perfil recebe o próprio personagem; mesmo perfil duas vezes é recusado) | ⬜ |
+| Salvamento | ✅ automático (personagem, bancada, pontos de coleta; arquivo adulterado ignorado) | ✅ automático (progresso do amigo guardado no save do host) | ⬜ |

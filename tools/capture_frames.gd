@@ -43,6 +43,7 @@ func _initialize() -> void:
 
 func _run() -> void:
 	UserSettings.path = "user://capture_settings.cfg"  # não mexe nas preferências de quem joga
+	SaveService.default_path = ""  # nem no mundo salvo
 	UserSettings.clear()
 	var game: Node = load(MAIN_SCENE).instantiate()
 	root.add_child(game)
