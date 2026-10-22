@@ -6,12 +6,17 @@ extends Node2D
 
 ## Um jogador entrou numa passagem desta região (quem decide a viagem é o Main).
 signal passage_entered(player_id: int, passage: Passage)
+## Host: um jogador saiu da região (viagem ou saída da partida); quem manda mensagens ao
+## computador dele sobre nós daqui para de mandar (HostBroadcast).
+signal player_exited(player_id: int)
 
 @export var region_id: StringName
 ## Retângulo (em pixels de tela) totalmente coberto pelo chão; limita a câmera.
 @export var camera_bounds: Rect2
 ## Luz ambiente (multiplica as cores do mundo; a interface não muda). Branco = sem mudança.
 @export var ambient := Color.WHITE
+
+var _players: Dictionary[int, bool] = {}
 
 @onready var ground: TileMapLayer = $Ground
 @onready var entities: Node2D = $Entities
@@ -25,6 +30,27 @@ func _ready() -> void:
 		add_child(light)
 	for passage in get_passages():
 		passage.entered_by.connect(passage_entered.emit)
+
+
+## Host: jogadores nesta região agora (no coop, cada um pode estar numa). É o que decide o que
+## cada cliente recebe: só o que acontece na região dele (ids de jogador = ids de computador).
+func add_player(player_id: int) -> void:
+	_players[player_id] = true
+
+
+func remove_player(player_id: int) -> void:
+	if _players.erase(player_id):
+		player_exited.emit(player_id)
+
+
+func has_player(player_id: int) -> bool:
+	return _players.has(player_id)
+
+
+func player_ids() -> Array[int]:
+	var ids: Array[int] = []
+	ids.assign(_players.keys())
+	return ids
 
 
 func get_spawn_position() -> Vector2:
@@ -53,3 +79,10 @@ func get_passage(passage_id: StringName) -> Passage:
 		if passage.passage_id == passage_id:
 			return passage
 	return null
+
+
+## Região onde o nó está (null se estiver fora de uma).
+static func of(node: Node) -> Region:
+	while node and node is not Region:
+		node = node.get_parent()
+	return node as Region

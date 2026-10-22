@@ -21,9 +21,9 @@ var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
 
 
-func setup(character: Character, inventory: Inventory, progress: SkillProgress,
-		items: ItemDatabase, skills: DataCatalog, numbers: DamageNumbers) -> void:
-	_character = character
+## Uma vez: o que é do jogador (itens ganhos, experiência).
+func setup(inventory: Inventory, progress: SkillProgress, items: ItemDatabase,
+		skills: DataCatalog, numbers: DamageNumbers) -> void:
 	_items = items
 	_skills = skills
 	_numbers = numbers
@@ -31,6 +31,11 @@ func setup(character: Character, inventory: Inventory, progress: SkillProgress,
 	for skill: GatheringSkillData in skills.entries():
 		_levels[skill.id] = progress.level(skill)
 	progress.changed.connect(_on_xp_changed.bind(progress).unbind(1))
+
+
+## A cada personagem (recriado numa viagem): onde os avisos aparecem e as coletas recusadas.
+func set_character(character: Character) -> void:
+	_character = character
 	if character.gatherer:
 		character.gatherer.refused.connect(_on_gather_refused)
 

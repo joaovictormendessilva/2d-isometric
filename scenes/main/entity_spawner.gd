@@ -1,9 +1,12 @@
 class_name EntitySpawner
 extends Node
-## Cria e remove entidades (ADR-012). Só o HOST decide: ele chama `spawn_*`, e o
-## MultiplayerSpawner filho ("Replicator") repete a criação em cada cliente com a mesma
-## função `_instantiate`, inclusive para quem entra com a partida em andamento. Remover o
-## nó no host o remove nos clientes.
+## Cria e remove entidades (ADR-012). Só o HOST decide: ele chama `spawn_*`/`enter_region`, e
+## o MultiplayerSpawner ("Replicator") de cada região repete a criação nos clientes com a
+## mesma função `_instantiate`, inclusive para quem entra com a partida em andamento. Remover
+## o nó no host o remove nos clientes.
+## Regiões (ADR-020): cada jogador está numa região, e cada cliente só recebe as entidades da
+## região onde o jogador dele está. Toda entidade criada tem um "portão" (MultiplayerSynchronizer
+## sem propriedades) cuja visibilidade, decidida no host, controla a quem ela é enviada.
 ## Em todos os computadores: registro na sessão e apresentação (números de dano).
 ## Só no host: morte, renascimento, drops pessoais e IA das criaturas.
 
@@ -18,6 +21,9 @@ const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
 const PLAYER_RESPAWN_TIME := 2.5
 ## Tempo que o corpo da criatura fica sumindo antes de ser removido.
 const CORPSE_TIME := 0.6
+## Personagem que trocou de região: some para todos na hora, mas o nó fica este tempo parado
+## no host, para receber (e ignorar) o que o dono mandou antes de saber da viagem.
+const RETIRE_TIME := 1.0
 ## Onde os drops pousam: distância (chão) da criatura e raio livre exigido no ponto.
 const DROP_DISTANCE_MIN := 10.0
 const DROP_DISTANCE_MAX := 24.0
@@ -30,9 +36,10 @@ const OTHER_PLAYER_TINT := Color(0.6, 1.0, 0.75)
 ## Limites dos dados de criação recebidos do host (nada maior é legítimo).
 const MAX_HEALTH_MULTIPLIER := 100.0
 const MAX_PICKUP_AMOUNT := 999
+const REPLICATOR_NAME := "Replicator"
+const GATE_NAME := "RegionGate"
 
 var session: GameSession
-var region: Region
 var local_player_id := 0
 var damage_numbers: DamageNumbers
 var items: ItemDatabase
@@ -44,113 +51,175 @@ var starter_kit: ItemBundle
 ## Save do mundo (host): devolve o progresso de quem volta. Null = sem save.
 var saves: SaveService
 
-var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
 var _next_structure_id := 1
-var _region_generation := 0
-var _moving: Character
 var _rng := RandomNumberGenerator.new()
 
-@onready var _replicator: MultiplayerSpawner = $Replicator
 
-
-func setup(p_session: GameSession, p_region: Region, p_local_player_id: int,
-		p_damage_numbers: DamageNumbers, p_items: ItemDatabase,
-		p_player_state: PlayerStateSync) -> void:
+func setup(p_session: GameSession, p_local_player_id: int, p_damage_numbers: DamageNumbers,
+		p_items: ItemDatabase, p_player_state: PlayerStateSync) -> void:
 	session = p_session
-	region = p_region
 	local_player_id = p_local_player_id
 	damage_numbers = p_damage_numbers
 	items = p_items
 	player_state = p_player_state
 	_rng.randomize()
-	_replicator.spawn_function = _instantiate
-	set_region(p_region)
 
 
-## A região carregada mudou (viagem): entidades novas nascem nela. Renascimentos agendados na
-## região anterior são esquecidos (`_region_generation`).
-func set_region(p_region: Region) -> void:
-	region = p_region
-	_region_generation += 1
-	_monster_points = region.get_monster_spawn_points()
-	_replicator.spawn_path = _replicator.get_path_to(region.entities)
+## Região recém-carregada neste computador (host ou cliente): ganha o replicador dela, com o
+## mesmo caminho dos dois lados.
+func add_region(region: Region) -> void:
+	var replicator := MultiplayerSpawner.new()
+	replicator.name = REPLICATOR_NAME
+	region.add_child(replicator)
+	replicator.spawn_path = replicator.get_path_to(region.entities)
+	replicator.spawn_function = _instantiate.bind(region)
 
 
-## Leva um personagem para a região atual (viagem) sem tirá-lo da sessão: trocar de pai na
-## árvore dispara a mesma saída que um jogador indo embora, que aqui é ignorada.
-func move_player(character: Character, at: Vector2) -> void:
-	_moving = character
-	character.reparent(region.entities, false)
-	_moving = null
-	character.position = at
-	character.reset_physics_interpolation()
+# --- Host: quem está onde ----------------------------------------------------------------------
+
+## Região onde está o personagem do jogador (null se ele não tiver um).
+func region_of_player(player_id: int) -> Region:
+	return Region.of(session.get_player_entity(player_id))
+
+
+func players_in(region: Region) -> int:
+	return region.player_ids().size()
+
+
+## Host: o jogador sai da região onde está (viagem). O personagem some para todos e o cliente
+## dele deixa de receber o que é de lá. Retorna a vida que ele tinha (0 = não tinha personagem).
+func leave_region(player_id: int) -> int:
+	var character := session.get_player_entity(player_id) as Character
+	if character == null:
+		return 0
+	var region := Region.of(character)
+	var health := maxi(character.health.current, 1)
+	region.remove_player(player_id)
+	_retire(character)
+	if _is_remote(player_id):
+		_update_gates(region, player_id)
+	return health
+
+
+## Host: o jogador entra na região, em `at`. Com `health`, vem de outra região (viagem) e
+## mantém a vida; sem, está chegando no mundo (save ou equipamento inicial). O cliente dele já
+## precisa ter sido avisado da região (o Main avisa antes).
+func enter_region(player_id: int, region: Region, at: Vector2, health: int = 0) -> Character:
+	region.add_player(player_id)
+	var character: Character = _replicator(region).spawn({"kind": Kind.PLAYER,
+		"entity_id": session.allocate_entity_id(), "player_id": player_id, "position": at})
+	if health > 0:
+		character.health.set_current(health)
+	else:
+		_prepare_player(character)
+	if _is_remote(player_id):
+		_update_gates(region, player_id)
+	return character
+
+
+## Jogador saiu da partida.
+func despawn_player(player_id: int) -> void:
+	var character := session.get_player_entity(player_id)
+	if character:
+		Region.of(character).remove_player(player_id)
+		character.queue_free()
 
 
 # --- Host: decide o que existe ---------------------------------------------------------------
 
-func spawn_player(player_id: int) -> Character:
-	var character: Character = _replicator.spawn({"kind": Kind.PLAYER,
-		"entity_id": session.allocate_entity_id(), "player_id": player_id,
-		"position": region.get_spawn_position()})
-	_prepare_player(character)
-	return character
+func spawn_region_monsters(region: Region) -> void:
+	for index in region.get_monster_spawn_points().size():
+		spawn_monster(region, index)
 
 
-func despawn_player(player_id: int) -> void:
-	var character := session.get_player_entity(player_id)
-	if character:
-		character.queue_free()
-
-
-func spawn_region_monsters() -> void:
-	for index in _monster_points.size():
-		spawn_monster(index)
-
-
-func spawn_monster(point_index: int) -> Monster:
-	return _replicator.spawn({"kind": Kind.MONSTER, "entity_id": session.allocate_entity_id(),
-		"point": point_index, "health_multiplier": CombatRules.monster_health_multiplier(
-			session.get_player_count(), PLAYER_SCALING)})
+func spawn_monster(region: Region, point_index: int) -> Monster:
+	return _replicator(region).spawn({"kind": Kind.MONSTER,
+		"entity_id": session.allocate_entity_id(), "point": point_index,
+		"health_multiplier": CombatRules.monster_health_multiplier(
+			maxi(players_in(region), 1), PLAYER_SCALING)})
 
 
 ## `from`: onde o item nasce (a criatura); `at`: onde ele pousa.
 ## `dropped_by_owner`: o próprio dono jogou fora (ele só pega de volta depois de se afastar).
-func spawn_pickup(item: ItemData, amount: int, owner_player_id: int, from: Vector2,
-		at: Vector2, dropped_by_owner: bool = false) -> Pickup:
+func spawn_pickup(region: Region, item: ItemData, amount: int, owner_player_id: int,
+		from: Vector2, at: Vector2, dropped_by_owner: bool = false) -> Pickup:
 	var pickup_id := _next_pickup_id
 	_next_pickup_id += 1
-	return _replicator.spawn({"kind": Kind.PICKUP, "pickup_id": pickup_id, "item": String(item.id),
-		"amount": amount, "owner": owner_player_id, "origin": from, "position": at,
-		"dropped": dropped_by_owner})
+	return _replicator(region).spawn({"kind": Kind.PICKUP, "pickup_id": pickup_id,
+		"item": String(item.id), "amount": amount, "owner": owner_player_id, "origin": from,
+		"position": at, "dropped": dropped_by_owner})
 
 
 ## Estrutura colocada por um jogador (o lugar já foi conferido, ver PlacementRules).
-func spawn_structure(structure: StructureData, at: Vector2) -> Structure:
+func spawn_structure(region: Region, structure: StructureData, at: Vector2) -> Structure:
 	var structure_id := _next_structure_id
 	_next_structure_id += 1
-	return _replicator.spawn({"kind": Kind.STRUCTURE, "structure_id": structure_id,
+	return _replicator(region).spawn({"kind": Kind.STRUCTURE, "structure_id": structure_id,
 		"structure": String(structure.id), "position": at})
+
+
+func _replicator(region: Region) -> MultiplayerSpawner:
+	return region.get_node(REPLICATOR_NAME)
+
+
+func _is_remote(player_id: int) -> bool:
+	return NetRules.is_online(multiplayer) and player_id != multiplayer.get_unique_id()
+
+
+## O personagem deixa de existir para todos (some nos clientes e sai da sessão), mas o nó fica
+## um instante parado no host (ver RETIRE_TIME).
+func _retire(character: Character) -> void:
+	session.unregister_entity(character.entity_id)
+	character.retire()
+	var gate := character.get_node(GATE_NAME) as MultiplayerSynchronizer
+	gate.public_visibility = false
+	gate.update_visibility()
+	get_tree().create_timer(RETIRE_TIME).timeout.connect(character.queue_free)
+
+
+## Reavalia, para um cliente, o que ele recebe das entidades da região.
+func _update_gates(region: Region, peer: int) -> void:
+	for node in region.entities.get_children():
+		var gate := node.get_node_or_null(GATE_NAME) as MultiplayerSynchronizer
+		if gate:
+			gate.update_visibility(peer)
 
 
 # --- Todos os computadores: monta o nó a partir dos dados ------------------------------------
 
-## Chamada pelo Replicator no host e em cada cliente. Nos clientes os dados vêm da rede:
-## são conferidos antes do uso e nunca carregam caminhos, recursos ou objetos.
-func _instantiate(data: Variant) -> Node:
-	match _valid_kind(data):
+## Chamada pelo Replicator da região no host e em cada cliente. Nos clientes os dados vêm da
+## rede: são conferidos antes do uso e nunca carregam caminhos, recursos ou objetos.
+func _instantiate(data: Variant, region: Region) -> Node:
+	var node: Node
+	match _valid_kind(data, region):
 		Kind.PLAYER:
-			return _instantiate_player(data)
+			node = _instantiate_player(data)
 		Kind.MONSTER:
-			return _instantiate_monster(data)
+			node = _instantiate_monster(data, region)
 		Kind.PICKUP:
-			return _instantiate_pickup(data)
+			node = _instantiate_pickup(data)
 		Kind.STRUCTURE:
-			return _instantiate_structure(data)
-	push_warning("[spawner] dados de criação inválidos recebidos")
-	var inert := Node.new()  # o Replicator exige um nó; este não faz nada
-	inert.name = "Invalid"
-	return inert
+			node = _instantiate_structure(data)
+		_:
+			push_warning("[spawner] dados de criação inválidos recebidos")
+			var inert := Node.new()  # o Replicator exige um nó; este não faz nada
+			inert.name = "Invalid"
+			return inert
+	_add_gate(node, region)
+	return node
+
+
+## Portão de visibilidade (mesmo nome nos dois lados; o filtro só existe no host). Sem
+## propriedades para sincronizar: serve só para decidir a quem a entidade é enviada.
+func _add_gate(node: Node, region: Region) -> void:
+	var gate := MultiplayerSynchronizer.new()
+	gate.name = GATE_NAME
+	gate.replication_config = SceneReplicationConfig.new()
+	gate.visibility_update_mode = MultiplayerSynchronizer.VISIBILITY_PROCESS_NONE
+	if multiplayer.is_server():
+		gate.add_visibility_filter(region.has_player)
+	node.add_child(gate)
 
 
 func _instantiate_player(data: Dictionary) -> Character:
@@ -166,7 +235,9 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
 	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
-	equipment.slot_changed.connect(_fit_inventory.bind(character).unbind(1))
+	# Uma ligação por jogador (o personagem é recriado a cada viagem; o equipamento continua).
+	if not equipment.slot_changed.is_connected(_fit_inventory):
+		equipment.slot_changed.connect(_fit_inventory.bind(character.player_id).unbind(1))
 	if not multiplayer.is_server():
 		player_state.request_equipment_of(character.player_id)
 	if character.player_id == local_player_id:
@@ -195,19 +266,20 @@ func _prepare_player(character: Character) -> void:
 
 ## Tamanho do inventário = base do jogador + espaços das mochilas vestidas (bônus já somados
 ## por `Character.apply_equipment`, ligado antes).
-func _fit_inventory(character: Character) -> void:
-	var inventory := session.get_inventory(character.player_id) if is_instance_valid(character) else null
-	if inventory:
+func _fit_inventory(player_id: int) -> void:
+	var character := session.get_player_entity(player_id) as Character
+	var inventory := session.get_inventory(player_id)
+	if character and inventory:
 		inventory.resize(character.stats.inventory_slots + character.bonuses.inventory_slots)
 
 
-func _instantiate_monster(data: Dictionary) -> Monster:
-	var point := _monster_points[data["point"]]
+func _instantiate_monster(data: Dictionary, region: Region) -> Monster:
+	var point := region.get_monster_spawn_points()[data["point"]]
 	var monster: Monster = point.monster_scene.instantiate()
 	monster.position = point.position
 	monster.max_health_multiplier = data["health_multiplier"]
 	_register(monster, data["entity_id"])
-	monster.died.connect(_on_monster_died.bind(data["point"]))
+	monster.died.connect(_on_monster_died.bind(data["point"], weakref(region)))
 	if multiplayer.is_server():
 		(monster.get_node("Brain") as MonsterBrain).session = session  # IA só no host
 	return monster
@@ -247,7 +319,7 @@ func _register(entity: Character, entity_id: int) -> void:
 
 
 ## Tipo dos dados de criação, ou -1 se algum campo for inválido.
-func _valid_kind(data: Variant) -> int:
+func _valid_kind(data: Variant, region: Region) -> int:
 	if not data is Dictionary or not data.get("kind") is int:
 		return -1
 	var d: Dictionary = data
@@ -257,8 +329,8 @@ func _valid_kind(data: Variant) -> int:
 				return Kind.PLAYER
 		Kind.MONSTER:
 			var multiplier: Variant = d.get("health_multiplier")
-			if _is_id(d, "entity_id") and d.get("point") is int \
-					and d["point"] >= 0 and d["point"] < _monster_points.size() \
+			if _is_id(d, "entity_id") and d.get("point") is int and d["point"] >= 0 \
+					and d["point"] < region.get_monster_spawn_points().size() \
 					and multiplier is float and is_finite(multiplier) \
 					and multiplier > 0.0 and multiplier <= MAX_HEALTH_MULTIPLIER:
 				return Kind.MONSTER
@@ -288,21 +360,29 @@ static func _is_position(data: Dictionary, key: String) -> bool:
 # --- Apresentação ----------------------------------------------------------------------------
 
 func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
-	var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
-	damage_numbers.show_number(entity.position, info.amount, color)
+	if _is_shown(entity):
+		var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
+		damage_numbers.show_number(entity.position, info.amount, color)
 
 
 func _on_entity_blocked(entity: Character) -> void:
-	damage_numbers.show_text(entity.position, Texts.get_text(&"COMBAT_IMMUNE"), IMMUNE_COLOR)
+	if _is_shown(entity):
+		damage_numbers.show_text(entity.position, Texts.get_text(&"COMBAT_IMMUNE"), IMMUNE_COLOR)
+
+
+## A entidade está na região que a janela mostra? (O host simula outras, sem mostrar.)
+func _is_shown(entity: Node2D) -> bool:
+	return entity.get_world_2d() == damage_numbers.get_viewport().world_2d
 
 
 # --- Ciclo de vida -----------------------------------------------------------------------------
 
+## O jogador local continua na sessão quando o personagem dele é recriado (viagem); os outros
+## saem quando o personagem some daqui (saíram da partida ou da região).
 func _on_entity_removed(entity: Character) -> void:
-	if entity == _moving:
-		return
 	session.unregister_entity(entity.entity_id)
-	if entity.player_id != 0 and session.get_player_entity(entity.player_id) == null:
+	if entity.player_id != 0 and entity.player_id != local_player_id \
+			and session.get_player_entity(entity.player_id) == null:
 		session.remove_player(entity.player_id)
 
 
@@ -311,39 +391,42 @@ func _on_player_died(character: Character) -> void:
 		_revive_player.bind(character.player_id))
 
 
-## Por ID: o jogador pode ter saído da partida enquanto esperava renascer.
+## Por ID: o jogador pode ter saído da partida (ou da região) enquanto esperava renascer.
 func _revive_player(player_id: int) -> void:
 	var character := session.get_player_entity(player_id) as Character
 	if character:
-		character.revive(region.get_spawn_position())
+		character.revive(Region.of(character).get_spawn_position())
 
 
 ## Em todos os computadores a criatura morta sai do registro; no host, ela também deixa
 ## drops, some e agenda o renascimento.
-func _on_monster_died(monster: Character, point_index: int) -> void:
+func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef) -> void:
 	session.unregister_entity(monster.entity_id)
-	if not multiplayer.is_server():
+	var region := region_ref.get_ref() as Region
+	if not multiplayer.is_server() or region == null:
 		return
-	_spawn_drops(monster as Monster)
+	_spawn_drops(monster as Monster, region)
 	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
-	get_tree().create_timer(_monster_points[point_index].respawn_time).timeout.connect(
-		_respawn_monster.bind(point_index, _region_generation))
+	get_tree().create_timer(region.get_monster_spawn_points()[point_index].respawn_time) \
+		.timeout.connect(_respawn_monster.bind(point_index, region_ref))
 
 
-## Drops pessoais: a tabela é sorteada separadamente para cada jogador da sessão. Cada item
+## Drops pessoais: a tabela é sorteada separadamente para cada jogador da região. Cada item
 ## pousa num ponto andável e alcançável perto da criatura (nunca na água ou dentro de objetos).
-func _spawn_drops(monster: Monster) -> void:
+func _spawn_drops(monster: Monster, region: Region) -> void:
 	var space := region.get_world_2d().direct_space_state
-	for player_id in session.get_player_ids():
+	for player_id in region.player_ids():
 		for entry in monster.data.drops:
 			var amount := entry.roll(_rng)
 			if amount > 0:
 				var spot := GroundQuery.find_drop_spot(space, monster.position, _rng,
 					DROP_DISTANCE_MIN, DROP_DISTANCE_MAX, DROP_CLEARANCE)
-				spawn_pickup(entry.item, amount, player_id, monster.position, spot)
+				spawn_pickup(region, entry.item, amount, player_id, monster.position, spot)
 
 
-## Só se a região ainda for a mesma em que a criatura morreu.
-func _respawn_monster(point_index: int, generation: int) -> void:
-	if generation == _region_generation:
-		spawn_monster(point_index)
+## Só se a região ainda estiver carregada (sem ninguém lá, ela é liberada e o renascimento
+## agendado é esquecido).
+func _respawn_monster(point_index: int, region_ref: WeakRef) -> void:
+	var region := region_ref.get_ref() as Region
+	if region and not region.is_queued_for_deletion():
+		spawn_monster(region, point_index)

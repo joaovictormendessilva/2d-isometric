@@ -69,4 +69,3 @@ STAT_DEFENSE,Defesa +%d,Defense +%d
 STAT_MOVE_SPEED,Velocidade +%d%%,Speed +%d%%
 STAT_PICKUP_RADIUS,Ímã de itens +%d,Item magnet +%d
 STAT_INVENTORY_SLOTS,Espaços +%d,Slots +%d
-PASSAGE_COOP_SOON,Viajar no coop: em breve,Travel in co-op: coming soon

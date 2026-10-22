@@ -116,7 +116,7 @@ func test_game_comes_back_as_it_was() -> void:
 	var workbench: StructureData = (game.get_node("EntitySpawner") as EntitySpawner) \
 		.structures.get_entry(&"workbench")
 	var spot := free_spot_near(player, workbench)
-	(game.get_node("EntitySpawner") as EntitySpawner).spawn_structure(workbench, spot)
+	(game.get_node("EntitySpawner") as EntitySpawner).spawn_structure(game.region, workbench, spot)
 	check((game.saves as SaveService).save_now() == OK, "grava")
 	game.free()
 

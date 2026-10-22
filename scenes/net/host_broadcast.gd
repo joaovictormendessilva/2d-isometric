@@ -8,18 +8,24 @@ extends RefCounted
 
 var _node: Node
 var _peers: Dictionary[int, bool] = {}
+## Host: região do nó (null fora de uma). Só quem está nela recebe mensagens sobre o nó.
+var _region: Region
 
 
 ## Chame no `_ready` do nó (precisa estar na árvore para conhecer a rede).
 func _init(node: Node) -> void:
 	_node = node
 	if NetRules.is_online(node.multiplayer) and node.multiplayer.is_server():
-		node.multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+		node.multiplayer.peer_disconnected.connect(_forget_peer)
+		_region = Region.of(node)
+		if _region:  # quem sai da região deixa de ter o nó: volta a pedir se voltar
+			_region.player_exited.connect(_forget_peer)
 
 
-## Host: registra o computador. Retorna falso se ele já estava registrado (pedido repetido).
+## Host: registra o computador. Retorna falso se ele já estava registrado (pedido repetido) ou
+## se o jogador dele não está na região do nó (pedido atrasado de quem acabou de viajar).
 func add_peer(peer: int) -> bool:
-	if _peers.has(peer):
+	if _peers.has(peer) or (_region and not _region.has_player(peer)):
 		return false
 	_peers[peer] = true
 	return true
@@ -47,5 +53,5 @@ static func request_from_host(node: Node, method: StringName) -> void:
 		api.connected_to_server.connect(Callable(node, &"rpc_id").bind(1, method), CONNECT_ONE_SHOT)
 
 
-func _on_peer_disconnected(peer: int) -> void:
+func _forget_peer(peer: int) -> void:
 	_peers.erase(peer)

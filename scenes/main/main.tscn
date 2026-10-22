@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3]
+[gd_scene load_steps=17 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
@@ -15,6 +15,7 @@
 [ext_resource type="Script" path="res://scenes/ui/inventory_panel.gd" id="13_inventory"]
 [ext_resource type="Script" path="res://scenes/building/placement_preview.gd" id="14_placement"]
 [ext_resource type="Script" path="res://scenes/save/save_service.gd" id="15_saves"]
+[ext_resource type="Script" path="res://scenes/regions/region_worlds.gd" id="16_regions"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
@@ -27,6 +28,9 @@ script = ExtResource("15_saves")
 
 [node name="PlayerState" type="Node" parent="."]
 script = ExtResource("12_player_state")
+
+[node name="Regions" type="Node" parent="."]
+script = ExtResource("16_regions")
 
 [node name="World" type="Node2D" parent="."]
 
@@ -52,8 +56,6 @@ script = ExtResource("3_input")
 
 [node name="EntitySpawner" type="Node" parent="."]
 script = ExtResource("5_spawner")
-
-[node name="Replicator" type="MultiplayerSpawner" parent="EntitySpawner"]
 
 [node name="PlayerFeedback" type="Node" parent="."]
 script = ExtResource("10_feedback")
