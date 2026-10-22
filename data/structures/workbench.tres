@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="StructureData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/building/structure_data.gd" id="1_structure"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/workbench.png" id="2_texture"]
+
+[resource]
+script = ExtResource("1_structure")
+id = &"workbench"
+footprint_radius = 9.0
+station = 1
+station_range = 40.0
+texture = ExtResource("2_texture")
+sprite_offset = Vector2(-14, -14)

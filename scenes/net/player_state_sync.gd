@@ -3,8 +3,8 @@ extends Node
 ## Estado de cada jogador que só o host decide: inventário (com a mão) e experiência de
 ## coleta (ADR-012). Host: envia ao dono cada espaço que mudou, a mão, cada ganho (para os
 ## avisos) e a experiência. Dono: pede ao host para mexer no inventário (clicar num espaço,
-## dividir, jogar fora o que está na mão, devolver a mão, fabricar); o host confere e aplica.
-## Offline, os pedidos são aplicados na hora.
+## dividir, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma estrutura); o
+## host confere e aplica. Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -73,10 +73,24 @@ func request_craft(recipe_id: StringName) -> void:
 	_request(&"_craft_requested", [recipe_id])
 
 
-## Lugares de fabricação ao alcance do jogador. Por enquanto só a mão (bancadas no mundo:
-## próximo passo do E3).
-func stations_of(_player_id: int) -> Array[RecipeData.Station]:
-	return [RecipeData.Station.HAND]
+## Jogador local quer colocar no chão, em `at`, a estrutura que está na mão.
+func request_place(at: Vector2) -> void:
+	_request(&"_place_requested", [at])
+
+
+## Lugares de fabricação ao alcance do jogador: a mão e as estações perto dos pés dele.
+func stations_of(player_id: int) -> Array[RecipeData.Station]:
+	var stations: Array[RecipeData.Station] = [RecipeData.Station.HAND]
+	var character := session.get_player_entity(player_id) as Character
+	if character == null:
+		return stations
+	for node in get_tree().get_nodes_in_group(Structure.STATION_GROUP):
+		var structure := node as Structure
+		# Mesmo mundo: nos testes, host e cliente dividem a mesma árvore.
+		if structure.get_world_2d() == character.get_world_2d() \
+				and structure.reaches(character.position) and structure.data.station not in stations:
+			stations.append(structure.data.station)
+	return stations
 
 
 func _request(method: StringName, args: Array) -> void:
@@ -154,6 +168,21 @@ func _craft_requested(recipe_id: StringName) -> void:
 	if inventory and recipe:
 		# Confere de novo lugar, ingredientes e espaço: o pedido pode ser velho ou forjado.
 		CraftingRules.craft(recipe, inventory, stations_of(_requester()))
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _place_requested(at: Vector2) -> void:
+	var inventory := _requester_inventory()
+	var character := session.get_player_entity(_requester()) as Character
+	if inventory == null or character == null or not character.is_alive() \
+			or not NetRules.is_valid_vector(at):
+		return
+	# O que é colocado é o que o HOST sabe estar na mão, nunca algo dito pelo cliente.
+	var placeable := items.get_item(inventory.held_item()) as PlaceableData
+	var space := character.get_world_2d().direct_space_state
+	if placeable and PlacementRules.can_place(space, placeable.structure, character.position, at) \
+			and inventory.use_held(1):
+		spawner.spawn_structure(placeable.structure, at)
 
 
 @rpc("any_peer", "call_remote", "reliable")

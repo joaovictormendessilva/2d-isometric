@@ -311,6 +311,40 @@ func test_client_crafting_is_decided_by_host() -> void:
 		"ingredientes gastos nos dois lados")
 
 
+## O cliente coloca uma estrutura pedindo ao host; o host usa o que ELE sabe estar na mão do
+## cliente (madeira não vira bancada) e confere o ponto.
+func test_client_places_structure_through_host() -> void:
+	var games := await _start_pair()
+	var host: Node = games[0]
+	var client: Node = games[1]
+	calm_monsters(host)
+	var client_id: int = client.local_player_id()
+	var on_host := (host.session as GameSession).get_inventory(client_id)
+	var on_client := (client.session as GameSession).get_inventory(client_id)
+	var character := (host.session as GameSession).get_player_entity(client_id) as Character
+	var bench: PlaceableData = (host.items as ItemDatabase).get_item(&"workbench")
+	var spot := free_spot_near(character, bench.structure)
+	var state: PlayerStateSync = client.player_state
+	on_host.add(&"wood", 3)
+	on_host.add(&"workbench", 1)
+	await physics_frames(10)
+
+	state.request_click(0)  # madeira na mão: não é estrutura
+	state.request_place(spot)
+	state.request_place(Vector2(NAN, 0))
+	await physics_frames(10)
+	check(structures(host).is_empty() and on_host.held_item() == &"wood",
+		"madeira não vira estrutura; posição inválida ignorada")
+	state.request_click(0)  # devolve a madeira
+	state.request_click(1)  # pega a bancada
+	state.request_place(spot)
+	var placed := await wait_until(func() -> bool: return structures(client).size() == 1, 60)
+	check(placed and structures(host).size() == 1, "host colocou e o cliente vê a bancada")
+	check(on_client.count(&"workbench") == 0 and not on_client.is_holding(), "bancada saiu da mão")
+	check(RecipeData.Station.WORKBENCH in (client.player_state as PlayerStateSync).stations_of(client_id),
+		"no cliente, a bancada vale como estação")
+
+
 func test_wrong_protocol_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	var viewport := SubViewport.new()

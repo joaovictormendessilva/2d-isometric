@@ -12,6 +12,7 @@ extends Node
 
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
 const SKILLS_DIR := "res://data/skills/"
+const STRUCTURES_DIR := "res://data/structures/"
 const SCREENSHOT_FRAMES := 45
 const STARTER_KIT := "res://data/debug/starter_kit.tres"
 
@@ -42,6 +43,7 @@ var _input_detached := false
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 @onready var _interaction_prompt: InteractionPrompt = $World/InteractionPrompt
 @onready var _inventory_panel: InventoryPanel = $UI/InventoryPanel
+@onready var _placement_preview: PlacementPreview = $World/PlacementPreview
 
 
 func _ready() -> void:
@@ -63,6 +65,7 @@ func _ready() -> void:
 	player_state.skills = skills
 	player_state.recipes = recipes
 	player_state.spawner = _spawner
+	_spawner.structures = DataCatalog.new(STRUCTURES_DIR)
 	if use_debug_starter_kit and OS.is_debug_build() \
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
 		_spawner.starter_kit = load(STARTER_KIT)
@@ -93,6 +96,8 @@ func _on_local_player_spawned(character: Character) -> void:
 	_hud.setup(character, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
+	_placement_preview.setup(inventory, items, character)
+	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	player_state.request_full_state()
 

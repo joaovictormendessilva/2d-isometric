@@ -342,10 +342,19 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     acabar.
   - **Rede**: o dono pede por id; o host confere tudo de novo (id desconhecido, lugar fora de
     alcance ou falta de ingrediente = nada acontece) e só ele mexe no inventário (ADR-013).
-  - **Bancada**: estação no mundo; as receitas dela valem perto dela, e o host confere a
+  - **Bancada** (escolha do João: o jogador fabrica e coloca, como Terraria/Forager): receita
+    feita na mão; vira estrutura no mundo (`StructureData` + item `PlaceableData`). Com ela na
+    mão (inventário), uma prévia segue o ponteiro, verde onde pode e vermelha onde não pode;
+    clicar fora da janela coloca. Regra única (`PlacementRules`): até 48 px de chão do
+    jogador, chão livre de água, objetos e personagens, e sem obstáculo no caminho. O host
+    usa o que ELE sabe estar na mão do jogador e confere o ponto. Estruturas bloqueiam a
+    passagem e qualquer jogador usa qualquer bancada. As receitas da bancada aparecem sempre
+    na lista, apagadas longe de uma; acendem a até 40 px de chão dela, e o host confere a
     distância. **NPC**: receitas ficam indisponíveis até haver NPCs (Etapa F), que dirão
     quais ensinam.
   - Uma unidade por pedido, instantânea (tempo de fabricação e "fazer N" ficam para depois,
     se o João quiser).
-- **Consequências**: nova receita = novo `.tres`; o teste confere que ingredientes e
-  resultado existem.
+- **Consequências**: nova receita = novo `.tres`; nova estrutura = `StructureData` + item
+  `PlaceableData` (fornalha, baú...). Versão do protocolo de rede: 2. Pendências: recolher
+  ou desmontar uma estrutura colocada; estruturas somem ao fechar o jogo (sem saves ainda).
+  O teste confere que ingredientes e resultado existem.

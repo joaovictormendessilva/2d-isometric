@@ -115,6 +115,22 @@ func pickups(game: Node) -> Array:
 	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Pickup)
 
 
+func structures(game: Node) -> Array:
+	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool: return n is Structure)
+
+
+## Ponto livre perto do jogador onde a estrutura pode ser colocada (procura em volta dele).
+func free_spot_near(character: Character, structure: StructureData) -> Vector2:
+	var space := character.get_world_2d().direct_space_state
+	for distance in [24.0, 32.0, 40.0]:
+		for step in 16:
+			var at: Vector2 = character.position + Iso.ground_to_screen(
+				Vector2.from_angle(TAU * step / 16.0) * distance)
+			if PlacementRules.can_place(space, structure, character.position, at.round()):
+				return at.round()
+	return character.position  # nenhum: o teste que usar vai reprovar
+
+
 ## Desliga a IA de todas as criaturas (testes que não querem ser interrompidos por ataques).
 func calm_monsters(game: Node) -> void:
 	for node in (game.region as Region).entities.get_children():

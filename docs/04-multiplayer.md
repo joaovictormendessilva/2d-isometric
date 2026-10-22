@@ -70,5 +70,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Morte e respawn | ✅ | ✅ automático (host ordena, cliente renasce) | ⬜ |
 | Inventário | ✅ | ✅ automático (host decide; pedidos adulterados recusados) | ⬜ |
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |
+| Fabricação e estruturas | ✅ | ✅ automático (host confere receita, bancada por perto, ponto e item na mão) | ⬜ |
 | Desconexão/reconexão | — | ✅ desconexão (host e cliente); reconexão ⬜ | ⬜ |
 | Salvamento | ⬜ | ⬜ | ⬜ |

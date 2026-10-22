@@ -3,7 +3,8 @@ extends Control
 ## Inventário do jogador LOCAL (abre e fecha com I / Tab / botão Y; Esc fecha). Janela livre:
 ## o jogador a arrasta para onde preferir e anda e luta com ela aberta.
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
-## clicar fora da janela joga no chão; botão direito divide (a parte separada vai para a mão).
+## clicar fora da janela joga no chão (estruturas, como a bancada, são colocadas ali); botão
+## direito divide (a parte separada vai para a mão).
 ## Fechar com algo na mão devolve aos espaços. Ao lado, a coluna de fabricação (CraftingList).
 ## Cada ação é um pedido ao host (PlayerStateSync).
 
@@ -12,6 +13,9 @@ const SLOT_GAP := 2
 const COLUMN_GAP := 8
 const SETTINGS_KEY := "inventory"
 const HINT_ALPHA := 0.7
+
+## Prévia de estruturas no mundo: com uma bancada na mão, clicar fora coloca em vez de jogar.
+var placement: PlacementPreview
 
 var _inventory: Inventory
 var _player_state: PlayerStateSync
@@ -90,11 +94,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		set_open(not visible)
 		get_viewport().set_input_as_handled()
 		return
-	# Clique fora da janela (a janela e os espaços já tratam os cliques sobre eles).
+	# Clique fora da janela (a janela e os espaços já tratam os cliques sobre eles): coloca a
+	# estrutura que está na mão, ou joga o item no chão.
 	var button := event as InputEventMouseButton
 	if visible and button and button.pressed and button.button_index == MOUSE_BUTTON_LEFT \
 			and _inventory.is_holding():
-		_player_state.request_drop_held()
+		if placement and placement.is_active():
+			if placement.can_place:
+				_player_state.request_place(placement.position)
+		else:
+			_player_state.request_drop_held()
 		get_viewport().set_input_as_handled()
 
 

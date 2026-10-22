@@ -8,14 +8,16 @@ extends RefCounted
 const SPOT_ATTEMPTS := 16
 
 
-## A pegada (círculo no chão = elipse 2:1 na tela) em `at` está livre?
-static func is_walkable(space: PhysicsDirectSpaceState2D, at: Vector2, radius: float) -> bool:
+## A pegada (círculo no chão = elipse 2:1 na tela) em `at` está livre? `mask` inclui
+## `ACTORS` quando também não pode haver personagens ali (ex.: colocar uma estrutura).
+static func is_walkable(space: PhysicsDirectSpaceState2D, at: Vector2, radius: float,
+		mask: int = PhysicsLayers.WORLD) -> bool:
 	var shape := CircleShape2D.new()
 	shape.radius = radius
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
 	query.transform = Transform2D(0.0, Vector2(1.0, 1.0 / Iso.Y_SCALE), 0.0, at)
-	query.collision_mask = PhysicsLayers.WORLD
+	query.collision_mask = mask
 	return space.intersect_shape(query, 1).is_empty()
 
 

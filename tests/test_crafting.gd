@@ -65,7 +65,8 @@ func test_crafting_list_shows_hand_recipes_and_crafts_on_click() -> void:
 	var rows: Array[RecipeRow] = []
 	rows.assign(panel.find_children("*", "RecipeRow", true, false))
 	var ids := rows.map(func(row: RecipeRow) -> StringName: return row.recipe.id)
-	check(&"stone_axe" in ids and &"copper_axe" not in ids, "receitas da mão; as de bancada não")
+	check(&"stone_axe" in ids and &"copper_axe" in ids, "receitas da mão e da bancada")
+	check(not rows[ids.find(&"copper_axe")]._available, "longe de bancada: a de bancada fica apagada")
 	var axe: RecipeRow = rows[ids.find(&"stone_axe")]
 	check(not axe._available and axe.modulate.a < 1.0, "sem material: apagada")
 	axe._gui_input(_left_click())

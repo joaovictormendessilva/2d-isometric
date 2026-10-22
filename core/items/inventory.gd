@@ -156,6 +156,14 @@ func split_to_hand(index: int, amount: int) -> bool:
 	return true
 
 
+## Gasta `amount` do que está na mão (ex.: colocou uma bancada). Tudo ou nada.
+func use_held(amount: int) -> bool:
+	if amount < 1 or amount > _held_amount:
+		return false
+	_set_held(_held_id, _held_amount - amount)
+	return true
+
+
 ## Esvazia a mão e devolve o que havia nela: [id, quantidade] (ex.: jogar no chão).
 func take_held() -> Array:
 	var content := [_held_id, _held_amount]
