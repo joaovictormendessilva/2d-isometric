@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="1_prop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/tree.png" id="2_tex"]
+
+[node name="Tree" instance=ExtResource("1_prop")]
+
+[node name="Sprite" parent="." index="0"]
+texture = ExtResource("2_tex")
+offset = Vector2(-16, -46)
+
+[node name="Footprint" parent="." index="1"]
+radius = 6.0

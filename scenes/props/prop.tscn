@@ -1,0 +1,12 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/components/footprint.gd" id="1_footprint"]
+
+[node name="Prop" type="StaticBody2D"]
+collision_mask = 0
+
+[node name="Sprite" type="Sprite2D" parent="."]
+centered = false
+
+[node name="Footprint" type="CollisionPolygon2D" parent="."]
+script = ExtResource("1_footprint")
