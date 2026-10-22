@@ -49,6 +49,9 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
 12. Registre decisões importantes em `docs/01-decisoes.md` e mantenha
     `docs/02-plano-e-status.md` atualizado ao final de cada incremento.
 13. Não avance de etapa sem validar os resultados importantes com o João.
+14. **Código limpo e reutilização**: nada de copiar e colar lógica, formas ou números entre
+    arquivos. Se algo aparece duas vezes, vira componente, função utilitária, cena base ou
+    dado em `data/`. Nomes claros, funções curtas, comentários explicando o *porquê*.
 
 ## Regras técnicas fixas (resumo — detalhes em `docs/01-decisoes.md`)
 
@@ -76,9 +79,10 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   1. Todo trabalho começa numa branch a partir da `main` atualizada
      (`stage-c/...`, `feat/...`, `fix/...`, `chore/...`, `docs/...`).
   2. Commits pequenos na branch; `git push -u origin <branch>` para ter backup no GitHub.
-  3. Quando o incremento estiver validado (testes do Claude passando e, quando houver
-     validação visual/de sensação, aprovação do João): merge na `main` com `--no-ff`
-     (preserva o "degrau" no histórico) e `git push origin main`.
+  3. Uma branch = uma task. Merge na `main` **só quando a task inteira estiver finalizada**
+     e o João confirmar explicitamente ("pode mandar para a main"). Nada de merges
+     intermediários: a `main` só recebe trabalho com certeza absoluta. Então: merge com
+     `--no-ff` (preserva o "degrau" no histórico) e `git push origin main`.
   4. Branches mescladas ficam no GitHub como histórico; nunca apagar sem pedir.
   5. Se algo der errado, a `main` continua no último estado bom.
 
@@ -91,11 +95,16 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
   aperta F5 para jogar.
 - Repositório: `github.com/joaovictormendessilva/2d-isometric` (privado).
 - Godot 4.7.2 Standard instalada em `C:\Godot`:
-  - Linha de comando (Claude, testes): `C:\Godot\Godot_v4.7.2-stable_win64_console.exe`
-    (`--version` → `4.7.2.stable.official.ed1daf0bf`).
-  - Editor (João): `C:\Godot\Godot_v4.7.2-stable_win64.exe`.
-  - Validação padrão: `--headless --path . --import` (importação) e
-    `--headless --path . --quit-after 120` (executa a cena principal e sai).
+  - Executável: `C:\Godot\Godot_v4.7.2-stable_win64.exe` (`--version` →
+    `4.7.2.stable.official.ed1daf0bf`). Pelo bash do Claude ele imprime a saída normalmente.
+    O `..._console.exe` existiu na Etapa B mas foi removido da pasta; não é necessário.
+  - Comandos (rodar na raiz do repositório, `G` = executável acima):
+    - Importar recursos: `G --headless --path . --import`
+    - Testes automáticos: `G --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd`
+    - Desempenho (com janela): `G --path . -s res://tests/benchmark_region.gd`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y]`
+    - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
+      importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
 
 ## Mapa da documentação
 

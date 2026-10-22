@@ -1,32 +1,78 @@
-extends Node2D
-## Cena principal mínima da Etapa B: confirma que o projeto abre, que a resolução interna
-## é 640x360 e que a escala inteira/filtro nearest estão ativos. Será substituída pelo
-## protótipo isométrico da Etapa C.
+extends Node
+## Ponto de entrada: cria a sessão, carrega a região inicial e o personagem do jogador local.
+## Single-player = host com 1 jogador (ADR-004).
+##
+## Argumentos de linha de comando (depois de `--`), usados pelo Claude para conferir telas:
+##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
+##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 
-const TILE_SIZE := Vector2(32, 16)  # ADR-007: tile isométrico 2:1
-const GRID_RADIUS := 3
-const COLOR_A := Color(0.24, 0.42, 0.30)
-const COLOR_B := Color(0.20, 0.36, 0.26)
+const LOCAL_PLAYER_ID := 1
+const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
+const CHARACTER_SCENE := preload("res://scenes/actors/character/character.tscn")
+const SCREENSHOT_FRAMES := 45
+
+var session := GameSession.new()
+var region: Region
+
+@onready var _world: Node2D = $World
+@onready var _camera: GameCamera = $Camera
+@onready var _local_input: LocalPlayerInput = $LocalInput
+@onready var _debug_overlay: DebugOverlay = $UI/DebugOverlay
 
 
 func _ready() -> void:
-	var size := get_viewport_rect().size
-	print("[main] ready: viewport %dx%d, renderer %s" % [
-		size.x, size.y, RenderingServer.get_current_rendering_method()])
-	queue_redraw()
+	region = START_REGION.instantiate()
+	_world.add_child(region)
+
+	var character := spawn_player_character(LOCAL_PLAYER_ID, region.get_spawn_position())
+	_local_input.player_id = LOCAL_PLAYER_ID
+	_local_input.target = character
+	_camera.set_bounds(region.camera_bounds)
+	_camera.follow(character)
+	_debug_overlay.session = session
+	_debug_overlay.player_id = LOCAL_PLAYER_ID
+
+	_handle_command_line()
 
 
-func _draw() -> void:
-	# Pequeno losango de tiles 32x16 no centro da tela, só para conferir a nitidez do pixel.
-	var origin := get_viewport_rect().size / 2.0
-	var half := TILE_SIZE / 2.0
-	for gx in range(-GRID_RADIUS, GRID_RADIUS + 1):
-		for gy in range(-GRID_RADIUS, GRID_RADIUS + 1):
-			var center := origin + Vector2((gx - gy) * half.x, (gx + gy) * half.y)
-			var points := PackedVector2Array([
-				center + Vector2(0, -half.y),
-				center + Vector2(half.x, 0),
-				center + Vector2(0, half.y),
-				center + Vector2(-half.x, 0),
-			])
-			draw_colored_polygon(points, COLOR_A if (gx + gy) % 2 == 0 else COLOR_B)
+func spawn_player_character(player_id: int, at: Vector2) -> Character:
+	var character: Character = CHARACTER_SCENE.instantiate()
+	character.entity_id = session.allocate_entity_id()
+	character.player_id = player_id
+	character.position = at
+	if player_id == LOCAL_PLAYER_ID:
+		character.add_to_group(OccluderFade.VIEWER_GROUP)
+	region.entities.add_child(character)
+	character.reset_physics_interpolation()
+	session.register_entity(character.entity_id, character)
+	session.add_player(player_id, character.entity_id)
+	return character
+
+
+## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem
+## diretamente por intenções).
+func detach_local_input() -> void:
+	_local_input.target = null
+
+
+func _handle_command_line() -> void:
+	var screenshot_path := ""
+	var move := Vector2.ZERO
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--screenshot="):
+			screenshot_path = arg.trim_prefix("--screenshot=")
+		elif arg.begins_with("--move="):
+			var parts := arg.trim_prefix("--move=").split(",")
+			move = Vector2(parts[0].to_float(), parts[1].to_float())
+	if screenshot_path.is_empty():
+		return
+	var character := session.get_player_entity(LOCAL_PLAYER_ID) as Character
+	if move != Vector2.ZERO:
+		detach_local_input()
+		character.set_move_intent(move)
+	for i in SCREENSHOT_FRAMES:
+		await get_tree().physics_frame
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(screenshot_path)
+	print("[main] screenshot: %s" % screenshot_path)
+	get_tree().quit()

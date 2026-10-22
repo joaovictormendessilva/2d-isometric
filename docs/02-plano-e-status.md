@@ -9,7 +9,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 |---|---|---|
 | A | Escolher ambiente de vibe coding, engine e ferramentas | ✅ (ADR-001, ADR-002) |
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
-| C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ⬜ |
+| C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ⬜ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
@@ -58,7 +58,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 | `data/` | Itens, receitas, habilidades, monstros, fórmulas, escalas por jogadores |
 | `assets/` | `sprites/`, `tilesets/`, `vfx/`, `fonts/`, `audio/` (registrar em `05-assets-e-licencas.md`) |
 | `shaders/` | Shaders de CanvasItem (brilho, contorno, pulsação…) |
-| `tests/` | Testes e cenas de estresse executados pela linha de comando |
+| `tests/` | Testes (`test_*.gd`, descobertos automaticamente) e benchmarks pela linha de comando |
+| `tools/` | Scripts geradores (arte e regiões provisórias); não entram na lógica do jogo |
 | `docs/` | Documentação; tem `.gdignore`, então a Godot **não** importa as referências |
 
 ### Validação da Etapa B (Claude, 2026-10-21)
@@ -70,17 +71,49 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Validação visual (F5 no editor, João, 2026-10-21): janela 1280×720, texto legível, losango de
   tiles nítido (pixels em escadinha, sem borrão), painel Saída com 0 erros e 0 avisos.
 
+## Etapa C — checklist (branch `stage-c/iso-prototype`)
+
+- [x] Arte provisória gerada por código (`tools/generate_placeholder_art.gd`)
+- [x] TileSet isométrico 32×16 (losango) com colisão na água
+- [x] Região "Prado" (`scenes/regions/meadow/`) gerada com semente fixa: borda de água,
+      lagos, caminhos de terra, 164 árvores e 74 pedras (`tools/generate_meadow_region.gd`)
+- [x] Sessão com IDs de jogador/entidade (`core/game_session.gd`), sem jogador global
+- [x] Personagem movido por intenções, velocidade igual em todas as direções no plano do chão
+- [x] Colisão por "pegada" redonda no chão (`scenes/components/footprint.gd`); o personagem
+      desliza em volta de árvores e pedras em vez de travar
+- [x] Y-sort: personagem passa atrás/na frente de árvores conforme a posição dos pés
+- [x] Câmera seguindo o jogador local, limitada à região; interpolação de física ligada
+- [x] Painel de debug (F3): FPS, tempo de quadro, draw calls, posição
+- [x] Ajustes pedidos pelo João: velocidade lateral reduzida (ADR-006) e objetos altos
+      transparentes com o personagem atrás (ADR-010)
+- [x] 13 testes automáticos passando (`tests/`), benchmark de desempenho registrado
+- [x] Validação de sensação (movimento, colisão, câmera nas bordas, F3) — João, 2026-10-21
+- [x] Merge na `main` — autorizado pelo João após os ajustes
+
 ## Funcionalidades
 
-Nenhuma funcionalidade de jogo implementada ainda. A cena principal (`scenes/main/main.tscn`)
-é só um marcador: texto de status e um losango de tiles 32×16 para conferir a nitidez do pixel.
+- Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
+- Árvores (e futuros prédios) ficam semitransparentes quando o personagem está atrás delas.
 
 ## Problemas conhecidos
 
-Nenhum.
+- Arte e mapa são provisórios (placeholders gerados por código).
+- O personagem só tem 2 quadros (frente/costas, espelhados); sem animação de caminhada além
+  de um balanço de 1 px.
+- O painel de debug mostra tempos altos nos primeiros quadros (carregamento); o custo em
+  regime está em `docs/03-desempenho.md`.
 
 ## Pendências de decisão
 
 - Coop: jogadores em regiões diferentes ao mesmo tempo? (ADR-005, decidir até a Etapa H)
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)
 - Nome do jogo e identidade visual própria (paleta, tom) — decisão criativa do João
+
+## Ideias futuras (backlog criativo)
+
+Ideias do João para considerar nas etapas certas — não são compromissos ainda.
+
+- **Atravessar água**: buff, poção ou montaria que permite andar sobre a água (ou nadar),
+  abrindo atalhos e áreas escondidas. Técnica prevista: mover a colisão da água para uma
+  camada de física própria (hoje está em "world") e o efeito tiraria essa camada da máscara
+  de colisão do personagem. (Etapa E/J — montarias)

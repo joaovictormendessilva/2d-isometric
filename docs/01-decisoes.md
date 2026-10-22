@@ -47,7 +47,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-003 — Renderizador Compatibility
 
-- **Status**: Hipótese (validar na Etapa C/H)
+- **Status**: Aceita para cenário e personagens (Etapa C validada pelo João, 2026-10-21); efeitos mágicos ainda a validar (Etapa G/H)
 - **Decisão**: usar o renderizador **Compatibility** (OpenGL 3.3 / WebGL2) por padrão.
 - **Motivo**: maior alcance em GPUs integradas e antigas; suficiente para 2D.
 - **A validar**: se os efeitos desejados (brilho, shaders, luzes 2D) ficam bons nele. Se algum
@@ -68,7 +68,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-005 — Regiões como cenas, estado persistente à parte
 
-- **Status**: Hipótese (validar na Etapa C/F)
+- **Status**: Hipótese (uma região funcionando na Etapa C; transições e estado salvo na Etapa F)
 - **Decisão**:
   - Cada região é **uma cena Godot** (TileMapLayers + entidades), carregada uma por vez no
     single-player.
@@ -83,7 +83,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-006 — Representação isométrica
 
-- **Status**: Hipótese (validar na Etapa C)
+- **Status**: Aceita (validada pelo João na Etapa C, 2026-10-21), com o ajuste de velocidade abaixo
 - **Decisão inicial**:
   - Mapa com TileMapLayer em modo **isométrico** nativo da Godot; ordenação de profundidade
     por **Y-sort**.
@@ -94,10 +94,14 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     em todas as direções. Funções utilitárias centralizam essa conversão.
 - **A validar no protótipo**: sensação de movimento, colisões nas bordas dos tiles, ordenação
   com objetos altos (árvores, construções), navegação de inimigos.
+- **Ajuste (2026-10-21, pedido do João)**: com velocidade igual no chão, andar na horizontal
+  parecia mais rápido (percorre mais pixels de tela). A velocidade de MOVIMENTO agora é
+  multiplicada por `Iso.move_speed_factor` (cos⁴ da direção; `horizontal_speed_factor` = 0,8
+  em `data/actors/player.tres`). A direção não muda, e alcances/áreas seguem justos no chão.
 
 ## ADR-007 — Hipóteses visuais iniciais
 
-- **Status**: Hipótese (validar na Etapa C)
+- **Status**: Aceita para resolução, escala e tile (Etapa C, 2026-10-21); tamanho final e direções do personagem seguem hipótese até haver arte própria
 - **Valores iniciais propostos**:
   - Resolução interna: **640×360**, escalada por inteiro (×3 = 1920×1080), filtro *nearest*.
   - Tile isométrico: **32×16 px** (proporção 2:1).
@@ -121,3 +125,31 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   comercial** (preferência: CC0, MIT, CC-BY com atribuição registrada). Todo asset externo
   entra em `docs/05-assets-e-licencas.md` antes de ser commitado.
 - **Ferramenta de pixel art recomendada**: Pixelorama (gratuita, MIT). Aseprite é paga.
+
+## ADR-009 — Colisão por "pegada" no plano do chão e interpolação de física
+
+- **Status**: Aceita (colisão, Y-sort e câmera validados pelo João, 2026-10-21)
+- **Contexto**: ADR-006 pede distâncias justas em todas as direções. Colisões desenhadas em
+  coordenadas de tela ficariam "esticadas" na horizontal.
+- **Decisão**:
+  - Toda entidade colide por uma **pegada**: um círculo no plano do chão (raio em pixels),
+    desenhado na tela como elipse 2:1 (`scenes/components/footprint.gd`). Só o raio muda
+    entre personagem (5), árvore (6) e pedra (8).
+  - Por ser redonda, o personagem **desliza em volta** de obstáculos ao empurrá-los, em vez
+    de travar. Comportamento desejado para RPG de ação; testado em `tests/test_movement.gd`.
+  - Origem dos nós nos **pés/base** (usada pelo Y-sort). Sprites usam `offset` para isso.
+  - **Physics interpolation** ligada (física a 60 Hz, tela suave em monitores de 144 Hz);
+    a câmera é filha do personagem seguido para herdar a posição interpolada.
+- **Consequências**: teleportes precisam chamar `reset_physics_interpolation()`.
+
+## ADR-010 — Objetos altos ficam transparentes com o jogador atrás
+
+- **Status**: Aceita (pedido do João, 2026-10-21)
+- **Decisão**: componente `OccluderFade` (`scenes/components/occluder_fade.gd`) na cena base
+  dos objetos (`scenes/props/prop.tscn`). Quando o personagem do jogador LOCAL (grupo
+  `occlusion_viewer`) está atrás do objeto (pés acima da base), o objeto vai a 45% de
+  opacidade em 0,15 s. Objetos com menos de 20 px de altura (pedras) desligam o efeito
+  sozinhos. Prédios e outros objetos altos futuros herdam o comportamento.
+- **Motivo**: o jogador nunca deve perder o próprio personagem de vista.
+- **Consequências**: só apresentação (cada máquina do coop decide pelo seu jogador local);
+  custo medido desprezível (0,43 ms/quadro com 164 árvores).
