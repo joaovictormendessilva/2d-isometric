@@ -18,7 +18,7 @@ basta — a licença precisa permitir **uso comercial**.
 
 | Asset | Origem | Autor | Licença | Atribuição exigida | Arquivo(s) |
 |---|---|---|---|---|---|
-| Arte provisória (tiles grama/terra/água, personagem, árvore, pedra, sombra, slime, gosma, rastro de espada, pontos de coleta e seus restos, ícones de itens e ferramentas, bancada, mercador, moeda) | Gerada por código (`tools/generate_placeholder_art.gd`) | Claude (para o projeto) | Própria do projeto | Não | `assets/tilesets/placeholder/`, `assets/sprites/placeholder/` |
+| Arte provisória (tiles grama/terra/água, personagem, árvore, pedra, sombra, slime, gosma, rastro de espada, pontos de coleta e seus restos, ícones de itens e ferramentas, bancada, mercador, moeda, poção de vida) | Gerada por código (`tools/generate_placeholder_art.gd`) | Claude (para o projeto) | Própria do projeto | Não | `assets/tilesets/placeholder/`, `assets/sprites/placeholder/` |
 | Fonte pixel art m5x7 (textos do jogo, tamanho 16) | https://managore.itch.io/m5x7 (baixada 2026-10-22, SHA-256 em `assets/fonts/m5x7-LICENSE.txt`) | Daniel Linssen (managore) | CC0 1.0 (domínio público, uso comercial livre) | Não (o autor agradece crédito: incluir nos créditos) | `assets/fonts/m5x7.ttf` |
 
 ## Referências (não entram no jogo)

@@ -7,6 +7,7 @@
 script = ExtResource("1_npc")
 id = &"merchant"
 offers = Dictionary[StringName, int]({
+&"health_potion": 15,
 &"simple_backpack": 120,
 &"stone_axe": 20,
 &"stone_pickaxe": 20,

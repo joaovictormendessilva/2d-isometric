@@ -261,6 +261,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - Limite de mensagens por segundo por cliente, com desconexão de quem abusar.
   - **Segredo do perfil sem criptografia** (ADR-019): na LAN, quem escuta a rede poderia
     copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
+  - **Espera da poção não vai no save** (ADR-022): sair e voltar zera a espera (10 s). Risco
+    pequeno; se incomodar, guardar o tempo restante no personagem.
 - **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
   saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
   `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.
@@ -527,3 +529,27 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: novo NPC = `NpcData` + cena + posição no gerador. A F3c (receitas de NPC)
   pode usar o mesmo NPC como estação `NPC`. Pendência: navegar a loja só por teclado/controle
   (como o inventário, ADR-018).
+
+## ADR-022 — Consumíveis e poção de vida
+
+- **Status**: Hipótese (F3b, aguardando validação do João)
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Consumível** = `ConsumableData` (item com `heal`, `cooldown` e `cooldown_group`). Usar gasta
+    uma unidade. Regras puras em `ConsumableRules`, tudo ou nada: vida cheia não bebe (não
+    desperdiça), morto não bebe, esperando não bebe.
+  - **Poção de vida**: cura 40 (de 100) na hora, espera de 10 s entre poções (grupo `potion`),
+    pilha de 20. O mercador vende por 15 e compra por 4. Cura instantânea com espera (como Hero
+    Siege/Diablo) em vez de cura ao longo do tempo: mais legível no combate de agora.
+  - **Como beber**: tecla de poção (**Q**, botão LB do controle) bebe a primeira poção de vida do
+    inventário, sem abrir nada; no inventário, botão direito → "Usar". O HUD mostra a poção ao
+    lado da vida (quantidade, tecla e os segundos de espera). Sem poções o quadrado fica apagado.
+  - **Esperas** (`Cooldowns`, por jogador na `GameSession`): o host decide e envia ao dono cada
+    espera começada; o dono conta no próprio relógio (chega depois, então nunca libera antes do
+    host). Não vão no save.
+  - **Rede**: o cliente pede "usar espaço i" ou "beber poção"; o host escolhe a poção e confere
+    tudo com o estado dele. A cura é decidida só no host (`Health.heal`); todos veem o "+40" verde
+    e o brilho verde. O dono confere antes de pedir para explicar a recusa ("Vida cheia",
+    "Poção ainda não está pronta", "Sem poções"). Protocolo de rede: versão 7.
+- **Consequências**: comida, antídotos e buffs (Etapa G) entram como novos campos ou subclasses de
+  `ConsumableData`, usando o mesmo pedido e as mesmas esperas. A F3c pode ensinar a fabricar a
+  poção (ex.: com gosma) num NPC.

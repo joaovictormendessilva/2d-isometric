@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a ✅; F3b (poção) a seguir |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a ✅; F3b (poção) aguardando validação |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -179,6 +179,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   entrada da campina, loja com o inventário ao lado, venda pelo botão direito, moedas no save e
   no coop pelo host. Correção do teste dele: mochila depois de viajar. 121 testes. Validado
   pelo João (2026-10-22).
+  F3b 🟡 implementado (branch `stage-f/potion`, ADR-022): poção de vida (cura 40, espera de 10 s),
+  vendida pelo mercador; tecla Q (LB) bebe, ou "Usar" no menu do inventário; poção e espera no
+  HUD; "+40" e brilho verdes; no coop o host decide. 127 testes. Aguardando validação do João.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
@@ -210,6 +213,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
   abre a loja e o inventário: clique numa oferta compra; botão direito num item do inventário
   vende ("Vender 1" / "Vender tudo"). Moedas aparecem no inventário e na loja. Preços em
   `data/npcs/merchant.tres` (compra) e no `sell_price` de cada item (venda).
+- Poção de vida (F3b): tecla Q (botão LB) bebe uma poção (cura 40; espera de 10 s entre
+  poções); também pelo botão direito no inventário → "Usar". O quadrado ao lado da vida mostra
+  quantas há e os segundos de espera. Vida cheia não gasta poção. Compre no mercador (15 moedas);
+  o kit de testes já traz 5. Valores em `data/items/health_potion.tres`.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

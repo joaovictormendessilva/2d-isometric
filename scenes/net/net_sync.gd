@@ -63,6 +63,7 @@ func _ready() -> void:
 	if _body.health:
 		_body.health.damaged.connect(_on_damaged)
 		_body.health.changed.connect(_on_health_changed)
+		_body.health.healed.connect(_on_healed)
 		_body.health.blocked.connect(_on_blocked.unbind(1))
 		_body.health.immunity_changed.connect(_on_immunity_changed)
 	if _body.gatherer:
@@ -293,6 +294,10 @@ func _on_health_changed(current: int, _maximum: int) -> void:
 	_send_to_clients(&"_health", [current], true)
 
 
+func _on_healed(amount: int) -> void:
+	_send_to_clients(&"_healed", [amount], true)
+
+
 func _on_blocked() -> void:
 	_send_to_clients(&"_blocked", [], true)
 
@@ -318,6 +323,12 @@ func _damaged(amount: int, direction: Vector2, knockback: float) -> void:
 @rpc("authority", "call_remote", "reliable")
 func _health(current: int) -> void:
 	_body.health.replicate_current(current)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _healed(amount: int) -> void:
+	if amount > 0 and amount <= _body.health.max_health:
+		_body.health.replicate_healed(amount)
 
 
 @rpc("authority", "call_remote", "reliable")

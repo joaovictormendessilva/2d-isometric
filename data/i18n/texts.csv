@@ -79,3 +79,12 @@ SHOP_INVENTORY_FULL,Inventário cheio,Inventory full
 SHOP_NOT_SOLD,Não está à venda,Not for sale
 SLOT_MENU_SELL_ONE,Vender 1 (%d),Sell 1 (%d)
 SLOT_MENU_SELL_ALL,Vender tudo (%d),Sell all (%d)
+ITEM_HEALTH_POTION,Poção de vida,Health potion
+SLOT_MENU_USE,Usar,Use
+STAT_HEAL,Cura %d de vida,Restores %d health
+STAT_COOLDOWN,Espera %d s entre poções,%d s between potions
+COMBAT_HEALED,+%d,+%d
+USE_FULL_HEALTH,Vida cheia,Health is full
+USE_COOLING_DOWN,Poção ainda não está pronta,Potion not ready yet
+USE_NO_POTION,Sem poções,No potions
+HUD_POTION_KEY,[%s],[%s]

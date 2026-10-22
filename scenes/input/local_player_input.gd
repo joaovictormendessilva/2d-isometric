@@ -5,6 +5,7 @@ extends Node
 ## então as diagonais andam alinhadas às bordas dos tiles.
 ## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main) ou, sem NPC,
 ## coletar o ponto de coleta mais próximo.
+## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
 ## mouse se ele foi o último dispositivo usado; senão, na direção em que o personagem olha.
 ## No coop, o personagem local age na hora e o NetSync pede ao host (ADR-012).
@@ -56,6 +57,8 @@ func _physics_process(_delta: float) -> void:
 			talk_requested.emit(npc)
 		else:
 			target.request_gather()
+	if Input.is_action_just_pressed(&"use_potion") and player_state:
+		player_state.request_quick_heal()
 	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
 		target.request_attack(_aim_direction())

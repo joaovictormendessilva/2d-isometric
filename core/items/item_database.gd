@@ -13,6 +13,12 @@ func get_item(id: StringName) -> ItemData:
 	return get_entry(id) as ItemData
 
 
+## Algum consumível usa esse grupo de espera? (Confere grupos vindos da rede.)
+func has_cooldown_group(group: StringName) -> bool:
+	return entries().any(func(entry: Resource) -> bool:
+		return entry is ConsumableData and entry.cooldown_group == group)
+
+
 ## Ferramentas entre os itens que o inventário tem.
 func tools_in(inventory: Inventory) -> Array[ToolData]:
 	var tools: Array[ToolData] = []

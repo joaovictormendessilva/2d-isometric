@@ -155,6 +155,10 @@ const ICON_PALETTE := {
 	"G": Color("f6dc7a"),  # ouro (luz)
 	"y": Color("e8b84a"),  # ouro
 	"Y": Color("b07a2a"),  # ouro (sombra)
+	"g": Color("d8eef0"),  # vidro (reflexo)
+	"R": Color("f0705a"),  # poção (luz, puxa para o quente)
+	"e": Color("c8323c"),  # poção
+	"E": Color("7a1c3e"),  # poção (sombra, puxa para o roxo)
 }
 const LOG := [
 	"........",
@@ -266,6 +270,17 @@ const COIN := [
 	".oyYYYo.",
 	"..oooo..",
 ]
+## Frasco redondo com rolha; reflexo do vidro em cima à esquerda (luz única).
+const POTION := [
+	"..ohho..",
+	"..oggo..",
+	".ogRReo.",
+	"ogRReeEo",
+	"oRReeeEo",
+	"oeeeeEEo",
+	".oeEEEo.",
+	"..oooo..",
+]
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -282,6 +297,7 @@ const ICONS := {
 	"simple_backpack": [BACKPACK, {}],
 	"magnet_ring": [RING, {}],
 	"coin": [COIN, {}],
+	"health_potion": [POTION, {}],
 }
 
 

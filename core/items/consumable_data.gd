@@ -1,0 +1,11 @@
+class_name ConsumableData
+extends ItemData
+## Item que se usa e se gasta (uma unidade por uso), ex.: poção de vida. Usar é pelo menu do
+## botão direito do inventário ou, para curar, pela tecla de poção (ver ConsumableRules).
+
+## Vida devolvida na hora (0 = não cura).
+@export var heal: int = 0
+## Espera depois de usar, em segundos. Vale para todos os itens do mesmo `cooldown_group`
+## (beber uma poção não deixa beber outra logo em seguida).
+@export var cooldown: float = 0.0
+@export var cooldown_group: StringName = &"potion"
