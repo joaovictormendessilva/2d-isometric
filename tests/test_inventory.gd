@@ -32,29 +32,40 @@ func test_full_inventory_returns_what_did_not_fit() -> void:
 	check(not inventory.can_add_all(both), "juntos não cabem (o minério não tem espaço)")
 
 
-func test_move_swaps_or_merges() -> void:
-	var inventory := Inventory.new(3, ItemDatabase.load_all())
+## Mão vazia: clicar pega a pilha. Mão cheia: espaço vazio recebe, mesmo item junta (o resto
+## fica na mão), item diferente troca.
+func test_click_picks_places_merges_and_swaps() -> void:
+	var inventory := Inventory.new(4, ItemDatabase.load_all())
 	var limit := inventory.stack_limit(&"wood")
 	inventory.replicate_slot(0, &"wood", 5)
 	inventory.replicate_slot(1, &"stone", 2)
-	inventory.move(0, 1)
-	check(inventory.slot_item(0) == &"stone" and inventory.slot_item(1) == &"wood", "itens diferentes trocam")
 	inventory.replicate_slot(2, &"wood", limit - 2)
-	inventory.move(1, 2)
-	check(inventory.slot_amount(2) == limit and inventory.slot_amount(1) == 3,
-		"mesmo item junta até o limite; o resto fica")
-	check(inventory.count(&"wood") == limit + 3, "mover não cria nem some itens")
+	inventory.click_slot(0)
+	check(inventory.held_item() == &"wood" and inventory.held_amount() == 5
+		and inventory.slot_item(0) == Inventory.EMPTY, "pegou as 5 madeiras")
+	inventory.click_slot(2)
+	check(inventory.slot_amount(2) == limit and inventory.held_amount() == 3,
+		"juntou até o limite; 3 ficaram na mão")
+	inventory.click_slot(1)
+	check(inventory.slot_item(1) == &"wood" and inventory.held_item() == &"stone",
+		"item diferente troca: a pedra veio para a mão")
+	inventory.click_slot(3)
+	check(not inventory.is_holding() and inventory.slot_item(3) == &"stone", "espaço vazio recebe tudo")
+	check(inventory.count(&"wood") == limit + 3 and inventory.count(&"stone") == 2,
+		"nada se criou nem se perdeu")
 
 
-func test_split_moves_part_of_a_stack_to_the_right() -> void:
+func test_split_puts_part_of_a_stack_in_the_hand() -> void:
 	var inventory := Inventory.new(3, ItemDatabase.load_all())
 	inventory.add(&"wood", 10)
-	check(inventory.split(0, 4, Inventory.split_target(0)), "dividiu")
-	check(inventory.slot_amount(0) == 6 and inventory.slot_amount(1) == 4, "6 ficaram, 4 foram para a direita")
-	check(not inventory.split(0, 2, 1), "não divide para um espaço ocupado")
-	check(not inventory.split(0, 6, 2) and not inventory.split(0, 0, 2), "nem a pilha toda, nem zero")
-	check(not inventory.split(2, 1, 3), "nem a partir do último espaço (não há direita)")
-	check(inventory.count(&"wood") == 10, "nada se perdeu")
+	check(not inventory.split_to_hand(0, 10) and not inventory.split_to_hand(0, 0),
+		"nem a pilha toda, nem zero")
+	check(inventory.split_to_hand(0, 4), "dividiu")
+	check(inventory.slot_amount(0) == 6 and inventory.held_amount() == 4, "6 ficaram, 4 na mão")
+	check(not inventory.split_to_hand(0, 2), "com a mão cheia não divide de novo")
+	inventory.add(&"stone", 99 * 2)  # enche os outros espaços
+	check(inventory.return_held() == 0 and inventory.count(&"wood") == 10,
+		"devolver a mão completa a pilha de origem")
 
 
 func test_remove_is_all_or_nothing() -> void:
@@ -91,15 +102,16 @@ func test_full_inventory_leaves_drops_and_refuses_gathering() -> void:
 	check(reasons == [GatheringRules.Check.INVENTORY_FULL], "avisa: inventário cheio")
 
 
-## Tela de inventário: soltar num espaço move; soltar fora joga no chão; cada espaço mostra
-## quantidade e nome.
-func test_inventory_screen_moves_and_throws_away() -> void:
+
+## Tela de inventário: cada espaço mostra quantidade e nome; clicar pega e põe; clicar fora
+## joga no chão; botão direito divide para a mão; fechar devolve a mão.
+func test_inventory_screen_click_split_and_throw_away() -> void:
 	var game := start_game()
-	var session: GameSession = game.session
-	var inventory := session.get_inventory(game.local_player_id())
+	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
 	inventory.add(&"wood", 5)
 	inventory.add(&"stone", 2)
 	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
 	var slots := panel.find_children("*", "InventorySlot", true, false)
 	check(slots.size() == inventory.capacity(), "um quadrado por espaço")
 	var first: InventorySlot = slots[0]
@@ -107,29 +119,29 @@ func test_inventory_screen_moves_and_throws_away() -> void:
 	check(label.text == "5" and first.tooltip_text == Texts.name_of("ITEM", &"wood"),
 		"mostra a quantidade e o nome")
 
-	var drag := {InventorySlot.DRAG_KEY: 0}
-	(slots[1] as InventorySlot)._drop_data(Vector2.ZERO, drag)
-	check(inventory.slot_item(0) == &"stone" and inventory.slot_item(1) == &"wood", "soltar no espaço troca")
-	check(label.text == "2", "o quadrado atualizou")
+	first.clicked.emit(0)
+	check(inventory.is_holding() and panel.captures_mouse(), "pegou: o clique agora é do inventário")
+	check(panel._held.visible, "o item na mão aparece junto ao ponteiro")
+	(slots[3] as InventorySlot).clicked.emit(3)
+	check(inventory.slot_item(3) == &"wood" and label.text == "", "pôs noutro espaço e a tela atualizou")
 
-	panel.drop_if_outside(1, Vector2(-50, -50))  # bem fora da janela
-	await physics_frames(2)
-	check(inventory.count(&"wood") == 0 and pickups(game).size() == 1, "soltar fora joga no chão")
-
-
-## Botão direito numa pilha: sem espaço à direita, avisa; com espaço, a janelinha divide.
-func test_split_from_the_screen() -> void:
-	var game := start_game()
-	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
-	inventory.add(&"wood", 10)
-	inventory.add(&"stone", 1)  # ocupa o espaço à direita da madeira
-	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
-	panel._on_split_requested(0)
-	check(panel._hint.text == Texts.get_text(&"SPLIT_NEEDS_FREE_SLOT"), "avisa que falta espaço")
-	check(not panel._split.visible, "a janelinha não abre")
-	inventory.move(1, 2)  # libera o espaço à direita
-	panel._on_split_requested(0)
-	check(panel._split.visible, "a janelinha abre")
-	panel._split._slider.value = 3
+	panel._on_split_requested(1)
+	check(panel._split.visible, "botão direito abre a janelinha")
+	panel._split._slider.value = 1
 	panel._split._confirm()
-	check(inventory.slot_amount(0) == 7 and inventory.slot_amount(1) == 3, "separou 3")
+	check(inventory.held_item() == &"stone" and inventory.held_amount() == 1, "1 pedra na mão")
+	panel._unhandled_input(_left_click())  # clique fora da janela
+	await physics_frames(2)
+	check(not inventory.is_holding() and pickups(game).size() == 1, "clique fora jogou no chão")
+
+	(slots[3] as InventorySlot).clicked.emit(3)
+	panel.set_open(false)
+	check(not inventory.is_holding() and inventory.count(&"wood") == 5, "fechar devolveu a mão")
+	check(not panel._held.visible, "mão vazia: nada junto ao ponteiro")
+
+
+func _left_click() -> InputEventMouseButton:
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	return click

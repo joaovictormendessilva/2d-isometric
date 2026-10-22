@@ -257,17 +257,21 @@ func test_client_inventory_actions_go_through_host() -> void:
 	check(on_client.slot_item(0) == &"wood" and on_client.slot_amount(1) == 2, "cliente recebeu os espaços")
 
 	var state: PlayerStateSync = client.player_state
-	state.request_move(0, 1)
-	for bad: Array in [[-1, 0], [0, 999], [999, 0]]:
-		state.request_move(bad[0], bad[1])
-	state.request_drop(999)
+	for bad in [-1, 999]:
+		state.request_click(bad)
 	state.request_split(0, 999)
 	state.request_split(0, -5)
+	state.request_drop_held()  # mão vazia: nada
+	state.request_click(0)  # pega as madeiras
+	state.request_click(1)  # troca com as pedras
 	await physics_frames(10)
-	check(on_host.slot_item(0) == &"stone" and on_client.slot_item(0) == &"stone", "troca feita no host e vista no cliente")
-	check(host_own.count(&"gel") == 1, "inventário do host intacto")
+	check(on_host.slot_item(1) == &"wood" and on_client.slot_item(1) == &"wood"
+		and on_client.held_item() == &"stone", "troca feita no host; cliente vê espaços e mão")
+	check(host_own.count(&"gel") == 1 and pickups(client).is_empty(), "nada além disso mudou")
 
-	state.request_drop(1)  # as 5 madeiras
+	state.request_click(0)  # põe as pedras
+	state.request_click(1)  # pega as 5 madeiras
+	state.request_drop_held()
 	var dropped := await wait_until(func() -> bool: return pickups(client).size() == 1, 30)
 	check(dropped and on_client.count(&"wood") == 0, "jogou fora: saiu do inventário e caiu no chão")
 	if dropped:

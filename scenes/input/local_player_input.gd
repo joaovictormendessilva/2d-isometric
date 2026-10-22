@@ -4,10 +4,13 @@ extends Node
 ## Movimento: direções da tela viram direções no plano do chão (cima na tela = "norte"),
 ## então as diagonais andam alinhadas às bordas dos tiles.
 ## Interagir (E / botão A): coletar o ponto de coleta mais próximo.
-## Ataque: segurar repete o golpe. Mira no mouse se ele foi o último dispositivo usado;
-## senão, na direção em que o personagem olha (teclado/controle).
+## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
+## mouse se ele foi o último dispositivo usado; senão, na direção em que o personagem olha.
 ## No coop, o personagem local age na hora e o NetSync pede ao host (ADR-012).
 
+## Grupo de nós da interface que podem estar usando o mouse (método `captures_mouse()`),
+## ex.: janela sendo arrastada, item na mão. Enquanto usam, o clique não é ataque.
+const MOUSE_CAPTURE_GROUP := &"mouse_capture"
 ## Movimento mínimo do analógico para considerar o controle como dispositivo ativo.
 const JOYPAD_ACTIVITY := 0.5
 
@@ -15,6 +18,9 @@ var player_id := 0
 var target: Character
 
 var _aim_with_mouse := false
+## O clique de mouse atual começou com o ponteiro livre? (Um clique que começou na interface
+## não vira ataque, nem se o ponteiro sair dela com o botão ainda apertado.)
+var _mouse_press_is_free := false
 
 
 func _ready() -> void:
@@ -29,6 +35,9 @@ func _input(event: InputEvent) -> void:
 		_aim_with_mouse = false
 	elif event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > JOYPAD_ACTIVITY:
 		_aim_with_mouse = false
+	var button := event as InputEventMouseButton
+	if button and button.button_index == MOUSE_BUTTON_LEFT and button.pressed:
+		_mouse_press_is_free = not _mouse_is_busy()
 
 
 func _physics_process(_delta: float) -> void:
@@ -37,13 +46,17 @@ func _physics_process(_delta: float) -> void:
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if Input.is_action_just_pressed(&"interact"):
 		target.request_gather()
-	if Input.is_action_pressed(&"attack") and not _pointer_over_ui():
+	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
 		target.request_attack(_aim_direction())
 
 
-## Clique sobre a interface (ex.: tela de inventário) não é ataque.
-func _pointer_over_ui() -> bool:
-	return _aim_with_mouse and get_viewport().gui_get_hovered_control() != null
+## Ponteiro sobre a interface, ou a interface usando o mouse (arrastando janela, item na mão).
+func _mouse_is_busy() -> bool:
+	if get_viewport().gui_get_hovered_control() != null:
+		return true
+	return get_tree().get_nodes_in_group(MOUSE_CAPTURE_GROUP).any(
+		func(node: Node) -> bool: return node.captures_mouse())
 
 
 func _aim_direction() -> Vector2:

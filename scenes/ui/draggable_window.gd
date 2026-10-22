@@ -10,11 +10,15 @@ var _key := ""
 var _column := VBoxContainer.new()
 var _title := Label.new()
 var _dragging := false
+## Onde o ponteiro pegou a janela, em relação ao canto dela: a janela acompanha o ponteiro
+## sem "escorregar" (posição absoluta, não somando deslocamentos).
+var _grab_offset := Vector2.ZERO
 
 
 func _ready() -> void:
 	add_child(_column)
 	_column.add_child(_title)
+	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 
 
 func setup(title: String, settings_key: String) -> void:
@@ -36,9 +40,14 @@ func fit_content() -> void:
 	reset_size.call_deferred()
 
 
-## A janela (sem a barra de título) contém este ponto da tela?
+## A janela contém este ponto da tela?
 func contains_screen_point(point: Vector2) -> bool:
 	return get_global_rect().has_point(point)
+
+
+## Enquanto é arrastada, o mouse é da janela (não ataca no mundo).
+func captures_mouse() -> bool:
+	return _dragging
 
 
 func _place() -> void:
@@ -50,11 +59,11 @@ func _on_title_input(event: InputEvent) -> void:
 	var button := event as InputEventMouseButton
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
 		_dragging = button.pressed
+		_grab_offset = get_global_mouse_position() - position
 		if not _dragging:
 			UserSettings.set_value(SETTINGS_SECTION, _key, position)
-	var motion := event as InputEventMouseMotion
-	if motion and _dragging:
-		position = _clamped(position + motion.relative)
+	elif event is InputEventMouseMotion and _dragging:
+		position = _clamped(get_global_mouse_position() - _grab_offset)
 
 
 ## A janela nunca sai da tela.

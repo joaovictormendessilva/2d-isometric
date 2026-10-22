@@ -1,12 +1,14 @@
 class_name Inventory
 extends RefCounted
 ## Inventário de UM jogador: uma fila de espaços; cada espaço guarda um tipo de item até o
-## limite de pilha dele (`ItemData.max_stack`). Só o host altera (`add`, `remove`, `move`,
-## `take_slot`); na rede, o dono recebe cada espaço (`replicate_slot`) e os ganhos
-## (`notify_added`), ver PlayerStateSync.
+## limite de pilha dele (`ItemData.max_stack`). Mais a "mão": a pilha que o jogador pegou
+## com um clique e ainda não pôs em lugar nenhum (faz parte do inventário: não some nem se
+## duplica). Só o host altera; na rede, o dono recebe cada espaço (`replicate_slot`), a mão
+## (`replicate_held`) e os ganhos (`notify_added`), ver PlayerStateSync.
 
 signal slot_changed(index: int)
-## Ganho de itens (apresentação: "+1 Madeira"). Mover itens entre espaços não conta.
+signal held_changed
+## Ganho de itens (apresentação: "+1 Madeira"). Mexer em itens que já eram seus não conta.
 signal added(item_id: StringName, amount: int)
 
 ## Limite de pilha sem catálogo de itens (testes) ou para item desconhecido.
@@ -17,6 +19,8 @@ const EMPTY := &""
 
 var _ids: Array[StringName] = []
 var _amounts := PackedInt32Array()
+var _held_id := EMPTY
+var _held_amount := 0
 var _items: ItemDatabase
 
 
@@ -39,11 +43,24 @@ func slot_amount(index: int) -> int:
 	return _amounts[index]
 
 
+func held_item() -> StringName:
+	return _held_id
+
+
+func held_amount() -> int:
+	return _held_amount
+
+
+func is_holding() -> bool:
+	return _held_amount > 0
+
+
 func stack_limit(item_id: StringName) -> int:
 	var item := _items.get_item(item_id) if _items else null
 	return item.max_stack if item else DEFAULT_STACK
 
 
+## Quantidade nos espaços (a mão não conta: o que está nela está "em trânsito").
 func count(item_id: StringName) -> int:
 	var total := 0
 	for i in capacity():
@@ -68,20 +85,10 @@ func can_add(item_id: StringName, amount: int) -> bool:
 	return space_for(item_id) >= amount
 
 
-## Guarda o que couber (primeiro completa pilhas, depois ocupa espaços vazios). Retorna o que
-## sobrou (0 = tudo guardado).
+## Guarda itens NOVOS (coleta, drops): o que couber, primeiro completando pilhas. Retorna o
+## que sobrou (0 = tudo guardado).
 func add(item_id: StringName, amount: int) -> int:
-	var left := amount
-	var limit := stack_limit(item_id)
-	for pass_empty in [false, true]:
-		for i in capacity():
-			if left == 0:
-				break
-			var matches: bool = _ids[i] == EMPTY if pass_empty else _ids[i] == item_id
-			if matches and _amounts[i] < limit:
-				var put := mini(limit - _amounts[i], left)
-				_set_slot(i, item_id, _amounts[i] + put)
-				left -= put
+	var left := _store(item_id, amount)
 	if left < amount:
 		added.emit(item_id, amount - left)
 	return left
@@ -100,64 +107,67 @@ func remove(item_id: StringName, amount: int) -> bool:
 	return true
 
 
-## Move o conteúdo de um espaço para outro: junta se for o mesmo item (até o limite), senão
-## troca os dois de lugar.
-func move(from: int, to: int) -> void:
-	if from == to or _ids[from] == EMPTY:
-		return
-	if _ids[from] == _ids[to]:
-		var put := mini(stack_limit(_ids[to]) - _amounts[to], _amounts[from])
-		_set_slot(to, _ids[to], _amounts[to] + put)
-		_set_slot(from, _ids[from], _amounts[from] - put)
-	else:
-		var moving_id := _ids[from]
-		var moving_amount := _amounts[from]
-		_set_slot(from, _ids[to], _amounts[to])
-		_set_slot(to, moving_id, moving_amount)
-
-
 ## Tudo isto cabe junto? (Simula numa cópia: itens diferentes podem disputar o mesmo espaço.)
 func can_add_all(amounts: Dictionary[StringName, int]) -> bool:
 	var copy := Inventory.new(capacity(), _items)
 	copy._ids = _ids.duplicate()
 	copy._amounts = _amounts.duplicate()
 	for item_id in amounts:
-		if copy.add(item_id, amounts[item_id]) > 0:
+		if copy._store(item_id, amounts[item_id]) > 0:
 			return false
 	return true
 
 
-## Separa `amount` da pilha de `from` para o espaço vazio `to`. Retorna se conseguiu.
-func split(from: int, amount: int, to: int) -> bool:
-	if not can_split(from, amount, to):
+## Clique num espaço. Mão vazia: pega a pilha. Mão cheia: espaço vazio recebe tudo; mesmo item
+## junta até o limite (o resto fica na mão); item diferente troca (o do espaço vem para a mão).
+func click_slot(index: int) -> void:
+	if not is_valid_slot(index):
+		return
+	var slot_id := _ids[index]
+	var slot_amount_ := _amounts[index]
+	if not is_holding():
+		_set_held(slot_id, slot_amount_)
+		_set_slot(index, EMPTY, 0)
+	elif slot_id == _held_id:
+		var put := mini(stack_limit(slot_id) - slot_amount_, _held_amount)
+		_set_slot(index, slot_id, slot_amount_ + put)
+		_set_held(_held_id, _held_amount - put)
+	else:
+		_set_slot(index, _held_id, _held_amount)
+		_set_held(slot_id, slot_amount_)
+
+
+## Pega `amount` da pilha de `index` (dividir). Só com a mão vazia, e deixando ao menos 1.
+func split_to_hand(index: int, amount: int) -> bool:
+	if is_holding() or not is_valid_slot(index) or amount < 1 or amount >= _amounts[index]:
 		return false
-	_set_slot(to, _ids[from], amount)
-	_set_slot(from, _ids[from], _amounts[from] - amount)
+	_set_held(_ids[index], amount)
+	_set_slot(index, _ids[index], _amounts[index] - amount)
 	return true
 
 
-func can_split(from: int, amount: int, to: int) -> bool:
-	return is_valid_slot(from) and is_valid_slot(to) and from != to \
-		and _ids[to] == EMPTY and amount >= 1 and amount < _amounts[from]
-
-
-## Para onde vai a parte separada de uma pilha: o espaço logo à direita (próximo índice).
-static func split_target(from: int) -> int:
-	return from + 1
-
-
-## Esvazia um espaço e devolve o que havia nele: [id, quantidade].
-func take_slot(index: int) -> Array:
-	var content := [_ids[index], _amounts[index]]
-	_set_slot(index, EMPTY, 0)
+## Esvazia a mão e devolve o que havia nela: [id, quantidade] (ex.: jogar no chão).
+func take_held() -> Array:
+	var content := [_held_id, _held_amount]
+	_set_held(EMPTY, 0)
 	return content
+
+
+## Devolve o que está na mão para os espaços (ex.: fechou o inventário). Retorna o que não
+## coube (fica na mão).
+func return_held() -> int:
+	if not is_holding():
+		return 0
+	var left := _store(_held_id, _held_amount)
+	_set_held(_held_id, left)
+	return left
 
 
 func is_valid_slot(index: int) -> bool:
 	return index >= 0 and index < capacity()
 
 
-## Quantidade total por item (para quem não se importa com espaços).
+## Quantidade total por item nos espaços (para quem não se importa com espaços).
 func get_counts() -> Dictionary[StringName, int]:
 	var counts: Dictionary[StringName, int] = {}
 	for i in capacity():
@@ -171,9 +181,30 @@ func replicate_slot(index: int, item_id: StringName, amount: int) -> void:
 	_set_slot(index, item_id, amount)
 
 
+## Cliente: conteúdo oficial da mão, vindo do host.
+func replicate_held(item_id: StringName, amount: int) -> void:
+	_set_held(item_id, amount)
+
+
 ## Cliente: o host avisou um ganho (só apresentação).
 func notify_added(item_id: StringName, amount: int) -> void:
 	added.emit(item_id, amount)
+
+
+## Guarda sem avisar ganho: completa pilhas, depois ocupa espaços vazios. Retorna a sobra.
+func _store(item_id: StringName, amount: int) -> int:
+	var left := amount
+	var limit := stack_limit(item_id)
+	for pass_empty in [false, true]:
+		for i in capacity():
+			if left == 0:
+				break
+			var matches: bool = _ids[i] == EMPTY if pass_empty else _ids[i] == item_id
+			if matches and _amounts[i] < limit:
+				var put := mini(limit - _amounts[i], left)
+				_set_slot(i, item_id, _amounts[i] + put)
+				left -= put
+	return left
 
 
 func _set_slot(index: int, item_id: StringName, amount: int) -> void:
@@ -185,3 +216,14 @@ func _set_slot(index: int, item_id: StringName, amount: int) -> void:
 	_ids[index] = item_id
 	_amounts[index] = amount
 	slot_changed.emit(index)
+
+
+func _set_held(item_id: StringName, amount: int) -> void:
+	if amount <= 0:
+		item_id = EMPTY
+		amount = 0
+	if _held_id == item_id and _held_amount == amount:
+		return
+	_held_id = item_id
+	_held_amount = amount
+	held_changed.emit()
