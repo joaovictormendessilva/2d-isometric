@@ -10,7 +10,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | A | Escolher ambiente de vibe coding, engine e ferramentas | ✅ (ADR-001, ADR-002) |
 | B | Configurar projeto, controle de versão e primeiro executável | ✅ |
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
-| D | Combate, vida, dano, primeiro inimigo, recompensas | 🟡 aguardando validação do João |
+| D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ⬜ |
 | E | Coleta, inventário, equipamentos, crafting | ⬜ |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
@@ -111,8 +111,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
       Valores ainda provisórios: o balanceamento real vem com mais armas e inimigos.
 - [x] Evasão na coleira: criatura que desiste volta imune e recupera a vida em casa
       (pedido do João: antes dava para matá-la pelas costas enquanto voltava)
-- [ ] Validação de sensação do combate — **João**
-- [ ] Merge na `main` — só após o OK explícito do João
+- [x] Validação de sensação do combate — João, 2026-10-22
+- [x] Merge na `main` — autorizado pelo João
 
 ## Funcionalidades
 

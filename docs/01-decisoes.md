@@ -156,7 +156,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-011 — Arquitetura de combate: controladores, corpo único e componentes
 
-- **Status**: Hipótese (Etapa D, aguardando validação de sensação do João)
+- **Status**: Aceita (validada pelo João na Etapa D, 2026-10-22)
 - **Decisão**:
   - **Um corpo para todos**: jogador e criaturas usam o mesmo `Character` (movimento, recuo,
     morte, renascimento). O que muda é o **controlador** que gera intenções: `LocalPlayerInput`
