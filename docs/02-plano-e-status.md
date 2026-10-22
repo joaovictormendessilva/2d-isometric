@@ -12,7 +12,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | C | Protótipo isométrico: movimentação, câmera, colisões, cenário (validar ADR-003/005/006/007) | ✅ |
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
-| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 (crafting) em andamento |
+| E | Coleta, inventário, equipamentos, crafting | 🟡 E1 ✅; E2 ✅; E3 ✅; E4 (equipamentos) a seguir |
 | F | Região jogável com progressão, NPCs e mini boss | ⬜ |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
@@ -137,7 +137,11 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - **E2 – Inventário** ✅: espaços com pilhas (12 sem mochila), janela livre (I/Tab/Esc),
   clicar para segurar, jogar fora e dividir, inventário cheio tratado, coop (ADR-016). Kit para
   testes em compilações de desenvolvimento. 69 testes passando. Validado pelo João (2026-10-22).
-- **E3 – Crafting** ⬜: receitas com materiais de coleta e de criaturas; primeiras ferramentas.
+- **E3 – Crafting** ✅ (branch `stage-e/crafting`, ADR-017): na mão, na bancada e com NPCs.
+  Passo 1 ✅ receitas em dados e fabricação decidida pelo host. Passo 2 ✅ coluna "Fabricar" na
+  janela do inventário. Passo 3 ✅ bancada fabricada e colocada pelo jogador; receitas de
+  bancada por perto. Ajustes do João: Fabricar recolhível e menu do botão direito (Dividir /
+  Soltar). 80 testes. Validado pelo João (2026-10-22).
 - **E4 – Equipamentos** ⬜: vestir itens que mudam atributos (ex.: ímã de coleta).
 
 ## Funcionalidades
@@ -148,7 +152,12 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
   gosma cai como drop pessoal e aparece no HUD (canto inferior esquerdo) com a vida.
 - Coop local de teste: `tools/coop-local.bat` abre duas janelas (host + cliente) neste PC.
 - Inventário: tecla I ou Tab (botão Y), Esc fecha; arraste a janela pelo título; clique pega e
-  põe itens, clique fora joga no chão, botão direito divide a pilha (a parte vai para a mão).
+  põe itens, clique fora joga no chão, botão direito abre um menu (Dividir / Soltar).
+- Fabricar: coluna à direita no inventário (clique no título recolhe/abre); clique numa
+  receita acesa fabrica (machado e picareta de pedra e bancada, na mão; machado de cobre perto
+  de uma bancada). Passar o mouse mostra o que falta.
+- Bancada: pegue-a no inventário e clique no chão (prévia verde = pode; vermelha = não pode).
+  Bloqueia a passagem; ainda não dá para recolher (pendência).
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,
   liga/desliga em `game/debug/starter_kit` no project.godot). Jogo exportado nunca tem kit.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre

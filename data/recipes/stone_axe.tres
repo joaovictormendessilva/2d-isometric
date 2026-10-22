@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/crafting/recipe_data.gd" id="1_recipe"]
+[ext_resource type="Resource" path="res://data/items/stone_axe.tres" id="2_result"]
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"stone_axe"
+station = 0
+ingredients = Dictionary[StringName, int]({
+&"wood": 4,
+&"stone": 2
+})
+result = ExtResource("2_result")
+result_amount = 1

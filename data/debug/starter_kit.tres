@@ -11,5 +11,6 @@ items = Dictionary[StringName, int]({
 &"gel": 15,
 &"oak_wood": 5,
 &"stone_axe": 1,
-&"stone_pickaxe": 1
+&"stone_pickaxe": 1,
+&"workbench": 2
 })

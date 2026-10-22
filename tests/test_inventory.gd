@@ -140,6 +140,36 @@ func test_inventory_screen_click_split_and_throw_away() -> void:
 	check(not panel._held.visible, "mão vazia: nada junto ao ponteiro")
 
 
+## Botão direito abre o menu: "Dividir" só em pilhas de 2+, "Soltar" joga a pilha no chão.
+## Clicar fora fecha o menu sem atacar.
+func test_right_click_menu_splits_or_drops() -> void:
+	var game := start_game()
+	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
+	inventory.add(&"wood", 5)
+	inventory.add(&"stone_axe", 1)
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
+	panel._on_menu_requested(1)
+	check(panel._menu.visible and not panel._menu._split.visible and panel._menu._drop.visible,
+		"item único: só Soltar")
+	check(panel._menu.captures_mouse(), "menu aberto: o clique fora não ataca")
+	panel._menu._input(_left_click())  # clique fora (posição 0,0, longe do menu)
+	await physics_frames(1)
+	check(not panel._menu.visible, "clique fora fechou o menu")
+
+	panel._on_menu_requested(0)
+	check(panel._menu._split.visible, "pilha: Dividir aparece")
+	panel._menu._split.pressed.emit()
+	check(not panel._menu.visible and panel._split.visible, "Dividir abre a janelinha de quantidade")
+	panel._split.hide()
+	panel._on_menu_requested(0)
+	panel._menu._drop.pressed.emit()
+	await physics_frames(2)
+	check(inventory.count(&"wood") == 0 and not inventory.is_holding(), "Soltar tirou a pilha inteira")
+	check(pickups(game).size() == 1 and (pickups(game)[0] as Pickup).amount == 5,
+		"as 5 madeiras estão no chão")
+
+
 func _left_click() -> InputEventMouseButton:
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT

@@ -109,11 +109,21 @@ func remove(item_id: StringName, amount: int) -> bool:
 
 ## Tudo isto cabe junto? (Simula numa cópia: itens diferentes podem disputar o mesmo espaço.)
 func can_add_all(amounts: Dictionary[StringName, int]) -> bool:
+	return can_exchange({}, amounts)
+
+
+## Dá para tirar `removed` e depois guardar `added`? (Fabricação: os ingredientes liberam
+## espaço para o resultado.) Simula numa cópia.
+func can_exchange(removed: Dictionary[StringName, int],
+		added: Dictionary[StringName, int]) -> bool:
 	var copy := Inventory.new(capacity(), _items)
 	copy._ids = _ids.duplicate()
 	copy._amounts = _amounts.duplicate()
-	for item_id in amounts:
-		if copy._store(item_id, amounts[item_id]) > 0:
+	for item_id in removed:
+		if not copy.remove(item_id, removed[item_id]):
+			return false
+	for item_id in added:
+		if copy._store(item_id, added[item_id]) > 0:
 			return false
 	return true
 
@@ -143,6 +153,14 @@ func split_to_hand(index: int, amount: int) -> bool:
 		return false
 	_set_held(_ids[index], amount)
 	_set_slot(index, _ids[index], _amounts[index] - amount)
+	return true
+
+
+## Gasta `amount` do que está na mão (ex.: colocou uma bancada). Tudo ou nada.
+func use_held(amount: int) -> bool:
+	if amount < 1 or amount > _held_amount:
+		return false
+	_set_held(_held_id, _held_amount - amount)
 	return true
 
 

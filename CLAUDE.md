@@ -120,7 +120,7 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Só alguns arquivos de teste: `... -s res://tests/run_tests.gd -- network` (filtro no nome).
     - Coop local (duas janelas, host + cliente): `tools/coop-local.bat`, ou
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`.
-    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y]`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
       importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
 

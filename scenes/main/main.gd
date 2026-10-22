@@ -7,10 +7,12 @@ extends Node
 ##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --port=<n>).
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
+##   --open-inventory             abre o inventário antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 
 const START_REGION := preload("res://scenes/regions/meadow/meadow.tscn")
 const SKILLS_DIR := "res://data/skills/"
+const STRUCTURES_DIR := "res://data/structures/"
 const SCREENSHOT_FRAMES := 45
 const STARTER_KIT := "res://data/debug/starter_kit.tres"
 
@@ -22,6 +24,7 @@ var use_debug_starter_kit := true
 
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
+var recipes := RecipeDatabase.load_all()
 var session := GameSession.new(items)
 var region: Region
 
@@ -40,6 +43,7 @@ var _input_detached := false
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 @onready var _interaction_prompt: InteractionPrompt = $World/InteractionPrompt
 @onready var _inventory_panel: InventoryPanel = $UI/InventoryPanel
+@onready var _placement_preview: PlacementPreview = $World/PlacementPreview
 
 
 func _ready() -> void:
@@ -59,7 +63,9 @@ func _ready() -> void:
 	player_state.session = session
 	player_state.items = items
 	player_state.skills = skills
+	player_state.recipes = recipes
 	player_state.spawner = _spawner
+	_spawner.structures = DataCatalog.new(STRUCTURES_DIR)
 	if use_debug_starter_kit and OS.is_debug_build() \
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
 		_spawner.starter_kit = load(STARTER_KIT)
@@ -90,7 +96,9 @@ func _on_local_player_spawned(character: Character) -> void:
 	_hud.setup(character, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
-	_inventory_panel.setup(inventory, items, player_state)
+	_placement_preview.setup(inventory, items, character)
+	_inventory_panel.placement = _placement_preview
+	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	player_state.request_full_state()
 
 
@@ -104,12 +112,15 @@ func detach_local_input() -> void:
 func _handle_command_line() -> void:
 	var screenshot_path := ""
 	var move := Vector2.ZERO
+	var open_inventory := false
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
 			move = Vector2(parts[0].to_float(), parts[1].to_float())
+		elif arg == "--open-inventory":
+			open_inventory = true
 	if screenshot_path.is_empty():
 		return
 	for i in SCREENSHOT_FRAMES:
@@ -118,6 +129,8 @@ func _handle_command_line() -> void:
 		if character and move != Vector2.ZERO:
 			detach_local_input()
 			character.set_move_intent(move)
+	if open_inventory:
+		_inventory_panel.set_open(true)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)

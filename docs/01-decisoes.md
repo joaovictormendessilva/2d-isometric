@@ -297,7 +297,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-016 — Inventário em espaços com pilhas
 
-- **Status**: Hipótese (Etapa E2, aguardando validação do João)
+- **Status**: Aceita (validada pelo João na Etapa E2, 2026-10-22)
 - **Decisões**:
   - **Espaços com pilhas** (escolha do João): cada espaço guarda um tipo de item até
     `ItemData.max_stack` (99; ferramentas 1).
@@ -315,7 +315,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     clicar fora da janela joga no chão (o dono só pega de volta depois de se afastar); fechar
     o inventário devolve a mão aos espaços. A **mão é estado do host** (parte do inventário):
     nada some nem se duplica no coop.
-  - **Dividir pilha** (botão direito, mão vazia): janelinha com régua; a parte separada vai
+  - **Menu do botão direito** (pedido do João, E3): "Dividir" (pilhas de 2+) e "Soltar" (a
+    pilha inteira cai no chão; o host pega e joga fora de uma vez). Fecha com Esc ou clique
+    fora, sem atacar.
+  - **Dividir pilha** (pelo menu, mão vazia): janelinha com régua; a parte separada vai
     para a mão (pode ser posta em qualquer espaço ou jogada fora).
   - **Clique da interface não ataca**: um clique de mouse só vira ataque se começou com o
     cursor livre (fora de janelas, sem item na mão, sem arrastar janela).
@@ -327,3 +330,36 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     `PlayerStateSync` (separado da conexão em `Network`).
 - **Consequências**: crafting (E3) usa `Inventory.remove`/`can_add_all`; equipamentos (E4)
   e bolsas mudarão o tamanho por jogador.
+
+## ADR-017 — Fabricação em três níveis: mão, bancada e NPC
+
+- **Status**: Aceita (validada pelo João na Etapa E3, 2026-10-22)
+- **Direção do João (2026-10-22)**: coisas simples são feitas **na mão**, outras só **numa
+  bancada**, e algumas só **com NPCs específicos**.
+- **Decisões**:
+  - **Receitas em dados** (`RecipeData`, um `.tres` por receita em `data/recipes/`):
+    ingredientes (id → quantidade), resultado e lugar (`HAND`, `WORKBENCH`, `NPC`).
+  - **Regras puras** em `CraftingRules`: confere lugar, ingredientes e espaço; a troca é
+    tudo-ou-nada. Os ingredientes liberam espaço antes de o resultado entrar
+    (`Inventory.can_exchange`), então dá para fabricar com o inventário cheio se uma pilha
+    acabar.
+  - **Rede**: o dono pede por id; o host confere tudo de novo (id desconhecido, lugar fora de
+    alcance ou falta de ingrediente = nada acontece) e só ele mexe no inventário (ADR-013).
+  - **Bancada** (escolha do João: o jogador fabrica e coloca, como Terraria/Forager): receita
+    feita na mão; vira estrutura no mundo (`StructureData` + item `PlaceableData`). Com ela na
+    mão (inventário), uma prévia segue o ponteiro, verde onde pode e vermelha onde não pode;
+    clicar fora da janela coloca. Regra única (`PlacementRules`): até 48 px de chão do
+    jogador, chão livre de água, objetos e personagens, e sem obstáculo no caminho. O host
+    usa o que ELE sabe estar na mão do jogador e confere o ponto. Estruturas bloqueiam a
+    passagem e qualquer jogador usa qualquer bancada. As receitas da bancada aparecem sempre
+    na lista, apagadas longe de uma; acendem a até 40 px de chão dela, e o host confere a
+    distância. **NPC**: receitas ficam indisponíveis até haver NPCs (Etapa F), que dirão
+    quais ensinam.
+  - **Coluna recolhível** (pedido do João): clicar em "Fabricar" esconde/mostra as receitas;
+    a escolha fica em `UserSettings` (só neste computador).
+  - Uma unidade por pedido, instantânea (tempo de fabricação e "fazer N" ficam para depois,
+    se o João quiser).
+- **Consequências**: nova receita = novo `.tres`; nova estrutura = `StructureData` + item
+  `PlaceableData` (fornalha, baú...). Versão do protocolo de rede: 2. Pendências: recolher
+  ou desmontar uma estrutura colocada; estruturas somem ao fechar o jogo (sem saves ainda).
+  O teste confere que ingredientes e resultado existem.

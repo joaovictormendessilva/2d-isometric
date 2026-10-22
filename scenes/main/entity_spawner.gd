@@ -9,10 +9,11 @@ extends Node
 
 signal local_player_spawned(character: Character)
 
-enum Kind { PLAYER, MONSTER, PICKUP }
+enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE }
 
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
+const STRUCTURE_SCENE := preload("res://scenes/building/structure.tscn")
 const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
 const PLAYER_RESPAWN_TIME := 2.5
 ## Tempo que o corpo da criatura fica sumindo antes de ser removido.
@@ -36,11 +37,14 @@ var local_player_id := 0
 var damage_numbers: DamageNumbers
 var items: ItemDatabase
 var player_state: PlayerStateSync
+## Tipos de estrutura (`data/structures/`), para montar as que o host cria.
+var structures: DataCatalog
 ## Kit de testes dado a cada jogador ao entrar (só em compilações de desenvolvimento; ver main).
 var starter_kit: ItemBundle
 
 var _monster_points: Array[MonsterSpawnPoint] = []
 var _next_pickup_id := 1
+var _next_structure_id := 1
 var _rng := RandomNumberGenerator.new()
 
 @onready var _replicator: MultiplayerSpawner = $Replicator
@@ -96,6 +100,14 @@ func spawn_pickup(item: ItemData, amount: int, owner_player_id: int, from: Vecto
 		"dropped": dropped_by_owner})
 
 
+## Estrutura colocada por um jogador (o lugar já foi conferido, ver PlacementRules).
+func spawn_structure(structure: StructureData, at: Vector2) -> Structure:
+	var structure_id := _next_structure_id
+	_next_structure_id += 1
+	return _replicator.spawn({"kind": Kind.STRUCTURE, "structure_id": structure_id,
+		"structure": String(structure.id), "position": at})
+
+
 # --- Todos os computadores: monta o nó a partir dos dados ------------------------------------
 
 ## Chamada pelo Replicator no host e em cada cliente. Nos clientes os dados vêm da rede:
@@ -108,6 +120,8 @@ func _instantiate(data: Variant) -> Node:
 			return _instantiate_monster(data)
 		Kind.PICKUP:
 			return _instantiate_pickup(data)
+		Kind.STRUCTURE:
+			return _instantiate_structure(data)
 	push_warning("[spawner] dados de criação inválidos recebidos")
 	var inert := Node.new()  # o Replicator exige um nó; este não faz nada
 	inert.name = "Invalid"
@@ -164,6 +178,14 @@ func _instantiate_pickup(data: Dictionary) -> Pickup:
 	return pickup
 
 
+func _instantiate_structure(data: Dictionary) -> Structure:
+	var structure: Structure = STRUCTURE_SCENE.instantiate()
+	structure.name = "S%d" % data["structure_id"]
+	structure.data = structures.get_entry(StringName(data["structure"]))
+	structure.position = data["position"]
+	return structure
+
+
 func _register(entity: Character, entity_id: int) -> void:
 	entity.name = "E%d" % entity_id  # nomes iguais em todos os computadores (caminho das RPCs)
 	entity.entity_id = entity_id
@@ -197,6 +219,11 @@ func _valid_kind(data: Variant) -> int:
 					and item is String and items.get_item(StringName(item)) != null \
 					and d.get("amount") is int and d["amount"] >= 1 and d["amount"] <= MAX_PICKUP_AMOUNT:
 				return Kind.PICKUP
+		Kind.STRUCTURE:
+			var structure: Variant = d.get("structure")
+			if _is_id(d, "structure_id") and _is_position(d, "position") and structure is String \
+					and structures.get_entry(StringName(structure)) is StructureData:
+				return Kind.STRUCTURE
 	return -1
 
 

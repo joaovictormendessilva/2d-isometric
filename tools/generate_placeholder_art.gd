@@ -149,6 +149,16 @@ const PICKAXE := [
 	"...oho..",
 	"....o...",
 ]
+const BENCH := [
+	"........",
+	"oooooooo",
+	"orwwwwro",
+	"oWWWWWWo",
+	"oWooooWo",
+	"oWo..oWo",
+	"ooo..ooo",
+	"........",
+]
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -158,6 +168,7 @@ const ICONS := {
 	"stone_axe": [AXE, {}],
 	"stone_pickaxe": [PICKAXE, {}],
 	"copper_axe": [AXE, COPPER_SWAP],
+	"workbench": [BENCH, {}],
 }
 
 
@@ -172,6 +183,7 @@ func _initialize() -> void:
 	_save(_stump(OAK_TRUNK), OUT_DIR + "oak_stump.png")
 	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
 	_save(_rubble(), OUT_DIR + "rubble.png")
+	_save(_workbench(), OUT_DIR + "workbench.png")
 	for icon: String in ICONS:
 		_save(_icon(ICONS[icon][0], ICONS[icon][1]), OUT_DIR + "icon_%s.png" % icon)
 	_save(_shadow(), OUT_DIR + "shadow.png")
@@ -439,4 +451,26 @@ func _icon(rows: Array, swap: Dictionary) -> Image:
 			var key: String = swap.get(row[x], row[x])
 			if ICON_PALETTE.has(key):
 				img.set_pixel(x, y, ICON_PALETTE[key])
+	return img
+
+
+## Bancada 28x22 vista do alto em losango (tampo de tábuas, lados em sombra) com uma morsa de
+## pedra. Os pés ficam no centro da base: (14, 14).
+func _workbench() -> Image:
+	var img := Image.create(28, 22, false, Image.FORMAT_RGBA8)
+	var top := func(x: int, y: int) -> bool:
+		return absf(x + 0.5 - 14.0) / 12.0 + absf(y + 0.5 - 8.0) / 6.0 <= 1.0
+	for y in img.get_height():
+		for x in img.get_width():
+			if top.call(x, y):
+				var plank_line := (x + 2 * y) % 6 == 0
+				img.set_pixel(x, y, ICON_PALETTE["W"] if plank_line else ICON_PALETTE["w"])
+				continue
+			for drop in range(1, 7):
+				if y - drop >= 8 and top.call(x, y - drop):
+					img.set_pixel(x, y, ICON_PALETTE["W"] if x < 14 else ICON_PALETTE["k"])
+					break
+	for vise: Vector2i in [Vector2i(17, 5), Vector2i(18, 5), Vector2i(17, 6), Vector2i(18, 6)]:
+		img.set_pixelv(vise, ICON_PALETTE["s"] if vise.y == 6 else ICON_PALETTE["l"])
+	outline(img, LEAVES_OUTLINE)
 	return img
