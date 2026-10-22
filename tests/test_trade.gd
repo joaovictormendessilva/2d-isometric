@@ -237,5 +237,3 @@ func _merchant_node(game: Node) -> Npc:
 		if node is Npc:
 			return node
 	return null
-
-
