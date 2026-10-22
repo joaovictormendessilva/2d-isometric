@@ -141,6 +141,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
 	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
+	equipment.slot_changed.connect(_fit_inventory.bind(character).unbind(1))
 	if not multiplayer.is_server():
 		player_state.request_equipment_of(character.player_id)
 	if character.player_id == local_player_id:
@@ -158,6 +159,14 @@ func _instantiate_player(data: Dictionary) -> Character:
 		if starter_kit:
 			starter_kit.give_to(session.get_inventory(character.player_id))
 	return character
+
+
+## Tamanho do inventário = base do jogador + espaços das mochilas vestidas (bônus já somados
+## por `Character.apply_equipment`, ligado antes).
+func _fit_inventory(character: Character) -> void:
+	var inventory := session.get_inventory(character.player_id) if is_instance_valid(character) else null
+	if inventory:
+		inventory.resize(character.stats.inventory_slots + character.bonuses.inventory_slots)
 
 
 func _instantiate_monster(data: Dictionary) -> Monster:

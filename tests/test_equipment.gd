@@ -157,3 +157,40 @@ func test_weapon_defines_the_attack() -> void:
 	inventory.return_held()
 	EquipmentRules.equip_from_inventory(inventory, equipment, 0)
 	check(character.attacker.attack == equipment.weapon().attack, "vestiu de novo: espada")
+
+
+## Mochila soma espaços; tirá-la só com os espaços extras vazios (nada some).
+func test_backpack_adds_slots_and_never_swallows_items() -> void:
+	_setup()
+	var base := _inventory.capacity()
+	_inventory.add(&"t_backpack", 1)
+	check(EquipmentRules.equip_from_inventory(_inventory, _equipment, 0), "vestiu a mochila")
+	_fit_inventory(base)
+	check(_inventory.capacity() == base + 4, "+4 espaços")
+	_inventory.set_slot(base + 2, &"t_ring", 1)  # algo num espaço da mochila
+	var back := _equipment.index_of_type(EquipmentData.Slot.BACKPACK)
+	check(not EquipmentRules.click_slot(_inventory, _equipment, back),
+		"com item nos espaços da mochila, não tira")
+	_inventory.set_slot(1, &"t_ring", 1)
+	_inventory.set_slot(base + 2, Inventory.EMPTY, 0)
+	check(EquipmentRules.click_slot(_inventory, _equipment, back), "esvaziou: tira para a mão")
+	_fit_inventory(base)
+	check(_inventory.capacity() == base and _inventory.held_item() == &"t_backpack", "voltou ao tamanho base")
+	check(not _inventory.resize(1), "o inventário nunca encolhe por cima de itens")
+
+
+## A tela acompanha o tamanho do inventário (um quadrado por espaço).
+func test_inventory_screen_follows_capacity() -> void:
+	var game := start_game()
+	var inventory := (game.session as GameSession).get_inventory(game.local_player_id())
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	inventory.resize(inventory.capacity() + 6)
+	check(panel.find_children("*", "InventorySlot", true, false).size() == inventory.capacity(),
+		"cresceu junto")
+	inventory.resize(inventory.capacity() - 6)
+	check(panel._slots.size() == inventory.capacity(), "encolheu junto")
+
+
+## Como o spawner faz: base + espaços das mochilas vestidas.
+func _fit_inventory(base: int) -> void:
+	_inventory.resize(base + StatBonuses.total(_equipment.equipped()).inventory_slots)

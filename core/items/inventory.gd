@@ -8,12 +8,14 @@ extends RefCounted
 
 signal slot_changed(index: int)
 signal held_changed
+## O número de espaços mudou (mochila).
+signal resized
 ## Ganho de itens (apresentação: "+1 Madeira"). Mexer em itens que já eram seus não conta.
 signal added(item_id: StringName, amount: int)
 
 ## Limite de pilha sem catálogo de itens (testes) ou para item desconhecido.
 const DEFAULT_STACK := 99
-## Espaços de quem ainda não tem mochila (mochilas somam espaços, Etapa E4).
+## Espaços de quem ainda não tem mochila (mochilas vestidas somam: `resize`).
 const DEFAULT_SLOTS := 12
 const EMPTY := &""
 
@@ -33,6 +35,32 @@ func _init(capacity: int, items: ItemDatabase = null) -> void:
 
 func capacity() -> int:
 	return _ids.size()
+
+
+## Muda o número de espaços (mochila vestida/tirada). Encolher só tira espaços vazios do fim:
+## se algum deles tiver item, nada muda e retorna false (EquipmentRules impede isso antes).
+func resize(new_capacity: int) -> bool:
+	var old := capacity()
+	if new_capacity == old:
+		return true
+	for index in range(new_capacity, old):
+		if _ids[index] != EMPTY:
+			return false
+	_ids.resize(new_capacity)
+	_amounts.resize(new_capacity)
+	for index in range(old, new_capacity):
+		_ids[index] = EMPTY
+		_amounts[index] = 0
+	resized.emit()
+	return true
+
+
+## Os espaços a partir de `from` estão todos vazios?
+func is_empty_from(from: int) -> bool:
+	for index in range(maxi(from, 0), capacity()):
+		if _ids[index] != EMPTY:
+			return false
+	return true
 
 
 func slot_item(index: int) -> StringName:

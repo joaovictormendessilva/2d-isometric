@@ -5,7 +5,8 @@ extends RefCounted
 ##
 ## Mãos (ADR-018): a arma diz quais itens secundários aceita; vestir uma arma que não aceita o
 ## secundário atual o devolve ao inventário (precisa caber). De mãos vazias, qualquer
-## secundário serve. Acessórios: nunca dois iguais.
+## secundário serve. Acessórios: nunca dois iguais. Mochilas: tirar ou trocar por uma menor só
+## com os espaços que somem vazios.
 
 
 ## `item` pode ir no espaço `index`, com o resto do equipamento como está? (O que já está em
@@ -34,8 +35,10 @@ static func equip_from_inventory(inventory: Inventory, equipment: Equipment,
 	var item := equipment.data_of(inventory.slot_item(inventory_index))
 	var target := _target_index(equipment, item)
 	# Trocar por um igual não muda nada (ex.: 2º anel igual com o 1º vestido).
-	if target < 0 or equipment.item_id(target) == item.id or not _has_room_for_displaced(inventory, equipment, item,
-			equipment.item_id(target) == Equipment.EMPTY):
+	if target < 0 or equipment.item_id(target) == item.id \
+			or not _keeps_items(inventory, equipment, target, item, inventory_index) \
+			or not _has_room_for_displaced(inventory, equipment, item,
+				equipment.item_id(target) == Equipment.EMPTY):
 		return false
 	var old := equipment.item_id(target)
 	equipment.replicate_slot(target, item.id)
@@ -51,13 +54,14 @@ static func click_slot(inventory: Inventory, equipment: Equipment, index: int) -
 		return false
 	var old := equipment.item_id(index)
 	if not inventory.is_holding():
-		if old == Equipment.EMPTY:
+		if old == Equipment.EMPTY or not _keeps_items(inventory, equipment, index, null):
 			return false
 		equipment.replicate_slot(index, Equipment.EMPTY)
 		inventory.set_held(old, 1)
 		return true
 	var item := equipment.data_of(inventory.held_item())
 	if inventory.held_amount() != 1 or not fits(equipment, index, item) \
+			or not _keeps_items(inventory, equipment, index, item) \
 			or not _has_room_for_displaced(inventory, equipment, item, false):
 		return false
 	equipment.replicate_slot(index, item.id)
@@ -85,6 +89,22 @@ static func _target_index(equipment: Equipment, item: EquipmentData) -> int:
 			if occupied < 0:
 				occupied = index
 	return occupied
+
+
+## Trocar o que está em `index` por `new_item` (null = tirar) não some com itens? Se o
+## inventário encolher (mochila menor ou nenhuma), os espaços que somem precisam estar vazios —
+## inclusive `source_index`, de onde o novo item sai e onde o antigo vai entrar.
+static func _keeps_items(inventory: Inventory, equipment: Equipment, index: int,
+		new_item: EquipmentData, source_index: int = -1) -> bool:
+	var new_capacity := inventory.capacity() + _bonus_slots(new_item) \
+		- _bonus_slots(equipment.item(index))
+	if new_capacity >= inventory.capacity():
+		return true
+	return source_index < new_capacity and inventory.is_empty_from(new_capacity)
+
+
+static func _bonus_slots(item: EquipmentData) -> int:
+	return item.bonuses.inventory_slots if item and item.bonuses else 0
 
 
 ## Secundário que sai se esta arma for vestida (não o aceita), ou null.

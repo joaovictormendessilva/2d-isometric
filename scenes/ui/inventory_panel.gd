@@ -24,6 +24,8 @@ var _split := SplitDialog.new()
 var _menu := SlotMenu.new()
 var _held := HeldItemCursor.new()
 var _slots: Array[InventorySlot] = []
+var _grid: GridContainer
+var _items: ItemDatabase
 
 
 func _ready() -> void:
@@ -53,22 +55,18 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	columns.add_child(crafting)
 	crafting.setup(inventory, items, player_state, player_id)
 	crafting.toggled.connect(_window.fit_content)
-	var grid := GridContainer.new()
-	grid.columns = COLUMNS
-	grid.add_theme_constant_override(&"h_separation", SLOT_GAP)
-	grid.add_theme_constant_override(&"v_separation", SLOT_GAP)
-	items_column.add_child(grid)
-	for i in inventory.capacity():
-		var slot := InventorySlot.new()
-		slot.setup(i, inventory, items)
-		slot.clicked.connect(player_state.request_click)
-		slot.menu_requested.connect(_on_menu_requested)
-		grid.add_child(slot)
-		_slots.append(slot)
+	_items = items
+	_grid = GridContainer.new()
+	_grid.columns = COLUMNS
+	_grid.add_theme_constant_override(&"h_separation", SLOT_GAP)
+	_grid.add_theme_constant_override(&"v_separation", SLOT_GAP)
+	items_column.add_child(_grid)
+	_fit_slots()
+	inventory.resized.connect(_fit_slots)
 	var hint := Label.new()
 	# Quebra de linha na largura da grade (sem largura fixa, o texto mede uma palavra por linha).
 	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.custom_minimum_size.x = grid.get_combined_minimum_size().x
+	hint.custom_minimum_size.x = _grid.get_combined_minimum_size().x
 	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	hint.modulate = Color(1, 1, 1, HINT_ALPHA)
 	hint.text = Texts.get_text(&"INVENTORY_HINT")
@@ -78,6 +76,20 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_menu.drop_chosen.connect(player_state.request_drop_slot)
 	_held.setup(inventory, items)
 	inventory.slot_changed.connect(func(index: int) -> void: _slots[index].refresh())
+
+
+## Um quadrado por espaço do inventário: cria ou remove do fim quando a mochila muda o tamanho.
+func _fit_slots() -> void:
+	while _slots.size() > _inventory.capacity():
+		_slots.pop_back().free()
+	for index in range(_slots.size(), _inventory.capacity()):
+		var slot := InventorySlot.new()
+		slot.setup(index, _inventory, _items)
+		slot.clicked.connect(_player_state.request_click)
+		slot.menu_requested.connect(_on_menu_requested)
+		_grid.add_child(slot)
+		_slots.append(slot)
+	_window.fit_content()
 
 
 ## Com um item na mão, o clique é do inventário (pôr ou jogar fora), não um ataque.
