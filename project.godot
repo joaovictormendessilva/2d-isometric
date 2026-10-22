@@ -85,6 +85,12 @@ toggle_debug={
 
 common/physics_interpolation=true
 
+[gui]
+
+theme/custom="res://assets/ui/theme.tres"
+theme/custom_font="res://assets/fonts/m5x7.ttf"
+theme/default_font_size=16
+
 [rendering]
 
 textures/canvas_textures/default_texture_filter=0

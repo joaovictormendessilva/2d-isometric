@@ -17,8 +17,8 @@ var _next := 0
 
 func _ready() -> void:
 	var settings := LabelSettings.new()
-	settings.font_size = 8
-	settings.outline_size = 3
+	settings.font_size = 16
+	settings.outline_size = 4
 	settings.outline_color = Color.BLACK
 	for i in POOL_SIZE:
 		var label := Label.new()

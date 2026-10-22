@@ -166,8 +166,8 @@ func _initialize() -> void:
 	_save(_character_sheet(), OUT_DIR + "character.png")
 	_save(_tree(LEAVES, TRUNK), OUT_DIR + "tree.png")
 	_save(_rock(), OUT_DIR + "rock.png")
-	_save(_lumber_tree(), OUT_DIR + "lumber_tree.png")
-	_save(_tree(OAK_LEAVES, OAK_TRUNK, 3), OUT_DIR + "old_oak.png")
+	_save(_marked_tree(LUMBER_LEAVES, TRUNK, 2), OUT_DIR + "lumber_tree.png")
+	_save(_marked_tree(OAK_LEAVES, OAK_TRUNK, 3), OUT_DIR + "old_oak.png")
 	_save(_stump(TRUNK), OUT_DIR + "stump.png")
 	_save(_stump(OAK_TRUNK), OUT_DIR + "oak_stump.png")
 	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
@@ -393,15 +393,17 @@ static func _in_trunk(x: int, y: int, half_width: int, top: int) -> bool:
 		or (y == 45 and x >= 15 - half_width and x <= 16 + half_width)
 
 
-## Árvore de lenha: copa mais clara, marca de machado no tronco e lenha empilhada ao pé.
-func _lumber_tree() -> Image:
-	var img := _tree(LUMBER_LEAVES, TRUNK)
+## Árvore coletável: a marca de todo ponto de madeira é o corte de machado no tronco e a lenha
+## empilhada ao pé (o resto do cenário não tem), na cor da própria madeira.
+func _marked_tree(leaves: Array, trunk: Array, trunk_width: int) -> Image:
+	var img := _tree(leaves, trunk, trunk_width)
 	for y in range(37, 40):
-		img.set_pixel(14, y, ICON_PALETTE["r"])
+		img.set_pixel(16 - trunk_width, y, ICON_PALETTE["r"])
 	for log_row: Array in [[43, 20, 27], [41, 21, 26]]:
-		for x in range(log_row[1], log_row[2] + 1):
-			img.set_pixel(x, log_row[0], TRUNK[0] if x < log_row[2] else ICON_PALETTE["r"])
-			img.set_pixel(x, log_row[0] + 1, TRUNK[1])
+		for x in range(log_row[1] + trunk_width - 2, log_row[2] + trunk_width - 1):
+			var end: bool = x == log_row[2] + trunk_width - 2
+			img.set_pixel(x, log_row[0], ICON_PALETTE["r"] if end else trunk[0])
+			img.set_pixel(x, log_row[0] + 1, trunk[1])
 	return img
 
 

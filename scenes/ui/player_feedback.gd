@@ -1,18 +1,24 @@
 class_name PlayerFeedback
 extends Node
 ## Avisos flutuantes do jogador LOCAL: itens ganhos ("+1 Madeira"), nível de coleta subindo e
-## por que não dá para coletar ("Precisa de ferramenta nível 2"). Só apresentação.
+## por que não dá para coletar ("Precisa de ferramenta nível 2"). Avisos que chegam juntos
+## (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se sobrepor. Só apresentação.
 
 const GAIN_COLOR := Color("e8e0b0")
 const LEVEL_COLOR := Color("8fe388")
 const REFUSED_COLOR := Color("ff9f6b")
 const MESSAGE_TIME := 1.2
+## Intervalo entre avisos seguidos.
+const MESSAGE_INTERVAL := 0.3
+const MAX_QUEUED := 6
 
 var _character: Character
 var _items: ItemDatabase
 var _skills: DataCatalog
 var _numbers: DamageNumbers
 var _levels: Dictionary[StringName, int] = {}
+var _queue: Array[Array] = []  # [texto, cor]
+var _wait := 0.0
 
 
 func setup(character: Character, inventory: Inventory, progress: SkillProgress,
@@ -45,14 +51,19 @@ func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
 
 
 func _on_gather_refused(node: ResourceNode, reason: GatheringRules.Check) -> void:
-	var data := node.data
-	match reason:
-		GatheringRules.Check.NEEDS_TOOL:
-			_show("Precisa de ferramenta nível %d" % data.min_tool_tier, REFUSED_COLOR)
-		GatheringRules.Check.NEEDS_LEVEL:
-			_show("Precisa de %s nível %d" % [data.skill.display_name, data.min_skill_level],
-				REFUSED_COLOR)
+	_show(GatheringTexts.refusal(node.data, reason), REFUSED_COLOR)
 
 
 func _show(text: String, color: Color) -> void:
-	_numbers.show_text(_character.position, text, color, MESSAGE_TIME)
+	if _queue.size() >= MAX_QUEUED:
+		_queue.pop_front()  # avisos velhos perdem a vez
+	_queue.append([text, color])
+
+
+func _process(delta: float) -> void:
+	_wait -= delta
+	if _wait > 0.0 or _queue.is_empty():
+		return
+	var message: Array = _queue.pop_front()
+	_numbers.show_text(_character.position, message[0], message[1], MESSAGE_TIME)
+	_wait = MESSAGE_INTERVAL

@@ -32,6 +32,7 @@ var _input_detached := false
 @onready var _net_status: NetStatus = $UI/NetStatus
 @onready var _debug_overlay: DebugOverlay = $UI/DebugOverlay
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
+@onready var _interaction_prompt: InteractionPrompt = $World/InteractionPrompt
 
 
 func _ready() -> void:
@@ -76,6 +77,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	var progress := session.get_skills(local_player_id())
 	_hud.setup(character, inventory, items, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
+	_interaction_prompt.setup(character)
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem

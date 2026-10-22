@@ -74,20 +74,25 @@ func find_node() -> ResourceNode:
 func try_gather(node: ResourceNode, slack: float = 0.0) -> bool:
 	if node == null or node.is_depleted() or _gap_to(node) > BALANCE.gather_range + slack:
 		return false
-	var tool := GatheringRules.best_tool(node.data, _tools())
-	var level := _skill_level(node.data.skill)
-	var check := GatheringRules.check(node.data, level, tool)
-	if check != GatheringRules.Check.OK:
-		refused.emit(node, check)
+	var result := check(node)
+	if result != GatheringRules.Check.OK:
+		refused.emit(node, result)
 		return false
 	stop()
 	_node = node
-	_duration = GatheringRules.gather_duration(node.data, level, tool, BALANCE)
+	_duration = GatheringRules.gather_duration(node.data, _skill_level(node.data.skill),
+		GatheringRules.best_tool(node.data, _tools()), BALANCE)
 	_time_left = _duration
 	_anchor = _body.position
 	_move_tolerance = MOVE_TOLERANCE + slack
 	started.emit(node, _duration)
 	return true
+
+
+## Este jogador pode coletar `node` (ferramenta e nível)?
+func check(node: ResourceNode) -> GatheringRules.Check:
+	return GatheringRules.check(node.data, _skill_level(node.data.skill),
+		GatheringRules.best_tool(node.data, _tools()))
 
 
 func stop() -> void:

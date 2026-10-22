@@ -7,8 +7,9 @@ const BAR_FULL_COLOR := Color("d94a4a")
 var _items: ItemDatabase
 var _skills: DataCatalog
 
-@onready var _bar_fill: ColorRect = $HealthBar/Fill
-@onready var _health_label: Label = $HealthBar/Value
+@onready var _bar: ColorRect = $HealthRow/HealthBar
+@onready var _bar_fill: ColorRect = $HealthRow/HealthBar/Fill
+@onready var _health_label: Label = $HealthRow/Value
 @onready var _inventory_label: Label = $Inventory
 @onready var _skills_label: Label = $Skills
 
@@ -27,7 +28,7 @@ func setup(character: Character, inventory: Inventory, items: ItemDatabase,
 
 
 func _on_health_changed(current: int, maximum: int) -> void:
-	_bar_fill.size.x = ($HealthBar as Control).size.x * current / maxf(maximum, 1)
+	_bar_fill.size.x = _bar.custom_minimum_size.x * current / maxf(maximum, 1)
 	_health_label.text = "%d / %d" % [current, maximum]
 
 
