@@ -1,15 +1,30 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
+[ext_resource type="Script" path="res://scenes/input/local_player_input.gd" id="3_input"]
+[ext_resource type="Script" path="res://scenes/ui/debug_overlay.gd" id="4_debug"]
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node"]
 script = ExtResource("1_main")
 
-[node name="Info" type="Label" parent="."]
-offset_left = 8.0
-offset_top = 6.0
-offset_right = 320.0
-offset_bottom = 40.0
-theme_override_font_sizes/font_size = 10
-text = "Etapa B: projeto configurado
-640x360 · escala inteira · nearest · Compatibility"
+[node name="World" type="Node2D" parent="."]
+
+[node name="Camera" type="Camera2D" parent="."]
+process_callback = 0
+script = ExtResource("2_camera")
+
+[node name="LocalInput" type="Node" parent="."]
+script = ExtResource("3_input")
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="DebugOverlay" type="Label" parent="UI"]
+offset_left = 4.0
+offset_top = 2.0
+offset_right = 400.0
+offset_bottom = 60.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 8
+script = ExtResource("4_debug")
