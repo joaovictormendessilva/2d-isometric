@@ -148,7 +148,5 @@ func resource_node(game: Node, data_id: StringName) -> ResourceNode:
 
 ## Põe o personagem encostado no ponto de coleta (à esquerda dele, no plano do chão).
 func stand_next_to(character: Character, node: ResourceNode) -> void:
-	var footprint: Footprint = node.get_node("Footprint")
-	var gap := footprint.radius + character.footprint_radius() + 2.0
-	character.position = node.position - Iso.ground_to_screen(Vector2(gap, 0))
+	character.position = node.approach_point(character.footprint_radius())
 	character.reset_physics_interpolation()

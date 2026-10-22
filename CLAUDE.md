@@ -123,6 +123,22 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
       importar, `G --headless --path . -s res://tools/generate_meadow_region.gd`, importar.
+    - Folha de quadros (animação): `G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<png> --scenario=attack`
+    - Conferir sprite: `G --headless --path . -s res://tools/art_check.gd -- <sprite.png> --preview=<png>`
+    - Regerar tema da UI (após mudar `UiStyle`): `G --headless --path . -s res://tools/generate_ui_theme.gd`, importar.
+    - Saídas de captura e conferência vão para o scratchpad da sessão, nunca para o repositório.
+
+## Skills do projeto (`.claude/skills/`)
+
+Use a skill certa antes de mexer na área dela:
+
+| Skill | Quando |
+|---|---|
+| `game-motion-capture` | Ver animação/efeito/UI em movimento (antes e depois de mudar) |
+| `pixel-art-style` | Criar, alterar ou avaliar qualquer arte |
+| `game-feel` | Golpes, impacto, partículas, easing, "juice" |
+| `game-ui-ux` | Telas, HUD, botões, menus, textos ao jogador |
+| `project-checklist` | Fim de incremento, antes de commit relevante e de pedir merge |
 
 ## Mapa da documentação
 

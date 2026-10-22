@@ -3,7 +3,7 @@ extends Control
 ## HUD do jogador local: barra de vida, níveis de coleta e a tecla do inventário. Só lê estado
 ## via sinais (os itens ficam na tela de inventário).
 
-const BAR_FULL_COLOR := Color("d94a4a")
+const BAR_FULL_COLOR := UiStyle.HEALTH
 
 var _skills: DataCatalog
 

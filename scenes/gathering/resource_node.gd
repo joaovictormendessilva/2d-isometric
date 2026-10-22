@@ -42,6 +42,13 @@ func is_depleted() -> bool:
 
 
 ## Host: gasta uma carga (uma coleta concluída). Ao esgotar, agenda o renascimento.
+## Onde fica, encostado à esquerda deste ponto (no plano do chão), quem tem pegada de raio
+## `radius` (testes e capturas de animação posicionam o personagem aqui).
+func approach_point(radius: float) -> Vector2:
+	var footprint: Footprint = $Footprint
+	return position - Iso.ground_to_screen(Vector2(footprint.radius + radius + 2.0, 0))
+
+
 func take_charge() -> void:
 	if is_depleted():
 		return

@@ -12,6 +12,7 @@ basta — a licença precisa permitir **uso comercial**.
 | Claude Code | Implementação | Incluído no Claude Pro do João | já pago | Sim |
 | Git / GitHub | Versionamento | GPL (Git) / serviço gratuito | R$ 0 | Sim |
 | Pixelorama | Pixel art (planejado) | MIT | R$ 0 | Sim |
+| Ferramentas próprias (`tools/capture_frames.gd`, `art_check.gd`, `generate_ui_theme.gd`) e skills em `.claude/skills/` | Captura de animação, conferência de arte, tema da UI, guias de qualidade | Próprias do projeto | R$ 0 | Sim |
 
 ## Assets do jogo
 

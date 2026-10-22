@@ -163,6 +163,13 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 
+## Preparação de qualidade visual (`chore/skills`, 2026-10-22)
+
+- Skills do projeto em `.claude/skills/` (movimento, pixel art, game feel, UI/UX, checklist)
+  e ferramentas: folha de quadros, conferência de sprite, tema da UI gerado de tokens.
+- Achados para a Etapa G e a arte final: golpe da espada sem pose nem antecipação e rastro
+  quase invisível; silhuetas de frente e costas do personagem iguais.
+
 ## Problemas conhecidos
 
 - Arte e mapa são provisórios (placeholders gerados por código).

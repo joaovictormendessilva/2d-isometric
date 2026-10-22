@@ -10,14 +10,14 @@ extends VBoxContainer
 ## Mudou de aberta para recolhida ou vice-versa (a janela ajusta o tamanho).
 signal toggled
 
-const ROW_GAP := 2
+const ROW_GAP := UiStyle.GAP
 const LISTED_STATIONS: Array[RecipeData.Station] = [RecipeData.Station.HAND,
 	RecipeData.Station.WORKBENCH]
 const SETTINGS_SECTION := "inventory"
 const SETTINGS_KEY := "crafting_open"
 const OPEN_MARK := "[-]"
 const CLOSED_MARK := "[+]"
-const HOVER_COLOR := Color(1.0, 0.9, 0.6)
+const HOVER_COLOR := UiStyle.ACCENT
 
 var _inventory: Inventory
 var _player_state: PlayerStateSync

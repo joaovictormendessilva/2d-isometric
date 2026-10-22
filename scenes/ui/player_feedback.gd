@@ -4,9 +4,9 @@ extends Node
 ## por que não dá para coletar ("Precisa de ferramenta nível 2"). Avisos que chegam juntos
 ## (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se sobrepor. Só apresentação.
 
-const GAIN_COLOR := Color("e8e0b0")
-const LEVEL_COLOR := Color("8fe388")
-const REFUSED_COLOR := Color("ff9f6b")
+const GAIN_COLOR := UiStyle.TEXT_SOFT
+const LEVEL_COLOR := UiStyle.POSITIVE
+const REFUSED_COLOR := UiStyle.WARNING
 const MESSAGE_TIME := 1.2
 ## Intervalo entre avisos seguidos.
 const MESSAGE_INTERVAL := 0.3
