@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
@@ -11,12 +11,16 @@
 [ext_resource type="Script" path="res://scenes/ui/net_status.gd" id="9_net_status"]
 [ext_resource type="Script" path="res://scenes/ui/player_feedback.gd" id="10_feedback"]
 [ext_resource type="Script" path="res://scenes/ui/interaction_prompt.gd" id="11_prompt"]
+[ext_resource type="Script" path="res://scenes/net/player_state_sync.gd" id="12_player_state"]
 
 [node name="Main" type="Node"]
 script = ExtResource("1_main")
 
 [node name="Network" type="Node" parent="."]
 script = ExtResource("8_network")
+
+[node name="PlayerState" type="Node" parent="."]
+script = ExtResource("12_player_state")
 
 [node name="World" type="Node2D" parent="."]
 

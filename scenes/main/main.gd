@@ -16,14 +16,15 @@ const SCREENSHOT_FRAMES := 45
 ## Defina antes de adicionar à árvore para ignorar a linha de comando (testes de rede).
 var configure_network_from_command_line := true
 
-var session := GameSession.new()
-var region: Region
 var items := ItemDatabase.load_all()
 var skills := DataCatalog.new(SKILLS_DIR)
+var session := GameSession.new(items)
+var region: Region
 
 var _input_detached := false
 
 @onready var network: Network = $Network
+@onready var player_state: PlayerStateSync = $PlayerState
 @onready var _world: Node2D = $World
 @onready var _camera: GameCamera = $Camera
 @onready var _local_input: LocalPlayerInput = $LocalInput
@@ -40,9 +41,6 @@ func _ready() -> void:
 	Texts.apply_command_line(OS.get_cmdline_user_args())
 	# A rede começa ANTES da região: os objetos da região (pontos de coleta) decidem no
 	# próprio `_ready` se pedem o estado ao host.
-	network.session = session
-	network.items = items
-	network.skills = skills
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	network.start()
@@ -52,7 +50,11 @@ func _ready() -> void:
 	_world.add_child(region)
 	_camera.set_bounds(region.camera_bounds)
 
-	_spawner.setup(session, region, local_player_id(), _damage_numbers, items, network)
+	_spawner.setup(session, region, local_player_id(), _damage_numbers, items, player_state)
+	player_state.session = session
+	player_state.items = items
+	player_state.skills = skills
+	player_state.spawner = _spawner
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()

@@ -34,3 +34,4 @@ NET_PING,%s · ping %d ms,%s · ping %d ms
 NET_BAD_PORT,Porta inválida: %d,Invalid port: %d
 NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
 NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)
+GATHER_INVENTORY_FULL,Inventário cheio,Inventory full

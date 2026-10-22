@@ -89,10 +89,16 @@ func try_gather(node: ResourceNode, slack: float = 0.0) -> bool:
 	return true
 
 
-## Este jogador pode coletar `node` (ferramenta e nível)?
+## Este jogador pode coletar `node` (ferramenta, nível e espaço no inventário)?
 func check(node: ResourceNode) -> GatheringRules.Check:
-	return GatheringRules.check(node.data, _skill_level(node.data.skill),
-		GatheringRules.best_tool(node.data, _tools()))
+	var level := _skill_level(node.data.skill)
+	var tool := GatheringRules.best_tool(node.data, _tools())
+	var result := GatheringRules.check(node.data, level, tool)
+	var inventory := session.get_inventory(_body.player_id) if session else null
+	if result == GatheringRules.Check.OK and inventory \
+			and not inventory.can_add_all(GatheringRules.max_yield(node.data, level)):
+		return GatheringRules.Check.INVENTORY_FULL
+	return result
 
 
 func stop() -> void:
@@ -113,7 +119,15 @@ func _physics_process(delta: float) -> void:
 		return
 	if multiplayer.is_server():
 		_complete()
-	_time_left += _duration  # segue coletando; o ponto esgotado encerra no próximo passo
+	if _node.is_depleted():
+		stop()
+		return
+	var next := check(_node)  # segue coletando enquanto puder (ex.: até encher o inventário)
+	if next != GatheringRules.Check.OK:
+		refused.emit(_node, next)
+		stop()
+		return
+	_time_left += _duration
 
 
 ## Host: uma coleta concluída.

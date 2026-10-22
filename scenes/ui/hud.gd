@@ -21,7 +21,7 @@ func setup(character: Character, inventory: Inventory, items: ItemDatabase,
 	_bar_fill.color = BAR_FULL_COLOR
 	character.health.changed.connect(_on_health_changed)
 	_on_health_changed(character.health.current, character.health.max_health)
-	inventory.changed.connect(_on_inventory_changed.bind(inventory).unbind(2))
+	inventory.slot_changed.connect(_on_inventory_changed.bind(inventory).unbind(1))
 	_on_inventory_changed(inventory)
 	progress.changed.connect(_on_skills_changed.bind(progress).unbind(2))
 	_on_skills_changed(progress)

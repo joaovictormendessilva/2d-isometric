@@ -11,4 +11,6 @@ static func refusal(data: ResourceNodeData, check: GatheringRules.Check) -> Stri
 		GatheringRules.Check.NEEDS_LEVEL:
 			return Texts.format(&"GATHER_NEEDS_LEVEL",
 				[data.skill.get_display_name(), data.min_skill_level])
+		GatheringRules.Check.INVENTORY_FULL:
+			return Texts.get_text(&"GATHER_INVENTORY_FULL")
 	return ""
