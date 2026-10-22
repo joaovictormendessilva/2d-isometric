@@ -125,7 +125,8 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 - [x] `tools/coop-local.bat`: abre host + cliente neste PC com dois cliques
 - [x] 12 testes de rede (host e cliente no mesmo processo, ENet real em 127.0.0.1), 37 no total
 - [x] Desempenho offline preservado (200 slimes: 3,2–3,3 ms); tráfego ~0,9 KB/s por entidade
-- [ ] Validação de sensação (movimento do outro jogador suave?) — **João**
+- [x] Validação de sensação (João, 2026-10-22): movimento do outro jogador suave, sem atraso
+      perceptível; drops individuais em cada janela
 - [ ] Merge na `main` — só após o OK explícito do João
 
 ## Funcionalidades

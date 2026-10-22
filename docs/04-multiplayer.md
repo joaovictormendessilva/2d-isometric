@@ -43,8 +43,8 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 
 ## Riscos testados cedo (Etapa D+)
 
-1. ✅ Duas instâncias conectadas: movimento replicado e suave (teste automático mede o passo
-   por quadro; sensação a validar pelo João).
+1. ✅ Duas instâncias conectadas: movimento replicado e suave (validado pelo João; teste mede o passo
+   por quadro).
 2. ✅ Dano aplicado só pelo host, refletido no cliente (nos dois sentidos).
 3. ⬜ Projéteis: ainda não existem; o desenho previsto é o mesmo dos ataques (o dono pede,
    o host decide o acerto e cria/remove o projétil pelo Replicator).

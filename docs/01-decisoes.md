@@ -188,7 +188,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-012 — Replicação em rede: quem simula, quem decide
 
-- **Status**: Hipótese (Etapa D+, aguardando validação de sensação do João)
+- **Status**: Aceita para o LAN (validada pelo João na Etapa D+, 2026-10-22); revisar antes do online
 - **Decisão**:
   - **Quem decide é o host** (ADR-004): dano, vida, morte, renascimento, IA, criação e remoção
     de entidades, drops e inventários. Offline o jogo é o mesmo host, sem porta aberta.
