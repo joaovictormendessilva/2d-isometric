@@ -294,3 +294,21 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: novo idioma = nova coluna na tabela (o teste confere que todo idioma
   tem todos os textos, com os mesmos marcadores de valores). A fonte m5x7 cobre o alfabeto
   latino com acentos; idiomas com outros alfabetos pedirão outra fonte.
+
+## ADR-016 — Inventário em espaços com pilhas
+
+- **Status**: Hipótese (Etapa E2, aguardando validação do João)
+- **Decisões**:
+  - **Espaços com pilhas** (escolha do João): 30 espaços (`ActorStats.inventory_slots`);
+    cada espaço guarda um tipo de item até `ItemData.max_stack` (99; ferramentas 1).
+  - **Cheio**: drops esperam no chão; a coleta só começa/continua se couber o pior caso do
+    rendimento (nada se perde no meio).
+  - **Tela** (I / Tab / botão Y): grade com ícone, quantidade e nome ao passar o mouse;
+    arrastar move, junta ou troca; soltar fora da janela joga no chão (item só do dono, que
+    só o pega de volta depois de se afastar). Não pausa o jogo (coop).
+  - **Rede**: o host decide; o dono recebe cada espaço alterado e os ganhos como eventos
+    separados (mover itens não gera aviso "+1"). Pedidos do dono (mover, jogar fora) são
+    conferidos: só o próprio inventário, índices válidos. Estado por jogador em
+    `PlayerStateSync` (separado da conexão em `Network`).
+- **Consequências**: crafting (E3) usa `Inventory.remove`/`can_add_all`; equipamentos (E4)
+  e bolsas mudarão o tamanho por jogador.

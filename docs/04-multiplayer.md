@@ -68,6 +68,7 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Drops pessoais | ✅ | ✅ automático em rede (só o dono vê e coleta) | ⬜ |
 | Transição de região | ⬜ | ⬜ | ⬜ |
 | Morte e respawn | ✅ | ✅ automático (host ordena, cliente renasce) | ⬜ |
+| Inventário | ✅ | ✅ automático (host decide; pedidos adulterados recusados) | ⬜ |
 | Coleta | ✅ | ✅ automático (host decide; pedidos adulterados recusados; entrada no meio) | ⬜ |
 | Desconexão/reconexão | — | ✅ desconexão (host e cliente); reconexão ⬜ | ⬜ |
 | Salvamento | ⬜ | ⬜ | ⬜ |

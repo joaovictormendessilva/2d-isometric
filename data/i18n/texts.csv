@@ -15,7 +15,6 @@ NODE_OLD_OAK,Carvalho antigo,Old oak
 MONSTER_SLIME,Slime,Slime
 COMBAT_IMMUNE,Imune,Immune
 HUD_HEALTH,%d / %d,%d / %d
-HUD_ITEM_COUNT,%s x%d,%s x%d
 HUD_SKILL_LEVEL,%s %d (%d%%),%s %d (%d%%)
 FEEDBACK_ITEM_GAINED,+%d %s,+%d %s
 FEEDBACK_LEVEL_UP,%s nível %d!,%s level %d!
@@ -35,3 +34,6 @@ NET_BAD_PORT,Porta inválida: %d,Invalid port: %d
 NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
 NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)
 GATHER_INVENTORY_FULL,Inventário cheio,Inventory full
+INVENTORY_TITLE,Inventário,Inventory
+INVENTORY_HINT,Arraste para mover · solte fora para jogar no chão,Drag to move · drop outside to throw away
+HUD_INVENTORY_KEY,[%s] Inventário,[%s] Inventory

@@ -35,6 +35,7 @@ var _input_detached := false
 @onready var _debug_overlay: DebugOverlay = $UI/DebugOverlay
 @onready var _player_feedback: PlayerFeedback = $PlayerFeedback
 @onready var _interaction_prompt: InteractionPrompt = $World/InteractionPrompt
+@onready var _inventory_panel: InventoryPanel = $UI/InventoryPanel
 
 
 func _ready() -> void:
@@ -79,9 +80,10 @@ func _on_local_player_spawned(character: Character) -> void:
 	_camera.follow(character)
 	var inventory := session.get_inventory(local_player_id())
 	var progress := session.get_skills(local_player_id())
-	_hud.setup(character, inventory, items, progress, skills)
+	_hud.setup(character, progress, skills)
 	_player_feedback.setup(character, inventory, progress, items, skills, _damage_numbers)
 	_interaction_prompt.setup(character)
+	_inventory_panel.setup(inventory, items, player_state)
 
 
 ## Desliga teclado/controle do jogador local (testes e capturas dirigem o personagem

@@ -78,3 +78,29 @@ func test_full_inventory_leaves_drops_and_refuses_gathering() -> void:
 	await physics_frames(2)
 	check(not player.request_gather(), "não começa a coletar")
 	check(reasons == [GatheringRules.Check.INVENTORY_FULL], "avisa: inventário cheio")
+
+
+## Tela de inventário: soltar num espaço move; soltar fora joga no chão; cada espaço mostra
+## quantidade e nome.
+func test_inventory_screen_moves_and_throws_away() -> void:
+	var game := start_game()
+	var session: GameSession = game.session
+	var inventory := session.get_inventory(game.local_player_id())
+	inventory.add(&"wood", 5)
+	inventory.add(&"stone", 2)
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	var slots := panel.find_children("*", "InventorySlot", true, false)
+	check(slots.size() == inventory.capacity(), "um quadrado por espaço")
+	var first: InventorySlot = slots[0]
+	var label: Label = first.get_child(1)
+	check(label.text == "5" and first.tooltip_text == Texts.name_of("ITEM", &"wood"),
+		"mostra a quantidade e o nome")
+
+	var drag := {InventorySlot.DRAG_KEY: 0}
+	(slots[1] as InventorySlot)._drop_data(Vector2.ZERO, drag)
+	check(inventory.slot_item(0) == &"stone" and inventory.slot_item(1) == &"wood", "soltar no espaço troca")
+	check(label.text == "2", "o quadrado atualizou")
+
+	panel._drop_data(Vector2.ZERO, {InventorySlot.DRAG_KEY: 1})
+	await physics_frames(2)
+	check(inventory.count(&"wood") == 0 and pickups(game).size() == 1, "soltar fora joga no chão")

@@ -37,8 +37,13 @@ func _physics_process(_delta: float) -> void:
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if Input.is_action_just_pressed(&"interact"):
 		target.request_gather()
-	if Input.is_action_pressed(&"attack"):
+	if Input.is_action_pressed(&"attack") and not _pointer_over_ui():
 		target.request_attack(_aim_direction())
+
+
+## Clique sobre a interface (ex.: tela de inventário) não é ataque.
+func _pointer_over_ui() -> bool:
+	return _aim_with_mouse and get_viewport().gui_get_hovered_control() != null
 
 
 func _aim_direction() -> Vector2:
