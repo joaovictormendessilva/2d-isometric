@@ -454,6 +454,8 @@ static func _is_position(data: Dictionary, key: String) -> bool:
 func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 	if _is_shown(entity):
 		var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
+		if info.periodic:
+			color = UiStyle.EFFECT_DAMAGE
 		damage_numbers.show_number(entity.position, info.amount, color)
 
 

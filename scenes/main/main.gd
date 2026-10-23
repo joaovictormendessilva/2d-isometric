@@ -11,6 +11,7 @@ extends Node
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 ##   --open-inventory             abre o inventário antes da captura.
 ##   --open-shop                  leva o jogador até o NPC da região e abre a loja dele.
+##   --effect=<id>                aplica esse efeito (data/effects/) no jogador antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
 
@@ -236,10 +237,12 @@ func _on_local_player_spawned(character: Character) -> void:
 	$UI.add_child(_boss_bar)
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
-	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()))
+	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()),
+		session.get_effects(local_player_id()))
 	_player_feedback.setup(inventory, wallet, session.get_recipe_book(local_player_id()), recipes,
 		progress, items, skills, _damage_numbers)
 	player_state.use_refused.connect(_player_feedback.show_use_refusal)
+	_player_feedback.watch_effects(session.get_effects(local_player_id()))
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	_setup_shop(inventory, wallet)
@@ -277,6 +280,7 @@ func _handle_command_line() -> void:
 	var move := Vector2.ZERO
 	var open_inventory := false
 	var open_shop := false
+	var effects: Array[StatusEffectData] = []
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
@@ -287,6 +291,10 @@ func _handle_command_line() -> void:
 			open_shop = true
 		elif arg == "--open-inventory":
 			open_inventory = true
+		elif arg.begins_with("--effect="):
+			var effect := EffectDatabase.shared().get_effect(StringName(arg.trim_prefix("--effect=")))
+			if effect:
+				effects.append(effect)
 	if screenshot_path.is_empty():
 		return
 	for i in SCREENSHOT_FRAMES:
@@ -295,6 +303,10 @@ func _handle_command_line() -> void:
 		if character and move != Vector2.ZERO:
 			detach_local_input()
 			character.set_move_intent(move)
+		if character and not effects.is_empty():
+			for effect in effects:
+				character.status_effects.apply(effect)
+			effects.clear()
 	if open_inventory:
 		_inventory_panel.set_open(true)
 	if open_shop:

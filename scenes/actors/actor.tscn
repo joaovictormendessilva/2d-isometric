@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Script" path="res://scenes/actors/character/character.gd" id="1_character"]
 [ext_resource type="Script" path="res://scenes/components/footprint.gd" id="2_footprint"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/shadow.png" id="6_shadow"]
 [ext_resource type="Script" path="res://scenes/net/net_sync.gd" id="7_net"]
 [ext_resource type="Script" path="res://scenes/components/status_effects.gd" id="8_effects"]
+[ext_resource type="Script" path="res://scenes/effects/status_effect_vfx.gd" id="9_vfx"]
 
 [node name="Actor" type="CharacterBody2D"]
 collision_layer = 2
@@ -31,6 +32,10 @@ script = ExtResource("4_attacker")
 
 [node name="Shadow" type="Sprite2D" parent="Visual"]
 texture = ExtResource("6_shadow")
+
+[node name="EffectVfx" type="Node2D" parent="Visual" node_paths=PackedStringArray("body")]
+script = ExtResource("9_vfx")
+body = NodePath("../..")
 
 [node name="Feedback" type="Node" parent="." node_paths=PackedStringArray("visual")]
 script = ExtResource("5_feedback")

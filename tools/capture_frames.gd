@@ -16,6 +16,7 @@ extends SceneTree
 ##   --scale=<n>        ampliação de cada quadro (padrão 3)
 ##   --columns=<n>      quadros por linha (padrão 8)
 ##   --warmup=<n>       passos antes de começar (padrão 30)
+##   --effects=<ids>    efeitos (data/effects/, separados por vírgula) aplicados no jogador
 
 const MAIN_SCENE := "res://scenes/main/main.tscn"
 const SEPARATOR := Color(0.9, 0.2, 0.9)  # magenta: nunca confunde com a arte
@@ -28,7 +29,7 @@ const BOSS_DISTANCE := Vector2(100, 0)
 
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
-	"columns": "8", "warmup": "30", "out": "",
+	"columns": "8", "warmup": "30", "out": "", "effects": "",
 }
 
 
@@ -56,6 +57,10 @@ func _run() -> void:
 	game.detach_local_input()
 	var scenario: String = _options["scenario"]
 	character = await _prepare(game, character, scenario)
+	for id in (_options["effects"] as String).split(",", false):
+		var effect := EffectDatabase.shared().get_effect(StringName(id))
+		if effect:
+			character.status_effects.apply(effect)
 
 	var frames: Array[Image] = []
 	var every := maxi(int(_options["every"]), 1)

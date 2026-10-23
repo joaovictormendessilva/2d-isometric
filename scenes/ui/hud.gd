@@ -1,6 +1,7 @@
 class_name Hud
 extends Control
-## HUD do jogador local: barra de vida, poções (PotionSlot), níveis de coleta e a tecla do
+## HUD do jogador local: buffs e debuffs (EffectBar), barra de vida, poções (PotionSlot), níveis
+## de coleta e a tecla do
 ## inventário. Só lê estado
 ## via sinais (os itens ficam na tela de inventário).
 
@@ -17,8 +18,12 @@ var _skills: DataCatalog
 
 ## Uma vez: o que é do jogador (níveis de coleta, poções, tecla do inventário).
 func setup(progress: SkillProgress, skills: DataCatalog, inventory: Inventory,
-		items: ItemDatabase, cooldowns: Cooldowns) -> void:
+		items: ItemDatabase, cooldowns: Cooldowns, effects: ActiveEffects) -> void:
 	_skills = skills
+	var effect_bar := EffectBar.new()
+	add_child(effect_bar)
+	move_child(effect_bar, 0)  # acima da vida
+	effect_bar.setup(effects)
 	var potions := PotionSlot.new()
 	$HealthRow.add_child(potions)
 	potions.setup(inventory, items, cooldowns)

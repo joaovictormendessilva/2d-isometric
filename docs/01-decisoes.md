@@ -659,5 +659,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   cliente possa chamar. O host envia a lista inteira ({id: segundos}) a cada mudança e no estado
   completo; o cliente confere cada id no catálogo local e limita o tempo à duração do efeito
   (nada de recurso vindo da rede). O save passa pela mesma conferência. Protocolo: versão 11.
+- **Apresentação** (G1b): ícone, cor e partículas do efeito ficam nos dados (`vfx_amount`,
+  `vfx_color`, `vfx_rise_speed`, `vfx_at_feet`); teto de 8 partículas por efeito até os níveis de
+  qualidade da G3. O efeito não tinge o ator (a cor do Visual é do flash e do aviso de ataque; a do
+  sprite marca os outros jogadores): usa partículas próprias. Cor `UiStyle.EFFECT_DAMAGE` para
+  números de dano de efeito.
 - **Consequências**: novas fontes de efeito (G1c: golpe que envenena, poção de buff; G2:
   habilidades; G3: auras) só chamam `StatusEffects.apply`.

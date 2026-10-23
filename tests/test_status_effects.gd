@@ -157,3 +157,34 @@ func test_effects_reach_the_client() -> void:
 		return on_client.status_effects.effects.entries().is_empty(), 30),
 		"o fim chega ao cliente")
 	check_near(on_client.move_speed(), base, 0.01, "velocidade normal de novo")
+
+
+## G1b: o HUD mostra um quadrado por efeito do jogador local (some sem efeitos), o ator ganha
+## partículas só dos efeitos que têm, e o aviso aparece uma vez por efeito novo.
+func test_effects_are_shown_in_hud_and_on_the_actor() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var player := session.get_player_entity(1) as Character
+	var bar: EffectBar = game.find_children("*", "EffectBar", true, false)[0]
+	var vfx := player.get_node("Visual/EffectVfx") as StatusEffectVfx
+	check(not bar.visible and bar.shown_count() == 0 and vfx.emitter_count() == 0, "sem efeitos: nada")
+	var effects := EffectDatabase.shared()
+	var feedback := game.find_children("*", "PlayerFeedback", true, false)[0] as PlayerFeedback
+	feedback._queue.clear()
+	var poison := effects.get_effect(&"poison")
+	var swiftness := effects.get_effect(&"swiftness")
+	player.status_effects.apply(poison)
+	player.status_effects.apply(swiftness)
+	check(bar.visible and bar.shown_count() == 2, "dois quadrados no HUD")
+	check(vfx.emitter_count() == 2, "partículas dos dois efeitos")
+	var texts := feedback._queue.map(func(message: Array) -> String: return message[0])
+	check(texts == [poison.get_display_name(), swiftness.get_display_name()],
+		"um aviso por efeito novo (%s)" % [texts])
+	feedback._queue.clear()
+	player.status_effects.apply(poison)  # renovar
+	check(feedback._queue.is_empty(), "renovar não repete o aviso")
+	session.get_effects(1).clear()
+	check(not bar.visible and bar.shown_count() == 0, "acabaram: o HUD esconde")
+	await physics_frames(1)
+	check(vfx.emitter_count() == 0, "e as partículas somem")

@@ -2,7 +2,7 @@ class_name PlayerFeedback
 extends Node
 ## Avisos flutuantes do jogador LOCAL: itens e moedas ganhos ("+1 Madeira"), receita aprendida,
 ## nível de coleta subindo, por que não dá para coletar ("Precisa de ferramenta nível 2") ou beber
-## uma poção ("Vida cheia"). Avisos que chegam juntos (ex.: minério e pedra da mesma coleta) saem
+## uma poção ("Vida cheia") e efeitos ganhos ("Veneno", "Rapidez"). Avisos que chegam juntos (ex.: minério e pedra da mesma coleta) saem
 ## um de cada vez, sem se sobrepor. Só apresentação.
 
 const GAIN_COLOR := UiStyle.TEXT_SOFT
@@ -24,6 +24,8 @@ var _items: ItemDatabase
 var _skills: DataCatalog
 var _numbers: DamageNumbers
 var _levels: Dictionary[StringName, int] = {}
+## Efeitos já anunciados: renovar um efeito ativo não repete o aviso.
+var _known_effects: Dictionary[StringName, bool] = {}
 var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
 
@@ -45,6 +47,21 @@ func setup(inventory: Inventory, wallet: Wallet, book: RecipeBook, recipes: Reci
 	for skill: GatheringSkillData in skills.entries():
 		_levels[skill.id] = progress.level(skill)
 	progress.changed.connect(_on_xp_changed.bind(progress).unbind(1))
+
+
+## Uma vez: efeitos novos no jogador viram aviso (debuff em vermelho, buff em verde).
+func watch_effects(effects: ActiveEffects) -> void:
+	effects.changed.connect(_on_effects_changed.bind(effects))
+
+
+func _on_effects_changed(effects: ActiveEffects) -> void:
+	var current: Dictionary[StringName, bool] = {}
+	for entry in effects.entries():
+		current[entry.data.id] = true
+		if not _known_effects.has(entry.data.id):
+			_show(entry.data.get_display_name(),
+				UiStyle.DANGER if entry.data.harmful else LEVEL_COLOR)
+	_known_effects = current
 
 
 ## A cada personagem (recriado numa viagem): onde os avisos aparecem e as coletas recusadas.

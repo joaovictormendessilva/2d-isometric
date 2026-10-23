@@ -1,7 +1,8 @@
-[gd_resource type="Resource" script_class="StatusEffectData" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="StatusEffectData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://core/effects/status_effect_data.gd" id="1_effect"]
 [ext_resource type="Script" path="res://core/equipment/stat_bonuses.gd" id="2_bonuses"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_effect_swiftness.png" id="3_icon"]
 
 [sub_resource type="Resource" id="Bonuses"]
 script = ExtResource("2_bonuses")
@@ -12,3 +13,8 @@ script = ExtResource("1_effect")
 id = &"swiftness"
 duration = 30.0
 bonuses = SubResource("Bonuses")
+icon = ExtResource("3_icon")
+vfx_amount = 4
+vfx_color = Color(0.66, 0.91, 0.97, 1)
+vfx_rise_speed = 6.0
+vfx_at_feet = true

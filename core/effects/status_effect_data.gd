@@ -18,6 +18,17 @@ extends Resource
 @export var damage_per_tick: int = 0
 @export var heal_per_tick: int = 0
 
+@export_group("Apresentação")
+## Ícone 8x8 (desenhado em escala 2 no HUD).
+@export var icon: Texture2D
+## Partículas no ator enquanto o efeito dura (0 = nenhuma; teto em StatusEffectVfx).
+@export var vfx_amount: int = 0
+@export var vfx_color := Color.WHITE
+## Pixels por segundo para cima (bolhas de veneno sobem devagar).
+@export var vfx_rise_speed: float = 12.0
+## Nos pés (rapidez) em vez de no corpo todo.
+@export var vfx_at_feet := false
+
 
 func get_display_name() -> String:
 	return Texts.name_of("EFFECT", id)

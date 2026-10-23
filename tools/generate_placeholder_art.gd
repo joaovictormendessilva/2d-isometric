@@ -162,6 +162,11 @@ const ICON_PALETTE := {
 	"q": Color("b48ae8"),  # gosma (luz)
 	"p": Color("8a5cc7"),  # gosma
 	"P": Color("6a42a3"),  # gosma (sombra)
+	"t": Color("c8e04a"),  # veneno (luz, puxa para o amarelo)
+	"v": Color("7fb83a"),  # veneno
+	"V": Color("3f7a4a"),  # veneno (sombra, puxa para o azul)
+	"b": Color("a8e8f8"),  # rapidez (luz)
+	"B": Color("4a9ad8"),  # rapidez
 }
 const LOG := [
 	"........",
@@ -295,6 +300,27 @@ const KING_CORE := [
 	".oPPPPo.",
 	"..oooo..",
 ]
+## Efeitos (HUD): gota de veneno com luz em cima à esquerda; rapidez = duas setas para a frente.
+const POISON_DROP := [
+	"...oo...",
+	"..otvo..",
+	".otvvVo.",
+	".otvvVo.",
+	"otvvvvVo",
+	"ovvvvVVo",
+	".oVVVVo.",
+	"..oooo..",
+]
+const SWIFT_ARROWS := [
+	"........",
+	"oo..oo..",
+	"obo.obo.",
+	".obo.obo",
+	".oBo.oBo",
+	"oBo.oBo.",
+	"oo..oo..",
+	"........",
+]
 ## Ícone da coroa fabricada com o núcleo: ouro com uma gema de gosma no meio.
 const CROWN_ICON := [
 	"........",
@@ -334,6 +360,8 @@ const ICONS := {
 	"health_potion": [POTION, {}],
 	"king_slime_core": [KING_CORE, {}],
 	"king_slime_crown": [CROWN_ICON, {}],
+	"effect_poison": [POISON_DROP, {}],
+	"effect_swiftness": [SWIFT_ARROWS, {}],
 }
 
 
