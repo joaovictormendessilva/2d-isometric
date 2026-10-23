@@ -281,15 +281,16 @@ func _instantiate_player(data: Dictionary) -> Character:
 
 
 ## Host, com o personagem já na árvore (vida pronta): quem já jogou neste mundo volta como
-## estava; quem é novo ganha o equipamento inicial (e o kit de testes, se houver).
+## estava; quem é novo ganha o equipamento inicial (e o kit de testes, se houver). Só depois disso
+## uma aparência colecionada é novidade (avisa e vai para o dono).
 func _prepare_player(character: Character) -> void:
-	if saves and saves.restore_player(character):
-		return
-	var equipment := session.get_equipment(character.player_id)
-	for item in character.stats.starting_equipment:
-		EquipmentRules.give_equipped(equipment, item)
-	if starter_kit:
-		starter_kit.give_to(session.get_inventory(character.player_id))
+	if not (saves and saves.restore_player(character)):
+		var equipment := session.get_equipment(character.player_id)
+		for item in character.stats.starting_equipment:
+			EquipmentRules.give_equipped(equipment, item)
+		if starter_kit:
+			starter_kit.give_to(session.get_inventory(character.player_id))
+	session.get_appearances(character.player_id).announces = true
 
 
 ## Tamanho do inventário = base do jogador + espaços das mochilas vestidas, somados direto do

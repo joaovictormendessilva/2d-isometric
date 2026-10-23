@@ -167,6 +167,39 @@ func test_client_chooses_look_through_host() -> void:
 	check(host_seen.look(head) == Equipment.OWN_LOOK, "a aparência do host não mudou")
 
 
+## O equipamento inicial e o que o jogador já tinha não são novidade: nada de "Nova aparência:
+## Espada" ao abrir um mundo novo nem ao entrar no mundo de outro. Item novo de verdade avisa.
+func test_no_new_look_notice_for_what_the_player_already_had() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	await physics_frames(10)
+	check(_look_notices(game) == 0, "mundo novo: a espada inicial não avisa")
+	(game.session as GameSession).get_inventory(1).add(HELMET, 1)
+	await physics_frames(2)
+	check(_look_notices(game) == 1, "capacete novo avisa")
+
+	var host := start_network_game("Host", Network.Role.HOST, PORT)
+	var client := start_network_game("Client", Network.Role.CLIENT, PORT)
+	check(await wait_until(func() -> bool:
+		return (client.session as GameSession).get_player_entity(client.local_player_id()) != null),
+		"cliente conectou")
+	await physics_frames(30)
+	check(_look_notices(client) == 0, "cliente entrando: a espada que ele já tem não avisa")
+	(host.session as GameSession).get_inventory(client.local_player_id()).add(HELMET, 1)
+	check(await wait_until(func() -> bool: return _look_notices(client) == 1, 60),
+		"cliente: capacete novo avisa")
+
+
+## Avisos de aparência nova na fila ou já mostrados.
+func _look_notices(game: Node) -> int:
+	var prefix := Texts.format(&"FEEDBACK_LOOK_COLLECTED", [""])
+	var feedback := game.get_node("PlayerFeedback") as PlayerFeedback
+	var texts: Array = feedback._queue.map(func(message: Array) -> String: return message[0])
+	for label: Label in (game.get_node("WorldText/DamageNumbers") as DamageNumbers)._pool:
+		texts.append(label.text)
+	return texts.filter(func(text: String) -> bool: return text.begins_with(prefix)).size()
+
+
 ## Tela: botão direito num espaço lista a própria, as colecionadas do tipo e esconder; escolher
 ## pede ao host e o espaço ganha o selo; aviso de aparência nova.
 func test_look_menu_in_the_equipment_column() -> void:
@@ -204,3 +237,7 @@ func test_look_menu_in_the_equipment_column() -> void:
 		Texts.format(&"EQUIP_LOOK_SHOWN", [equipment.data_of(CROWN).get_display_name()])),
 		"selo e dica mostram a coroa")
 	check(column.look_choices(head)[0][1] == Equipment.OWN_LOOK, "agora dá para voltar à própria")
+	equipment.replicate_slot(head, HELMET)
+	ids = column.look_choices(head).map(func(choice: Array) -> StringName: return choice[1])
+	check(ids == [Equipment.OWN_LOOK, Equipment.HIDDEN_LOOK],
+		"o capacete vestido não se repete pelo nome (%s)" % [ids])

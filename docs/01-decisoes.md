@@ -831,6 +831,11 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Tela**: botão direito num espaço de equipamento → menu (mostrar o item vestido, as
     aparências colecionadas do tipo, esconder); selo 10×10 no canto do espaço com a aparência
     escolhida (ou um traço, se escondida); a dica diz a aparência. Aviso "Nova aparência: X".
+    O item vestido não se repete no menu pelo nome (é o "mostrar o item vestido").
+  - **Novidade** (`AppearanceCollection.announces`): só depois de o jogador estar montado (host:
+    equipamento inicial ou save aplicados; cliente: primeira coleção oficial do host). Antes
+    disso nada avisa nem é enviado; depois, a coleção oficial que chega também avisa o que
+    trouxer de novo (o host pode mandá-la antes do próprio item).
   - **Save**: `appearances` (ids) e `looks` (um por espaço) no registro do personagem. A
     coleção volta antes do inventário, então saves anteriores colecionam o que o personagem
     já tem.

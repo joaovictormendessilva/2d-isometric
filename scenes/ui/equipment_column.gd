@@ -46,15 +46,18 @@ func setup(equipment: Equipment, inventory: Inventory, player_state: PlayerState
 	inventory.held_changed.connect(refresh_all)
 
 
-## Aparências que o espaço pode mostrar agora, menos a atual: [[texto, id], ...].
+## Aparências que o espaço pode mostrar agora, menos a atual: [[texto, id], ...]. O item vestido
+## não entra pelo nome: "Mostrar o item vestido" já é ele (pedido do João, 2026-10-23).
 func look_choices(index: int) -> Array:
 	var choices := []
 	var current := _equipment.look(index)
+	var worn := _equipment.item_id(index)
 	if current != Equipment.OWN_LOOK:
 		choices.append([Texts.get_text(&"LOOK_MENU_OWN"), Equipment.OWN_LOOK])
 	for item_id in _collection.all():
 		var item := _equipment.data_of(item_id)
-		if item_id != current and EquipmentRules.is_valid_look(_equipment, index, item_id):
+		if item_id != current and item_id != worn \
+				and EquipmentRules.is_valid_look(_equipment, index, item_id):
 			choices.append([item.get_display_name(), item_id])
 	if current != Equipment.HIDDEN_LOOK:
 		choices.append([Texts.get_text(&"LOOK_MENU_HIDE"), Equipment.HIDDEN_LOOK])

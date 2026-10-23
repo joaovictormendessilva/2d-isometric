@@ -11,6 +11,11 @@ signal collected(item_id: StringName)  ## Aparência nova (aviso ao jogador).
 ## Limite do que vem de fora (rede, save): bem acima de qualquer jogador legítimo.
 const MAX_ITEMS := 1024
 
+## Desligado até o jogador estar montado: no host, depois do equipamento inicial ou do save; no
+## cliente, quando chega a coleção oficial do host. O que ele já tinha não é novidade (nada de
+## "Nova aparência: Espada" ao abrir um mundo novo ou ao entrar no de outro).
+var announces := false
+
 var _ids: Dictionary[StringName, bool] = {}
 
 
@@ -18,12 +23,13 @@ func has(item_id: StringName) -> bool:
 	return _ids.has(item_id)
 
 
-## Retorna se era nova.
+## Retorna se era nova. Só vira novidade (`collected`) com `announces` ligado.
 func collect(item_id: StringName) -> bool:
 	if item_id == Equipment.EMPTY or has(item_id) or _ids.size() >= MAX_ITEMS:
 		return false
 	_ids[item_id] = true
-	collected.emit(item_id)
+	if announces:
+		collected.emit(item_id)
 	return true
 
 
@@ -65,11 +71,18 @@ func snapshot() -> PackedStringArray:
 
 ## Troca tudo pelo recebido (host pela rede, ou save). Dado NÃO confiável: só equipamentos que
 ## existem, até o limite.
+## Com `announces` ligado, o que não havia antes vira novidade (o host pode mandar a coleção antes
+## do próprio item).
 func replicate(state: Variant, items: ItemDatabase) -> void:
-	_ids.clear()
+	var before := _ids
+	_ids = {}
 	if state is Array or state is PackedStringArray:
 		for value: Variant in Array(state).slice(0, MAX_ITEMS):
 			if (value is String or value is StringName) \
 					and items.get_item(StringName(value)) is EquipmentData:
 				_ids[StringName(value)] = true
 	changed.emit()
+	if announces:
+		for item_id in all():
+			if not before.has(item_id):
+				collected.emit(item_id)

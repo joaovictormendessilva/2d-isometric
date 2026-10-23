@@ -296,6 +296,13 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     - G3c2: botão direito num espaço de equipamento → menu de aparências; selo no canto do
       espaço; dica com a aparência; aviso "Nova aparência: X". Captura: `--look=<ids>`.
       Pendente: escolher só com teclado/controle. 192 testes.
+    - Ajustes pós-avaliação do João (2026-10-23): o item vestido não se repete no menu pelo
+      nome ("Mostrar o item vestido" já é ele); "Nova aparência" não aparece mais para o que o
+      jogador já tinha (espada inicial num mundo novo, itens ao entrar no mundo de outro), só
+      para item novo de verdade. 193 testes.
+    - Futuro (pedido do João, 2026-10-23): com muitos itens por tipo, trocar a lista por uma
+      **tela de aparências com a grade de imagens** liberadas daquele tipo. Fica para quando a
+      interface definitiva (menus, inventário, bolsa, HUD) for desenhada, na referência Hero Siege.
   - G3d ⬜: teste de carga com 10 / 30 / 60 auras (`docs/03-desempenho.md`).
 
 ## Funcionalidades
@@ -379,9 +386,13 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   personagem é recriado a cada viagem). Agora o tamanho vem direto do equipamento vestido.
 - Corrigido (`fix/death-cancels-attack`): criatura que morria no meio da preparação ainda dava
   o bote ("fantasma", sem acertar). Agora a morte encerra qualquer ataque.
-- Testes que abrem o jogo inteiro terminam com avisos de objetos não liberados ("leaked at
-  exit") na saída da Godot. Antigo (igual antes e depois da G3c; não reprova teste); investigar
-  quando sobrar tempo (suspeita: avisos e menus criados fora da árvore).
+- Corrigido (2026-10-23): avisos "leaked at exit" na saída da Godot (452 objetos nos testes).
+  Nós criados antes de entrar na árvore e postos nela só depois (`call_deferred` ou no `setup`)
+  ficavam soltos quando o jogo fechava antes: frente da aura, menu da barra de habilidades,
+  barras do chefe e de habilidades, peças da loja, efeitos no chão da região. Agora nascem já
+  dentro da árvore. Os testes terminam sem nenhum aviso.
+- Corrigido (2026-10-23): `render_checks.gd` reprovava desde a G3c2: o aviso falso "Nova
+  aparência: Espada" num mundo novo cobria o texto de teste.
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 

@@ -500,6 +500,7 @@ func _collection(ids: PackedStringArray) -> void:
 	var collection := session.get_appearances(multiplayer.get_unique_id())
 	if collection:
 		collection.replicate(ids, items)
+		collection.announces = true  # com a oficial em mãos, o que chegar depois é novidade
 
 
 ## Equipamento de um jogador vindo do host: tudo ou nada — mesmo número de espaços, e cada um
