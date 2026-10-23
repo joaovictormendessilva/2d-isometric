@@ -716,7 +716,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-027 — Ameaça e passeio das criaturas
 
-- **Status**: Hipótese (G2c implementada; aguardando validação do João)
+- **Status**: Aceita (G2c validada pelo João em 2026-10-23)
 - **Contexto**: João (2026-10-23): atacada de longe, a criatura nem reagia, e perseguindo desistia
   assim que o jogador saía do raio de agressão, bem antes da coleira. Chefes corpo a corpo
   precisam ir atrás de magos e arqueiros. E, sem alvo, as criaturas ficavam paradas.
