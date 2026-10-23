@@ -45,7 +45,9 @@ class Slot extends SlotView:
 			ability = p_ability
 			_icon.texture = ability.icon if ability else null
 			tooltip_text = AbilityTexts.describe(ability)
-		if not is_equal_approx(seconds, cooldown_left):
+		# Comparação exata: "aproximada" achava 0,000005 igual a 0 e o fim da recarga não
+		# apagava o último segundo da tela (o "1" ficava parado; teste do João, 2026-10-23).
+		if seconds != cooldown_left:
 			cooldown_left = seconds
 			_seconds.text = str(ceili(seconds)) if seconds > 0.0 else ""
 			var fraction := clampf(seconds / ability.cooldown, 0.0, 1.0) if ability else 0.0

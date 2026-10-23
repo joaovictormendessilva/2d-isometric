@@ -103,13 +103,15 @@ func _update_visual() -> void:
 	_sprite.position = ground_offset + Vector2(0.0, -SPRITE_HEIGHT - sin(t * PI) * POP_HEIGHT)
 
 
-## Com `2d/snap/snap_2d_transforms_to_pixel` a imagem só anda de pixel em pixel, e o balanço
-## (1,5 px) troca de pixel poucas vezes por segundo: o nó só é mexido nessas vezes (cada
-## mudança custa a atualização dele; teste de carga H2). Mesmo desenho na tela.
+## O balanço (1,5 px) anda de pixel inteiro em pixel inteiro do mundo e o nó só é mexido quando
+## o pixel muda, poucas vezes por segundo (cada mudança custa a atualização dele; teste de
+## carga H2). O pixel inteiro importa: guardar a altura exata do instante da troca (ex.: 4,49 e
+## 4,51) fazia as duas caírem no mesmo pixel da tela com a câmera em meio pixel, e o item
+## parava de balançar para um dos jogadores (teste do João, 2026-10-23).
 func _update_bob() -> void:
-	var offset := Vector2(0.0, -SPRITE_HEIGHT
-		- absf(sin((_time - POP_TIME) * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT)
-	if (position + offset).round() != (position + _sprite.position).round():
+	var height := SPRITE_HEIGHT + absf(sin((_time - POP_TIME) * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT
+	var offset := Vector2(0.0, roundf(position.y - height) - position.y)
+	if offset != _sprite.position:
 		_sprite.position = offset
 	if _shadow.position != Vector2.ZERO:
 		_shadow.position = Vector2.ZERO  # o último quadro do salto ainda não estava no chão

@@ -238,6 +238,18 @@ func test_ability_bar_shows_slots_and_moves_abilities() -> void:
 	check(book.in_slot(2) == null and book.knows(BOLT), "esvaziou (continua aprendida)")
 
 
+## Fim da recarga num quadro que cai a microssegundos do zero: o último segundo some da tecla
+## (antes, 0,000005 contava como "igual" a 0 e o "1" ficava parado).
+func test_ability_bar_clears_the_last_second() -> void:
+	var slot := AbilityBar.Slot.new(0, "1")
+	var blast := AbilityDatabase.shared().get_ability(BLAST)
+	slot.show_ability(blast, 0.000005)
+	check(slot._seconds.text == "1", "falta um instante: mostra 1")
+	slot.show_ability(blast, 0.0)
+	check(slot._seconds.text == "" and slot._shade.size.y == 0.0, "recarga acabou: tecla limpa")
+	slot.free()
+
+
 ## G2d: a explosão cai no ponto mirado depois do aviso e fere todos dentro do raio, só eles.
 func test_blast_hits_everyone_in_the_area_after_the_warning() -> void:
 	var game := start_game()

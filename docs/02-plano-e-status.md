@@ -330,6 +330,11 @@ João antes da próxima:
   com o dono ao alcance, balanço só muda o nó quando troca de pixel, e o drop só vai ao
   computador do dono (também melhora a privacidade: um cliente não sabe mais o que o outro
   ganhou). 500 itens: 6,5 → 3,2 ms; mesmo visual. Captura: cenário `drop` em `capture_frames.gd`.
+  Teste do João no coop (2026-10-23), corrigido: às vezes o item pousava e não balançava para um
+  dos jogadores (o balanço econômico guardava alturas quebradas, que caíam no mesmo pixel com a
+  câmera em meio pixel; agora anda de pixel inteiro). E, uma vez, a tecla da Explosão arcana
+  ficou mostrando "1" depois de a recarga acabar (comparação aproximada achava 0,000005 igual a
+  0; antigo, desde a G2b). 197 testes.
 - H3 – Coop com 4 jogadores na mesma região: custo do host e tráfego (hoje medido com 2).
 - H4 – Riscos da arquitetura de rede antes da Etapa I: revisar as pendências da ADR-013 e as
   limitações conhecidas (ex.: host não confere paredes no movimento) e decidir o que resolver já.

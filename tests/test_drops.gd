@@ -72,6 +72,30 @@ func test_drop_waits_on_the_ground_for_its_owner() -> void:
 	check(session.get_inventory(game.local_player_id()).count(&"gel") > 0, "item no inventário")
 
 
+## Pousado, o item balança de pixel inteiro em pixel inteiro (com a câmera em meio pixel, alturas
+## quebradas como 4,49 e 4,51 caíam no mesmo pixel da tela e o item parecia parado).
+func test_landed_drop_bobs_by_whole_pixels() -> void:
+	var game := start_game()
+	var player := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
+	var monster := first_monster(game)
+	monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, game.local_player_id()))
+	await physics_frames(2)
+	var pickup: Pickup = pickups(game)[0]
+	pickup.position += Vector2(0.37, 0.37)  # meio do pixel: o caso que travava
+	player.position = pickup.position + Iso.ground_to_screen(Vector2(player.pickup_radius() + 40.0, 0))
+	await physics_frames(roundi(Pickup.POP_TIME * 60) + 1)
+	var heights := {}
+	var whole := true
+	for i in roundi(60.0 / Pickup.BOB_HZ):
+		var y := pickup.position.y + pickup._sprite.position.y
+		whole = whole and is_equal_approx(y, roundf(y))
+		heights[roundi(y)] = true
+		await tree.physics_frame
+	check(whole, "a imagem fica sempre num pixel inteiro do mundo")
+	check(heights.size() >= 2, "o item balança (%d alturas num ciclo)" % heights.size())
+
+
 ## O ímã vem dos atributos do jogador: um raio maior (futuros equipamentos) puxa de mais longe.
 func test_larger_pickup_radius_pulls_from_farther() -> void:
 	var game := start_game()
