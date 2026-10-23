@@ -230,9 +230,17 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
     Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
-- **G2 – Primeira habilidade mágica** ⬜: tecla de habilidade, mira no cursor, aviso no chão,
-  efeito mágico (estilo Albion/V Rising). Primeiro ataque à distância; com ele, o chefe passa a
-  perseguir quem o ataca de longe (ver "Direção de combate").
+- **G2 – Primeira habilidade mágica** 🟡 (branch `stage-g/first-ability`, ADR-026): habilidades
+  **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
+  são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
+  (sem mana, como no V Rising).
+  - G2a: núcleo e o **Projétil arcano** (primeira habilidade): dados em `data/abilities/`, livro
+    de habilidades por jogador, lançar decidido pelo host com recarga, projétil que acerta o
+    primeiro inimigo no caminho; aprender lendo um tomo (item do mercador); coop e save.
+  - G2b: barra de habilidades no HUD (ícone, tecla, recarga) e trocar habilidades de espaço.
+  - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
+    combate").
+  - G2d (a decidir com o João): segunda habilidade, em área com aviso no chão.
 - **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
 
