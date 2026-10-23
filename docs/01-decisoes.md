@@ -222,7 +222,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     que confere as próprias regras (vivo, ritmo) e decide o acerto com as posições que conhece.
 - **Consequências**: no LAN o acerto usa posições ~0,1 s atrasadas do outro lado — fino no
   LAN, mas o online vai precisar de compensação de atraso. Custo medido: ~0,9 KB/s por
-  entidade do host para cada cliente (`docs/03-desempenho.md`); muitas criaturas online vão
+  entidade EM MOVIMENTO do host para cada cliente; parada, ~0,1 KB/s (H3: estado repetido só a
+  cada 0,5 s; `docs/03-desempenho.md`); muitas criaturas online vão
   pedir agrupamento de mensagens e "área de interesse".
 
 ## ADR-013 — Segurança de rede e de software

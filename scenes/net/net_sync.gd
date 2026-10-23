@@ -13,6 +13,10 @@ extends Node
 
 ## Estados por segundo enviados por quem simula (20 Hz).
 const SEND_INTERVAL := 0.05
+## Corpo parado (mesma posição e direção) manda só um estado a cada tanto, para manter o relógio
+## de quem recebe: a maior parte do tráfego era de criaturas paradas repetindo o mesmo estado
+## (teste de carga H3).
+const IDLE_SEND_INTERVAL := 0.5
 ## Atraso de desenho das entidades remotas: dois estados de folga contra variação de chegada.
 const INTERPOLATION_DELAY := 0.1
 ## Salto entre estados que é tratado como teletransporte (renascer), sem interpolar.
@@ -30,6 +34,11 @@ const MOVE_BUDGET_TIME := 0.5
 const MIN_STATE_INTERVAL := SEND_INTERVAL * 0.5
 
 var _send_left := 0.0
+# Último estado enviado e o último instante em que o corpo seguia parado nele sem enviar.
+var _sent_t := -INF
+var _sent_position := Vector2.INF
+var _sent_facing := Vector2.ZERO
+var _held_t := -INF
 var _snapshots: Array[Dictionary] = []  # {t, position, facing}, em ordem de tempo
 var _clock_offset := INF
 var _last_sender_time := -INF
@@ -102,9 +111,30 @@ func _physics_process(delta: float) -> void:
 		_send_left -= delta
 		if _send_left <= 0.0:
 			_send_left += SEND_INTERVAL
-			_send_state(NetRules.now(), _body.position, _body.facing)
+			_send_tick(NetRules.now())
 	else:
 		_interpolate(delta)
+
+
+## Um estado por intervalo, menos os repetidos de quem está parado. Ao voltar a andar, o
+## primeiro envio é o estado parado com o instante do último intervalo sem envio: quem recebe
+## interpola a partir dali, e não espalha o primeiro passo por todo o tempo parado. (Uma
+## mensagem por intervalo, como sempre: a trava de inundação do host não muda.)
+func _send_tick(t: float) -> void:
+	var position := _body.position
+	var facing := _body.facing
+	var unchanged := position == _sent_position and facing == _sent_facing
+	if unchanged and t - _sent_t < IDLE_SEND_INTERVAL:
+		_held_t = t
+		return
+	if not unchanged and _held_t > _sent_t:
+		t = _held_t
+		position = _sent_position
+		facing = _sent_facing
+	_sent_t = t
+	_sent_position = position
+	_sent_facing = facing
+	_send_state(t, position, facing)
 
 
 func _send_state(t: float, position: Vector2, facing: Vector2) -> void:

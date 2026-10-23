@@ -33,10 +33,7 @@ func add_to_tree(node: Node) -> Node:
 ## Cria o jogo completo (cena principal) com o controle local desligado. Sem `save_path`, o
 ## jogo não lê nem grava save.
 func start_game(save_path: String = "") -> Node:
-	var game := MAIN_SCENE.instantiate()
-	game.use_debug_starter_kit = false  # testes contam itens: começam de mãos vazias
-	game.use_dev_merchant = false
-	game.save_path = save_path
+	var game := _new_game(save_path)
 	add_to_tree(game)
 	game.detach_local_input()
 	return game
@@ -95,24 +92,33 @@ func register_player(session: GameSession, character: Character, player_id: int)
 
 
 ## Uma instância do jogo em rede dentro do teste: cada uma num SubViewport (mundo físico
-## próprio) com a própria API de rede, como se fosse outro computador.
+## próprio) com a própria API de rede, como se fosse outro computador. `in_window`: direto na
+## janela (desenhada, com a API de rede dela), para benchmarks com uma instância por processo.
 func start_network_game(instance_name: String, role: Network.Role, port: int,
-		save_path: String = "") -> Node:
-	var viewport := SubViewport.new()
-	viewport.name = instance_name
-	add_to_tree(viewport)
-	tree.set_multiplayer(SceneMultiplayer.new(), viewport.get_path())
-	_multiplayer_roots.append(viewport.get_path())
-	var game := MAIN_SCENE.instantiate()
+		save_path: String = "", in_window: bool = false) -> Node:
+	var game := _new_game(save_path)
 	game.configure_network_from_command_line = false
-	game.use_debug_starter_kit = false
-	game.use_dev_merchant = false
-	game.save_path = save_path
 	var network: Network = game.get_node("Network")
 	network.role = role
 	network.port = port
-	viewport.add_child(game)
+	if in_window:
+		add_to_tree(game)
+	else:
+		var viewport := SubViewport.new()
+		viewport.name = instance_name
+		add_to_tree(viewport)
+		tree.set_multiplayer(SceneMultiplayer.new(), viewport.get_path())
+		_multiplayer_roots.append(viewport.get_path())
+		viewport.add_child(game)
 	game.detach_local_input()
+	return game
+
+
+func _new_game(save_path: String) -> Node:
+	var game := MAIN_SCENE.instantiate()
+	game.use_debug_starter_kit = false  # testes contam itens: começam de mãos vazias
+	game.use_dev_merchant = false
+	game.save_path = save_path
 	return game
 
 
