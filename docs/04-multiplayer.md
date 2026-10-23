@@ -34,7 +34,9 @@ entidades remotas desde o início), para não quebrar quando formos para o onlin
 ## Como funciona hoje (Etapa D+, ADR-012)
 
 - Host decide tudo o que é regra; cada jogador simula o próprio movimento e o host valida.
-- Entidades remotas aparecem interpoladas (0,1 s no passado), 20 estados por segundo.
+- Entidades remotas aparecem interpoladas (0,1 s no passado), 20 estados por segundo; parada
+  (mesma posição e direção), só 2 por segundo (H3). Ao voltar a andar, o primeiro estado é o
+  parado com o instante certo, para a cópia não "largar" antes da hora.
 - Criação/remoção pelo `MultiplayerSpawner`; eventos e estados por entidade no `NetSync`.
 - Segurança: ADR-013 (porta só quando pedida, aperto de mão, sem repasse entre clientes,
   validação de tudo o que chega).
@@ -62,7 +64,11 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 - Aparências (G3c, ADR-030): a escolhida em cada espaço vai a todos com o equipamento; a coleção
   só ao dono. O cliente confere as aparências dos outros só pelo tipo do espaço (a coleção deles
   não chega); o host confere cada pedido com a coleção oficial.
-- Tráfego ~0,9 KB/s por entidade por cliente: muitas criaturas online pedem agrupamento.
+- Tráfego ~0,9 KB/s por entidade em movimento por cliente (parada ~0,1). Coop com 4 na mesma
+  região (H3): o host envia ~3,7 KB/s a cada cliente andando e ~10 KB/s em combate (31 KB/s no
+  total); recebe ~1 KB/s de cada um andando, ~3 em combate. Cabe com folga na LAN; online, o
+  envio do host (~250 kbit/s com 4 em combate) ainda cabe numa conexão doméstica comum. Muitas
+  criaturas online pedem agrupamento.
 - Regiões no coop (F2c): o host simula toda região com jogador (até uma por jogador); cada
   cliente só recebe a própria. Trocar de região recria o personagem (o anterior fica 1 s parado
   no host, ignorando mensagens atrasadas).

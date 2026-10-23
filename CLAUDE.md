@@ -123,6 +123,8 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
       `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd`, `.../benchmark_monsters.gd`,
       `.../benchmark_auras.gd`, `.../benchmark_projectiles.gd`, `.../benchmark_drops.gd` e
       `.../benchmark_regions.gd` (várias regiões ativas no host)
+    - Coop com 1/2/4 jogadores (H3; com janela e **sem** `--fixed-fps`, em tempo real: o script
+      abre os clientes em outros processos): `G --path . -s res://tests/benchmark_coop.gd`
     - Testes reprovam também qualquer erro de script registrado durante o teste.
     - Verificações de imagem (com janela; os testes acima não enxergam pixels):
       `G --path . --fixed-fps 60 -s res://tests/render_checks.gd` (textos do mundo visíveis antes e

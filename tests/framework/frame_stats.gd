@@ -16,6 +16,12 @@ func tick(record: bool = true) -> void:
 	_last_usec = now
 
 
+## Guarda uma amostra já medida (ms), para quem mede de outro jeito (ex.: CPU do quadro pelos
+## monitores, em vez do relógio entre quadros).
+func record(ms: float) -> void:
+	_samples.append(ms)
+
+
 func summary() -> String:
 	var sorted := _samples.duplicate()
 	sorted.sort()

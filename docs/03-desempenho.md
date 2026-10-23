@@ -39,7 +39,7 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 | Muitos projéteis | 200 / 500 / 1000 | ✅ 2026-10-23 (ver Resultados) |
 | Partículas e auras | 10 / 30 / 60 auras ativas | ✅ 2026-10-23 (ver Resultados) |
 | Itens no chão | 200 / 500 | ✅ 2026-10-23 (ver Resultados) |
-| Coop | 2 / 4 jogadores na mesma região | 🟡 2 jogadores (tráfego medido); 4 ⬜ |
+| Coop | 2 / 4 jogadores na mesma região | ✅ 2026-10-23 (ver Resultados) |
 
 Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 
@@ -63,6 +63,8 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 | 2026-10-23 | Mesmo `benchmark_projectiles.gd` **depois**: imagem do projétil pintada uma vez por habilidade (textura agrupa) e consulta física reaproveitada no `ActorQuery` | PC de dev | no ar (baixo / médio / alto): 200: **1,5 / 1,6 / 1,8 ms** · 500: **2,9 / 3,1 / 3,4 ms** · 1000: **5,5 / 5,9 / 6,2 ms** (p99 6,9–7,3). Com alvos: 200: 2,6 / 2,9 / 3,1 · 500: 5,5 / 5,7 / 6,1 · 1000: 9,5 / 10,0 / 10,3 ms. Draw calls com 1000: 3077 → **154–272**. Visual igual (captura antes/depois: só diferenças de 1/255 na sombra). `benchmark_monsters.gd` sem mudança (200: 3,6 ms) |
 | 2026-10-23 | `benchmark_drops.gd` (H2) — N gosmas no chão da campina (jogo completo, sem rede), 600 quadros: "parados" = dono fora do ímã de todas; "cheio" = dono no meio, inventário cheio; "coleta" = dono andando em círculo e pegando (cada item pego renasce); "queda" = N criados no mesmo quadro. **Antes** | PC de dev | parados: 200: **3,0 ms** · 500: **6,5 ms** (~13 µs por item: ~9 de lógica, ~2 de desenho). Cheio: 2,8 / 5,7 · coleta: 3,5 / 7,0 ms. Draw calls ~2 por item (sombra e ícone se alternam). Queda: criação **~60 µs por item** (200: 12 ms, 500: 31 ms no quadro). Rede: os drops do host iam também ao cliente (~250 B cada), que nem os via |
 | 2026-10-23 | Mesmo `benchmark_drops.gd` **depois**: item dorme enquanto o dono não pode chegar (teto 0,25 s), inventário só consultado com o dono ao alcance, balanço só mexe no nó quando troca de pixel, e o host envia o drop só ao computador do dono | PC de dev | parados: 200: **1,6 ms** · 500: **3,2 ms**. Cheio: 1,8 / 3,7 · coleta: 2,3 / 3,9 ms. Queda sem mudança (~60 µs por item: montar o nó, pôr na região, ligar à rede; a busca do ponto de pouso agora reaproveita a consulta física, sem ganho medido). Rede: drop do host → cliente **0 B** (antes ~250 B); drop do cliente ~160–430 B só na queda (o fundo de 0,3–8,8 KB/s atrapalha a medida), nada depois. Visual igual (folha de quadros antes/depois, cenário `drop`) |
+| 2026-10-23 | `benchmark_coop.gd` (H3) — host nesta janela, clientes em OUTROS processos (sem janela), todos andando em círculo em volta do 1º ponto de criaturas da campina; "andando" = criaturas paradas, "combate" = criaturas ativas e todos golpeando; 15 s em tempo real. CPU do host = lógica + física + desenho (monitores da Godot, não o relógio: não compara direto com as linhas de `--fixed-fps`). **Antes** | PC de dev | CPU do host (andando / combate): 1 jogador: **2,4 / 2,7 ms** · 2: **2,8 / 3,0** · 4: **3,1 / 3,6 ms** (p99 ≤ 5,0). Host envia por cliente: 2: 8,7 / 10,6 KB/s · 4: **10,8 / 13,8 KB/s** (total 32 / **41 KB/s**); recebe 1,0 KB/s por cliente andando, ~3 em combate. A maior parte era estado repetido de criatura parada (0,9 KB/s cada, sempre) |
+| 2026-10-23 | Mesmo `benchmark_coop.gd` **depois**: corpo parado repete o estado só a cada 0,5 s (antes 20 por s) | PC de dev | CPU do host igual (4: 3,0 / 3,4 ms). Host envia por cliente: 2: **1,8 / 6,4 KB/s** · 4: **3,7 / 10,2 KB/s** (total 11 / **31 KB/s**). Recebe igual (o jogador que anda manda os 20 por s) |
 | 2026-10-22 | `benchmark_region.gd` depois da F2c (regiões em mundos próprios), campina, sem save | PC de dev | média **0,87–0,88 ms**, p99 1,4–1,5 ms, 55,6 draw calls, 56 MB (conteúdo da Etapa E incluso; antes da F2c o teste lia o save de quem joga, agora não) |
 
 Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
@@ -93,6 +95,14 @@ um chefe com 20 itens gasta ~1 ms no quadro da morte; 200 de uma vez travariam (
 o jogo não prevê isso. Alavancas, se precisar: sombra e ícones na mesma textura (agrupa o
 desenho) e criação espalhada por quadros. Na rede, cada drop custa ~200–400 B uma vez, só para o
 dono; não há tráfego contínuo (a coleta é decidida no host e só a remoção viaja).
+
+Leitura do coop com 4 (H3): cada jogador a mais na mesma região custa ~0,2 ms de CPU ao host no
+PC de dev (personagem, rede e o que ele provoca); de 1 para 4 jogadores em combate, +0,7 ms.
+Supondo o hardware modesto 3–4× mais lento, +2–3 ms: cabe. O tráfego, depois de cortar os
+estados repetidos, fica em ~10 KB/s por cliente em combate (o resto é movimento de verdade,
+golpes, vida e números de dano). LAN sobra; online, ~250 kbit/s de envio do host com 4 em
+combate. Alavancas, se precisar: agrupar mensagens por quadro e "área de interesse" (mandar só
+o que está perto de cada jogador). Não mede a máquina do cliente (cada um roda o próprio jogo).
 
 Leitura das regiões ativas (F2b): uma região a mais que só simula (sem desenho) custa ~0,15–0,2 ms
 calma; o que pesa são as criaturas em combate (~15 µs cada, como acima), não as regiões em si.

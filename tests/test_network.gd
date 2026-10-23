@@ -49,6 +49,34 @@ func test_host_player_movement_reaches_client_smoothly() -> void:
 		"passos de %.2f a %.2f px por quadro (esperado ~%.2f)" % [_min(steady), _max(steady), expected])
 
 
+## Parado, o corpo quase não manda estados (H3). Ao voltar a andar, a cópia não pode espalhar o
+## primeiro passo pelo tempo parado (começaria antes da hora, devagar): ela fica parada durante
+## o atraso de desenho e então anda com passos regulares.
+func test_movement_after_standing_still_starts_on_time() -> void:
+	var games := await _start_pair()
+	var host_player := _local_player(games[0])
+	var replica := _replica(games[1], host_player)
+	await physics_frames(60)  # parado: só estados esparsos
+	var start := replica.position
+	host_player.set_move_intent(Vector2.RIGHT)
+	var steps := PackedFloat32Array()
+	var last := replica.position
+	for i in 40:
+		await tree.physics_frame
+		steps.append(replica.position.distance_to(last))
+		last = replica.position
+	host_player.set_move_intent(Vector2.ZERO)
+	var early := steps.slice(0, 3)
+	check(_max(early) < 0.01, "não se mexe antes do atraso de desenho (%.2f px)" % _max(early))
+	check(replica.position.distance_to(start) > 10.0, "andou depois do atraso")
+	var expected := host_player.stats.move_speed * Iso.move_speed_factor(Vector2.RIGHT,
+		host_player.stats.horizontal_speed_factor) / Engine.physics_ticks_per_second
+	var steady := steps.slice(20, 40)
+	check(_min(steady) > expected * 0.5 and _max(steady) < expected * 1.5,
+		"passos regulares depois da largada (%.2f a %.2f, esperado ~%.2f)" % [
+			_min(steady), _max(steady), expected])
+
+
 func test_client_movement_reaches_host() -> void:
 	var games := await _start_pair()
 	var client_player := _local_player(games[1])
