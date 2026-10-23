@@ -20,6 +20,7 @@ NODE_COPPER_VEIN,Veio de cobre,Copper vein
 NODE_OLD_OAK,Carvalho antigo,Old oak
 MONSTER_SLIME,Slime,Slime
 NPC_MERCHANT,Mercador,Merchant
+NPC_DEV_MERCHANT,Mercador de testes,Test merchant
 COMBAT_IMMUNE,Imune,Immune
 HUD_HEALTH,%d / %d,%d / %d
 HUD_SKILL_LEVEL,%s %d (%d%%),%s %d (%d%%)

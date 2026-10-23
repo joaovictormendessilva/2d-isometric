@@ -263,6 +263,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
   - **Espera da poção não vai no save** (ADR-022): sair e voltar zera a espera (10 s). Risco
     pequeno; se incomodar, guardar o tempo restante no personagem.
+- **Ferramentas de desenvolvimento** (kit de testes, mercador de testes que dá tudo por 0): só
+  existem com `OS.is_debug_build()` e a chave em `game/debug/` ligada; um jogo exportado nunca as
+  tem. No coop de desenvolvimento o host com o mercador de testes também dá tudo de graça aos
+  clientes (é o objetivo); a compra continua decidida no host, com o preço dos dados dele.
 - **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
   saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
   `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.

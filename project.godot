@@ -30,6 +30,7 @@ window/stretch/scale_mode="integer"
 [game]
 
 debug/starter_kit=true
+debug/dev_merchant=true
 
 [gui]
 

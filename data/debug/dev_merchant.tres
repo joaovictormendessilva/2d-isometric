@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="NpcData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/npc/npc_data.gd" id="1_npc"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/merchant.png" id="2_texture"]
+
+[resource]
+script = ExtResource("1_npc")
+id = &"dev_merchant"
+footprint_radius = 6.0
+texture = ExtResource("2_texture")
+sprite_offset = Vector2(-8, -23)

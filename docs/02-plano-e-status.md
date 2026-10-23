@@ -252,6 +252,12 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   de uma bancada). Passar o mouse mostra o que falta.
 - Bancada: pegue-a no inventário e clique no chão (prévia verde = pode; vermelha = não pode).
   Bloqueia a passagem; ainda não dá para recolher (pendência).
+- **Mercador de testes** (pedido do João, 2026-10-23; provisório): mercador dourado ao lado do
+  mercador da campina que vende todos os itens e ensina todas as receitas por 0 moedas. Só em
+  compilações de desenvolvimento (editor/F5), com `game/debug/dev_merchant` no project.godot
+  (false desliga). Pendente: decidir se sai do código ou fica só em desenvolvimento.
+- Painel F3 mostra também a velocidade (base -> atual), a defesa e os efeitos ativos com os
+  segundos: o jeito de conferir se um buff/debuff entrou e saiu.
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,
   liga/desliga em `game/debug/starter_kit` no project.godot). Jogo exportado nunca tem kit.
 - Save: o mundo é guardado sozinho (ao fechar a janela, quando alguém sai e a cada 30 s) em
@@ -308,6 +314,8 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 
 ## Pendências de decisão
+
+- Mercador de testes (2026-10-23): remover do código ou manter só em desenvolvimento.
 
 - ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22); benchmark da F2b confirmou que o host aguenta.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)

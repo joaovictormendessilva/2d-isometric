@@ -10,7 +10,8 @@ extends Node
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 ##   --open-inventory             abre o inventário antes da captura.
-##   --open-shop                  leva o jogador até o NPC da região e abre a loja dele.
+##   --open-shop[=<npc>]          leva o jogador até o NPC da região (ou o de id <npc>) e abre a
+##                                loja dele.
 ##   --effect=<id>                aplica esse efeito (data/effects/) no jogador antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
@@ -30,6 +31,8 @@ var configure_network_from_command_line := true
 ## Kit de itens para testes (`game/debug/starter_kit` no project.godot). Só existe em
 ## compilações de desenvolvimento: um jogo exportado nunca dá itens de graça. Testes desligam.
 var use_debug_starter_kit := true
+## Mercador de testes (ver DevMerchant). Mesmas regras do kit; testes desligam.
+var use_dev_merchant := true
 ## Save do mundo (só o host usa); vazio = não lê nem grava. Capturas de tela não usam save.
 var save_path := SaveService.default_path
 
@@ -189,6 +192,8 @@ func _on_player_left(player_id: int) -> void:
 func _load_region(region_id: StringName) -> Region:
 	var loaded := worlds.load_region(region_id)
 	_spawner.add_region(loaded)
+	if use_dev_merchant and DevMerchant.is_enabled():
+		DevMerchant.add_to(loaded, items, recipes)
 	return loaded
 
 
@@ -280,6 +285,7 @@ func _handle_command_line() -> void:
 	var move := Vector2.ZERO
 	var open_inventory := false
 	var open_shop := false
+	var shop_npc := &""
 	var effects: Array[StatusEffectData] = []
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--screenshot="):
@@ -287,8 +293,9 @@ func _handle_command_line() -> void:
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
 			move = Vector2(parts[0].to_float(), parts[1].to_float())
-		elif arg == "--open-shop":
+		elif arg == "--open-shop" or arg.begins_with("--open-shop="):
 			open_shop = true
+			shop_npc = StringName(arg.trim_prefix("--open-shop").trim_prefix("="))
 		elif arg == "--open-inventory":
 			open_inventory = true
 		elif arg.begins_with("--effect="):
@@ -310,7 +317,7 @@ func _handle_command_line() -> void:
 	if open_inventory:
 		_inventory_panel.set_open(true)
 	if open_shop:
-		_talk_to_first_npc()
+		_talk_to_first_npc(shop_npc)
 	await RenderingServer.frame_post_draw
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)
@@ -318,11 +325,11 @@ func _handle_command_line() -> void:
 
 
 ## Captura de tela da loja: põe o jogador ao lado do primeiro NPC da região e abre a loja.
-func _talk_to_first_npc() -> void:
+func _talk_to_first_npc(npc_id: StringName = &"") -> void:
 	var character := session.get_player_entity(local_player_id()) as Character
 	for node in region.entities.get_children():
 		var npc := node as Npc
-		if npc and character:
+		if npc and character and (npc_id.is_empty() or npc.data.id == npc_id):
 			character.position = npc.position + Iso.ground_to_screen(Vector2(-20, 0))
 			character.reset_physics_interpolation()
 			_shop_panel.talk_to(npc)
