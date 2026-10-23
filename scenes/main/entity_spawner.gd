@@ -244,6 +244,11 @@ func _add_gate(node: Node, region: Region) -> void:
 	gate.visibility_update_mode = MultiplayerSynchronizer.VISIBILITY_PROCESS_NONE
 	if multiplayer.is_server():
 		gate.add_visibility_filter(region.has_player)
+		if node is Pickup:
+			# Drop pessoal: só o computador do dono o recebe (nos outros ele ficaria escondido,
+			# gastando rede e quadro; teste de carga H2). Os filtros se somam.
+			var owner_id := (node as Pickup).owner_player_id
+			gate.add_visibility_filter(func(peer: int) -> bool: return peer == owner_id)
 	node.add_child(gate)
 
 

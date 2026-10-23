@@ -20,7 +20,8 @@ G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<scratchpad>
 - `--fixed-fps 60` é obrigatório: 1 passo de física por quadro, tempo idêntico entre execuções
   (é o que permite comparar antes/depois).
 - Cenários: `idle`, `walk`, `attack` (põe uma criatura parada à frente), `gather` (encosta na
-  árvore/veio mais próximo), `inventory` (janela aberta, para animações de UI).
+  árvore/veio mais próximo), `inventory` (janela aberta, para animações de UI), `drop` (a
+  criatura à frente morre: salto e balanço dos itens; o ponto de pouso é sorteado).
 - `--frames=16 --every=2` = 16 quadros a 30 por segundo (≈ 0,5 s). Golpes rápidos: `--every=1`.
   Ciclos longos (andar, respirar): `--frames=24 --every=3`.
 - `--crop=96x72 --scale=3` recorta em volta do jogador; `--crop=0x0` = tela inteira (use para

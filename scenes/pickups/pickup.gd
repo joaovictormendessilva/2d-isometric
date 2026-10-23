@@ -19,6 +19,11 @@ const LEAVE_MARGIN := 8.0
 const SPRITE_HEIGHT := 4.0
 const BOB_HZ := 1.5
 const BOB_HEIGHT := 1.5
+## Dono longe do alcance: o item só confere de novo quando ele poderia ter chegado, supondo
+## esta velocidade (chão, px/s; bem acima de qualquer corrida). Nunca espera mais que o teto,
+## que é o atraso máximo quando o dono aparece do nada ao lado (ex.: renasce em cima do item).
+const OWNER_MAX_SPEED := 300.0
+const MAX_IDLE_TIME := 0.25
 
 var item: ItemData
 var amount := 1
@@ -32,6 +37,8 @@ var origin := Vector2.ZERO
 var waits_for_owner_to_leave := false
 
 var _time := 0.0
+## Antes deste instante (`_time`) o dono não tem como estar ao alcance.
+var _next_owner_check := 0.0
 
 @onready var _sprite: Sprite2D = $Sprite
 @onready var _shadow: Sprite2D = $Shadow
@@ -46,24 +53,33 @@ func has_landed() -> bool:
 	return _time >= POP_TIME
 
 
+## Roda em cada item do chão a cada quadro: o caso comum (dono longe) precisa ser barato, então
+## o item dorme enquanto o dono não pode chegar e o inventário só é consultado com o dono ao
+## alcance (teste de carga H2).
 func _physics_process(delta: float) -> void:
 	_time += delta
-	_update_visual()
-	if not has_landed():
+	if visible:
+		_update_visual()  # quem não é dono não vê o item: nada a animar
+	if not has_landed() or _time < _next_owner_check:
 		return
 	var owner_body := session.get_player_entity(owner_player_id) as Character
 	if owner_body == null or not owner_body.is_alive() or owner_body.get_parent() != get_parent():
 		return
+	var distance := Iso.ground_distance(position, owner_body.position)
+	var magnet := owner_body.pickup_radius()
+	if waits_for_owner_to_leave:
+		waits_for_owner_to_leave = distance <= magnet + LEAVE_MARGIN
+		return
+	var reach := maxf(magnet, COLLECT_RADIUS)
+	if distance > reach:
+		_next_owner_check = _time + minf((distance - reach) / OWNER_MAX_SPEED, MAX_IDLE_TIME)
+		return
 	var inventory := session.get_inventory(owner_player_id)
 	if inventory == null or not inventory.can_add(item.id, amount):
 		return  # inventário cheio: o item espera no chão
-	var distance := Iso.ground_distance(position, owner_body.position)
-	if waits_for_owner_to_leave:
-		waits_for_owner_to_leave = distance <= owner_body.pickup_radius() + LEAVE_MARGIN
-		return
 	if distance <= COLLECT_RADIUS:
 		_collect()
-	elif distance <= owner_body.pickup_radius():
+	else:
 		position = position.move_toward(owner_body.position, MAGNET_SPEED * delta)
 
 
@@ -78,9 +94,22 @@ func _collect() -> void:
 ## Durante o salto, sprite e sombra vão da origem até o ponto de pouso (o sprite em arco);
 ## depois, o item balança no lugar.
 func _update_visual() -> void:
-	var t := minf(_time / POP_TIME, 1.0)
+	if has_landed():
+		_update_bob()
+		return
+	var t := _time / POP_TIME
 	var ground_offset := (origin - position) * (1.0 - t)
 	_shadow.position = ground_offset
-	var height := sin(t * PI) * POP_HEIGHT if t < 1.0 \
-		else absf(sin((_time - POP_TIME) * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT
-	_sprite.position = ground_offset + Vector2(0.0, -SPRITE_HEIGHT - height)
+	_sprite.position = ground_offset + Vector2(0.0, -SPRITE_HEIGHT - sin(t * PI) * POP_HEIGHT)
+
+
+## Com `2d/snap/snap_2d_transforms_to_pixel` a imagem só anda de pixel em pixel, e o balanço
+## (1,5 px) troca de pixel poucas vezes por segundo: o nó só é mexido nessas vezes (cada
+## mudança custa a atualização dele; teste de carga H2). Mesmo desenho na tela.
+func _update_bob() -> void:
+	var offset := Vector2(0.0, -SPRITE_HEIGHT
+		- absf(sin((_time - POP_TIME) * TAU * BOB_HZ * 0.5)) * BOB_HEIGHT)
+	if (position + offset).round() != (position + _sprite.position).round():
+		_sprite.position = offset
+	if _shadow.position != Vector2.ZERO:
+		_shadow.position = Vector2.ZERO  # o último quadro do salto ainda não estava no chão
