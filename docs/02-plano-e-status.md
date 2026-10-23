@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ · H3 🟡 (coop com 4) |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ · H3 ✅ · H4 🟡 (riscos de rede) |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -335,7 +335,7 @@ João antes da próxima:
   câmera em meio pixel; agora anda de pixel inteiro). E, uma vez, a tecla da Explosão arcana
   ficou mostrando "1" depois de a recarga acabar (comparação aproximada achava 0,000005 igual a
   0; antigo, desde a G2b). 197 testes.
-- **H3 – Coop com 4 jogadores na mesma região** 🟡 implementada, aguarda validação do João
+- **H3 – Coop com 4 jogadores na mesma região** ✅ (validado pelo João, 2026-10-23: movimento suave no coop)
   (branch `stage-h/coop-4-players`): `tests/benchmark_coop.gd`, host na janela e 1 ou 3
   clientes em outros processos, andando e em combate. CPU do host: 1 → 4 jogadores em combate,
   2,7 → 3,4 ms (cabe). Achado: o tráfego era quase todo estado repetido de criatura parada
