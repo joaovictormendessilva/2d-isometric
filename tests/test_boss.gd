@@ -163,6 +163,28 @@ func test_enraged_slam_spawns_minions_that_vanish_with_the_boss() -> void:
 		"o chefe morreu e os filhotes sumiram")
 
 
+## Filhotes seguem o chefe: perseguem o alvo dele mesmo além do raio de percepção de um slime
+## comum (antes, quem corria um pouco deixava os filhotes parados e lutava com o chefe sozinho).
+func test_minions_chase_the_boss_target() -> void:
+	var game := await _game_at_the_boss()
+	var boss := _boss(game)
+	var boss_brain: MonsterBrain = boss.get_node("Brain")
+	boss_brain.process_mode = Node.PROCESS_MODE_DISABLED
+	_hurt(boss, boss.health.max_health / 2)
+	var spawner := game._spawner as EntitySpawner
+	spawner._on_boss_landed(boss, game.region, boss.position)
+	var minion: Monster = spawner._minions[boss.entity_id][0]
+	var player := _player(game)
+	player.position = minion.position + Iso.ground_to_screen(Vector2(minion.data.aggro_radius + 40.0, 0))
+	player.reset_physics_interpolation()
+	boss_brain._target = player  # o chefe persegue o jogador
+	var start := Iso.ground_distance(minion.position, player.position)
+	await physics_frames(90)
+	check(Iso.ground_distance(minion.position, player.position) < start - 30.0,
+		"o filhote foi atrás do alvo do chefe (%.0f → %.0f)" % [start,
+		Iso.ground_distance(minion.position, player.position)])
+
+
 ## Coop: os filhotes chegam ao cliente; dados de filhote forjados (chefe que não existe ou que
 ## não tem filhotes) são recusados.
 func test_client_gets_minions_and_refuses_forged_ones() -> void:

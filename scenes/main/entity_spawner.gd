@@ -354,7 +354,9 @@ func _instantiate_minion(data: Dictionary, region: Region) -> Monster:
 	_register(minion, data["entity_id"])
 	minion.died.connect(_on_minion_died)
 	if multiplayer.is_server():
-		(minion.get_node("Brain") as MonsterBrain).session = session
+		var brain := minion.get_node("Brain") as MonsterBrain
+		brain.session = session
+		brain.leader = summoner  # segue o chefe e ataca o alvo dele
 	return minion
 
 

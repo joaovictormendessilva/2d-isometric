@@ -198,7 +198,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   começa de mais longe; apanhando, o aviso vermelho não some mais.
   F4b 🟡 implementado: na metade da vida o Rei Slime se enfurece (salta mais rápido, barra
   laranja, aviso na tela) e cada queda solta 2 slimes (no máximo 4, sem drops; somem com ele).
-  143 testes. Aguardando validação do João (F4a e F4b juntas).
+  Correção do teste do João: os filhotes seguem o chefe e atacam o alvo dele (antes, correndo um
+  pouco, eles ficavam parados). O Rei Slime é banco de testes; as mecânicas são o core.
+  144 testes. Aguardando validação do João (F4a e F4b juntas).
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
 ## Funcionalidades

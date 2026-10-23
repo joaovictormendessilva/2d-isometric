@@ -622,5 +622,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     longo e acerta quem tocar (`lunge_hit_time`, uma vez cada) e a criatura começa de mais longe
     (`engage_distance`). Vale para todos os slimes. Desempenho: uma consulta de física por bote
     (candidatos), depois só distância.
+- **Core x conteúdo** (João, 2026-10-22): o Rei Slime é um **banco de testes** das mecânicas de
+  chefe, não um chefe definitivo (arte, números, nome e lugar podem mudar quando os chefes de
+  verdade forem desenhados). O que é core e fica: salto com aviso, fases por vida, filhotes
+  ligados ao chefe (seguem o chefe e atacam o alvo dele; correção do teste do João), barra de
+  chefe, drop especial.
 - **Consequências**: novos chefes ou criaturas que saltam = dados + cena com `SlamAttacker`. A F4b
   (fases) e a F5 (o núcleo libera algo) usam esta base.

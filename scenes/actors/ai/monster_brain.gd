@@ -7,6 +7,8 @@ extends Node
 ## Gera só INTENÇÕES para o Monster pai — igual a um jogador, mas automatizado.
 ## Criaturas com salto (SlamAttacker, chefes) saltam sobre alvos a meia distância, se o ponto
 ## de queda for chão livre; perto, usam o golpe comum.
+## Filhotes de chefe (`leader`) não têm casa nem coleira: seguem o chefe e atacam o alvo dele
+## (quem o chefe persegue, mesmo longe); se o chefe desiste ou morre, os filhotes somem.
 ## Sem busca de caminho por enquanto: as pegadas redondas deslizam em volta dos obstáculos.
 
 ## A escolha de alvo roda a 5 Hz (barato com muitas criaturas); o movimento, todo quadro.
@@ -17,8 +19,12 @@ const ATTACK_RANGE_FRACTION := 0.8
 const HOME_TOLERANCE := 6.0
 ## Fração da velocidade ao voltar para casa sem ter desistido (alvo saiu do raio de agressão).
 const IDLE_RETURN_SPEED := 0.6
+## Filhote sem alvo fica a esta distância (chão) do chefe, em vez de colar nele.
+const LEADER_FOLLOW_DISTANCE := 30.0
 
 var session: GameSession
+## Chefe que invocou esta criatura (host; ver EntitySpawner). Null = criatura comum.
+var leader: Monster
 
 var _home := Vector2.ZERO
 var _target: Character
@@ -32,6 +38,11 @@ func _ready() -> void:
 	process_physics_priority = -10  # decide antes da física do corpo
 	_home = _body.position
 	_think_left = randf() * THINK_INTERVAL  # espalha o custo entre quadros
+
+
+## Jogador que está perseguindo (null = nenhum). Filhotes atacam o alvo do chefe.
+func target() -> Character:
+	return _target if is_instance_valid(_target) else null
 
 
 ## Desistiu da perseguição e está voltando para casa (imune, ignora jogadores até chegar).
@@ -63,6 +74,11 @@ func _physics_process(delta: float) -> void:
 
 
 func _think() -> void:
+	if is_instance_valid(leader) and leader.is_alive():
+		_home = leader.position
+		var leader_target := (leader.get_node("Brain") as MonsterBrain).target()
+		_target = leader_target if leader_target else _pick_target()
+		return
 	if not _returning and Iso.ground_distance(_body.position, _home) > _body.data.leash_radius:
 		_returning = true
 		_body.health.set_immune(true)
@@ -108,7 +124,8 @@ func _pick_target() -> Character:
 
 func _return_home() -> void:
 	var to_home := Iso.screen_to_ground(_home - _body.position)
-	if to_home.length() > HOME_TOLERANCE:
+	var tolerance := LEADER_FOLLOW_DISTANCE if is_instance_valid(leader) else HOME_TOLERANCE
+	if to_home.length() > tolerance:
 		_body.set_move_intent(to_home.normalized() * (1.0 if _returning else IDLE_RETURN_SPEED))
 		return
 	_body.set_move_intent(Vector2.ZERO)
