@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 (habilidades) em andamento: G2d (Explosão arcana) aguardando validação |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 (auras e cosméticos) a seguir |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -230,8 +230,8 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
     Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
-- **G2 – Primeira habilidade mágica** 🟡 (G2a+G2b na `main`; G2c ✅ e G2d na branch
-  `stage-g/arcane-blast`, que vai inteira para a `main` ao fechar a G2; ADR-026, ADR-027): habilidades
+- **G2 – Primeira habilidade mágica** ✅ (na `main`; branches `stage-g/first-ability` e
+  `stage-g/arcane-blast`; ADR-026, ADR-027): habilidades
   **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
   são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
   (sem mana, como no V Rising).
@@ -260,7 +260,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     própria área (pedido do João), com o raio de passeio nos dados de cada criatura (slimes 40,
     Rei Slime 24). Feito com tabela de ameaça: quem fere mais é perseguido (troca de alvo com 10%
     de vantagem). 177 testes.
-  - G2d 🟡 implementado (escolha do João, 2026-10-23: **Explosão arcana**; aguardando validação):
+  - G2d ✅ (escolha do João: **Explosão arcana**; validado pelo João, 2026-10-23):
     segunda habilidade, a primeira **em área**. Aperta a tecla → preparação curta (0,25 s) → um
     círculo violeta aparece no chão no ponto do mouse (até 140 de distância) e o miolo enche por
     0,6 s → explode e fere todos os inimigos dentro (20 de dano, raio 26, empurra para fora),

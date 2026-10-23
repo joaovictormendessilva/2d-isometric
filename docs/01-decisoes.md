@@ -679,7 +679,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-026 — Habilidades aprendidas e equipadas
 
-- **Status**: Aceita (G2a e G2b validadas pelo João em 2026-10-23); G2d (área) aguardando validação
+- **Status**: Aceita (G2a, G2b e G2d validadas pelo João em 2026-10-23)
 - **Direção do João (2026-10-23)**: habilidades **aprendidas e equipadas** (livre para montar
   builds, estilo Terraria); mago e arqueiro são escolhas de equipamento e habilidade, não classe
   fixa. Lançar no estilo Albion/V Rising (tecla, mira no cursor).
