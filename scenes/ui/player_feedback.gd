@@ -1,7 +1,8 @@
 class_name PlayerFeedback
 extends Node
 ## Avisos flutuantes do jogador LOCAL: itens e moedas ganhos ("+1 Madeira"), nível de coleta
-## subindo e por que não dá para coletar ("Precisa de ferramenta nível 2"). Avisos que chegam
+## subindo, por que não dá para coletar ("Precisa de ferramenta nível 2") ou beber uma poção
+## ("Vida cheia"). Avisos que chegam
 ## juntos (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se sobrepor. Só
 ## apresentação.
 
@@ -12,6 +13,12 @@ const MESSAGE_TIME := 1.2
 ## Intervalo entre avisos seguidos.
 const MESSAGE_INTERVAL := 0.3
 const MAX_QUEUED := 6
+## Recusa ao usar um item → texto (morto ou item que não se usa: sem aviso).
+const USE_REFUSALS := {
+	ConsumableRules.Check.FULL_HEALTH: &"USE_FULL_HEALTH",
+	ConsumableRules.Check.COOLING_DOWN: &"USE_COOLING_DOWN",
+	ConsumableRules.Check.NO_POTION: &"USE_NO_POTION",
+}
 
 var _character: Character
 var _items: ItemDatabase
@@ -57,6 +64,13 @@ func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
 	if level > _levels.get(skill_id, 1):
 		_show(Texts.format(&"FEEDBACK_LEVEL_UP", [skill.get_display_name(), level]), LEVEL_COLOR)
 	_levels[skill_id] = level
+
+
+## Usar um item foi recusado antes de pedir ao host (vida cheia, poção esperando, sem poções).
+func show_use_refusal(reason: ConsumableRules.Check) -> void:
+	var key: StringName = USE_REFUSALS.get(reason, &"")
+	if not key.is_empty():
+		_show(Texts.get_text(key), REFUSED_COLOR)
 
 
 func _on_gather_refused(node: ResourceNode, reason: GatheringRules.Check) -> void:

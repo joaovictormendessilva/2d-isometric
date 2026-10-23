@@ -5,11 +5,16 @@ extends Node
 ## mudou, a mão, cada ganho (para os avisos), a experiência e as moedas; e o equipamento de cada
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
-## estrutura, vestir e tirar equipamento, comprar e vender com um NPC); o host confere e aplica.
+## estrutura, vestir e tirar equipamento, comprar e vender com um NPC, usar um item como a poção);
+## o host confere e aplica. Esperas (poções) começadas no host também vão ao dono.
 ## Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
+
+## O jogador local tentou usar um item e não dá (vida cheia, esperando...): só o aviso, nada
+## foi pedido ao host.
+signal use_refused(reason: ConsumableRules.Check)
 
 ## Distâncias (chão) do item jogado fora até os pés do jogador, e folga exigida no ponto.
 const DROP_DISTANCE := Vector2(8.0, 18.0)
@@ -53,6 +58,8 @@ func track_player(player_id: int) -> void:
 	var wallet := session.get_wallet(player_id)
 	wallet.changed.connect(func(coins: int) -> void: _send(player_id, &"_coins", [coins]))
 	wallet.earned.connect(func(amount: int) -> void: _send(player_id, &"_earned", [amount]))
+	session.get_cooldowns(player_id).started.connect(func(group: StringName, seconds: float) -> void:
+		_send(player_id, &"_cooldown", [group, seconds]))
 
 
 ## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
@@ -123,6 +130,41 @@ func request_buy(item_id: StringName) -> void:
 ## Jogador local quer vender `amount` da pilha do espaço `index` ao NPC perto dele.
 func request_sell(index: int, amount: int) -> void:
 	_request(&"_sell_requested", [index, amount])
+
+
+## Jogador local quer usar o item do espaço `index` (menu "Usar"). Se já se sabe que não dá,
+## avisa (`use_refused`) em vez de pedir.
+func request_use(index: int) -> void:
+	var reason := check_use(multiplayer.get_unique_id(), index)
+	if reason == ConsumableRules.Check.OK:
+		_request(&"_use_requested", [index])
+	else:
+		use_refused.emit(reason)
+
+
+## Jogador local apertou a tecla de poção: o host escolhe a poção (ver `ConsumableRules`).
+func request_quick_heal() -> void:
+	var reason := check_use(multiplayer.get_unique_id(), -1)
+	if reason == ConsumableRules.Check.OK:
+		_request(&"_quick_heal_requested", [])
+	else:
+		use_refused.emit(reason)
+
+
+## Se o jogador pode usar o item do espaço `index` (-1 = a poção que a tecla escolheria), com o
+## estado que este computador conhece (no host, o oficial).
+func check_use(player_id: int, index: int) -> ConsumableRules.Check:
+	var inventory := session.get_inventory(player_id)
+	var character := session.get_player_entity(player_id) as Character
+	if inventory == null or character == null:
+		return ConsumableRules.Check.NOT_USABLE
+	var health := character.health
+	var cooldowns := session.get_cooldowns(player_id)
+	if index < 0:
+		return ConsumableRules.check_quick_heal(inventory, items, health.current,
+			health.max_health, cooldowns, NetRules.now())
+	return ConsumableRules.check_use(inventory, index, items, health.current, health.max_health,
+		cooldowns, NetRules.now())
 
 
 ## Lugares de fabricação ao alcance do jogador: a mão e as estações perto dos pés dele.
@@ -310,6 +352,31 @@ func _sell_requested(index: int, amount: int) -> void:
 
 
 @rpc("any_peer", "call_remote", "reliable")
+func _use_requested(index: int) -> void:
+	if _requester_inventory():
+		_use_slot(_requester(), index)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _quick_heal_requested() -> void:
+	var inventory := _requester_inventory()
+	if inventory:
+		_use_slot(_requester(), ConsumableRules.healing_slot(inventory, items))
+
+
+## Host: confere tudo de novo com o estado oficial (índice, item, vida, espera) e aplica.
+func _use_slot(player_id: int, index: int) -> void:
+	var character := session.get_player_entity(player_id) as Character
+	if character == null:
+		return
+	var health := character.health
+	var heal := ConsumableRules.use(session.get_inventory(player_id), index, items, health.current,
+		health.max_health, session.get_cooldowns(player_id), NetRules.now())
+	if heal > 0:
+		health.heal(heal)
+
+
+@rpc("any_peer", "call_remote", "reliable")
 func _full_state_requested() -> void:
 	var player_id := multiplayer.get_remote_sender_id()
 	var inventory := session.get_inventory(player_id) if multiplayer.is_server() else null
@@ -364,6 +431,16 @@ func _earned(amount: int) -> void:
 	var wallet := session.get_wallet(multiplayer.get_unique_id())
 	if wallet and amount > 0 and amount <= Wallet.MAX_COINS:
 		wallet.notify_earned(amount)
+
+
+## Espera começada no host (o cliente conta no próprio relógio; chega um pouco depois, então
+## nunca libera antes do host).
+@rpc("authority", "call_remote", "reliable")
+func _cooldown(group: StringName, seconds: float) -> void:
+	var cooldowns := session.get_cooldowns(multiplayer.get_unique_id())
+	if cooldowns and is_finite(seconds) and seconds > 0.0 and seconds <= Cooldowns.MAX_SECONDS \
+			and items.has_cooldown_group(group):
+		cooldowns.start(group, seconds, NetRules.now())
 
 
 ## Host: alguém pediu o equipamento de um jogador (público no coop). Uma resposta por pedido.

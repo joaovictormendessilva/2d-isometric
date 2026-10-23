@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ConsumableData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/items/consumable_data.gd" id="1_consumable"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_health_potion.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_consumable")
+heal = 40
+cooldown = 10.0
+id = &"health_potion"
+max_stack = 20
+sell_price = 4
+icon = ExtResource("2_icon")

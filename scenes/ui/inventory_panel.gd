@@ -4,8 +4,8 @@ extends Control
 ## o jogador a arrasta para onde preferir e anda e luta com ela aberta.
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
 ## clicar fora da janela joga no chão (estruturas, como a bancada, são colocadas ali); botão
-## direito abre um menu: dividir (a parte separada vai para a mão), soltar a pilha no chão,
-## equipar ou, com a loja de um NPC aberta, vender. Embaixo da grade, as moedas.
+## direito abre um menu: usar (poção), dividir (a parte separada vai para a mão), soltar a
+## pilha no chão, equipar ou, com a loja de um NPC aberta, vender. Embaixo da grade, as moedas.
 ## Fechar com algo na mão devolve aos espaços. Ao lado, as colunas de equipamento
 ## (EquipmentColumn) e de fabricação (CraftingList).
 ## Cada ação é um pedido ao host (PlayerStateSync).
@@ -80,6 +80,7 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_split.confirmed.connect(player_state.request_split)
 	_menu.split_chosen.connect(_on_split_requested)
 	_menu.drop_chosen.connect(player_state.request_drop_slot)
+	_menu.use_chosen.connect(player_state.request_use)
 	_menu.equip_chosen.connect(player_state.request_equip)
 	_menu.sell_chosen.connect(player_state.request_sell)
 	_held.setup(inventory, items)
@@ -139,6 +140,9 @@ func _on_split_requested(index: int) -> void:
 
 func _on_menu_requested(index: int) -> void:
 	_split.hide()
-	var equippable := _equipment.data_of(_inventory.slot_item(index)) != null
-	var price := shop.sell_price_of(_inventory.slot_item(index)) if shop else 0
-	_menu.open(index, _inventory.slot_amount(index), equippable, price, get_global_mouse_position())
+	var item_id := _inventory.slot_item(index)
+	var usable := ConsumableRules.is_usable(_items.get_item(item_id))
+	var equippable := _equipment.data_of(item_id) != null
+	var price := shop.sell_price_of(item_id) if shop else 0
+	_menu.open(index, _inventory.slot_amount(index), usable, equippable, price,
+		get_global_mouse_position())

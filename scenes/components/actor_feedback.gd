@@ -1,7 +1,7 @@
 class_name ActorFeedback
 extends Node
-## Retorno visual genérico de qualquer ator (só apresentação): flash ao ser atingido,
-## piscar durante invulnerabilidade, tom avermelhado na preparação de ataques lentos
+## Retorno visual genérico de qualquer ator (só apresentação): flash ao ser atingido, brilho
+## verde ao curar, piscar durante invulnerabilidade, tom avermelhado na preparação de ataques lentos
 ## (telegrafia: o jogador vê o ataque vindo), transparência enquanto imune e desaparecer
 ## ao morrer.
 
@@ -10,6 +10,9 @@ const TELEGRAPH_COLOR := Color(1.9, 0.5, 0.5)
 ## Ataques com preparação menor que isto não são telegrafados (ex.: a espada).
 const TELEGRAPH_MIN_WINDUP := 0.2
 const FLASH_TIME := 0.12
+## Brilho verde ao curar (poção): mais longo que o flash de dano, para ler como "bom".
+const HEAL_COLOR := Color(0.8, 1.7, 0.8)
+const HEAL_GLOW_TIME := 0.35
 const DEATH_FADE_TIME := 0.5
 const BLINK_HZ := 12.0
 ## Semitransparente enquanto imune (ex.: criatura voltando para casa): golpes não pegam.
@@ -26,6 +29,7 @@ var _tween: Tween
 func _ready() -> void:
 	if _body.health:
 		_body.health.damaged.connect(_on_damaged.unbind(1))
+		_body.health.healed.connect(_on_healed.unbind(1))
 		_body.health.immunity_changed.connect(_on_immunity_changed)
 	if _body.attacker:
 		_body.attacker.attack_started.connect(_on_attack_started)
@@ -41,6 +45,10 @@ func _process(_delta: float) -> void:
 
 func _on_damaged() -> void:
 	_tween_modulate(FLASH_COLOR, Color.WHITE, FLASH_TIME)
+
+
+func _on_healed() -> void:
+	_tween_modulate(HEAL_COLOR, Color.WHITE, HEAL_GLOW_TIME)
 
 
 func _on_immunity_changed(immune: bool) -> void:

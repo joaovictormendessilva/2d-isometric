@@ -1,6 +1,6 @@
 class_name Health
 extends Node
-## Vida de uma entidade. Só o host chama `apply_damage`/`restore_full`/`set_immune`; na rede,
+## Vida de uma entidade. Só o host chama `apply_damage`/`heal`/`restore_full`/`set_immune`; na rede,
 ## os clientes recebem o resultado pelas funções `replicate_*` (via NetSync). Os sinais
 ## alimentam apresentação (números, flash, HUD) e regras (recuo, morte, drops).
 
@@ -9,6 +9,7 @@ signal died(info: DamageInfo)
 signal changed(current: int, maximum: int)
 signal blocked(info: DamageInfo)  ## Golpe recusado por imunidade (ex.: criatura voltando para casa).
 signal immunity_changed(immune: bool)
+signal healed(amount: int)  ## Vida devolvida de fato (ex.: poção), já limitada ao máximo.
 
 var max_health := 1
 var current := 1
@@ -75,6 +76,19 @@ func set_current(value: int) -> void:
 	changed.emit(current, max_health)
 
 
+## Host: devolve até `amount` de vida (nunca acima do máximo; morto não cura). Retorna quanto
+## curou de fato.
+func heal(amount: int) -> int:
+	if not multiplayer.is_server() or is_dead() or amount <= 0:
+		return 0
+	var gained := mini(amount, max_health - current)
+	if gained > 0:
+		current += gained
+		healed.emit(gained)
+		changed.emit(current, max_health)
+	return gained
+
+
 func restore_full() -> void:
 	current = max_health
 	_invulnerable_left = 0.0
@@ -93,6 +107,12 @@ func replicate_current(value: int) -> void:
 	if value != current:
 		current = value
 		changed.emit(current, max_health)
+
+
+## Cliente: o host curou (só o aviso; o valor oficial chega por `replicate_current`).
+func replicate_healed(amount: int) -> void:
+	if not is_dead():
+		healed.emit(amount)
 
 
 func replicate_blocked() -> void:

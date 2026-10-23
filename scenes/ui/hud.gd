@@ -1,6 +1,7 @@
 class_name Hud
 extends Control
-## HUD do jogador local: barra de vida, níveis de coleta e a tecla do inventário. Só lê estado
+## HUD do jogador local: barra de vida, poções (PotionSlot), níveis de coleta e a tecla do
+## inventário. Só lê estado
 ## via sinais (os itens ficam na tela de inventário).
 
 const BAR_FULL_COLOR := UiStyle.HEALTH
@@ -14,9 +15,13 @@ var _skills: DataCatalog
 @onready var _inventory_hint: Label = $InventoryHint
 
 
-## Uma vez: o que é do jogador (níveis de coleta, tecla do inventário).
-func setup(progress: SkillProgress, skills: DataCatalog) -> void:
+## Uma vez: o que é do jogador (níveis de coleta, poções, tecla do inventário).
+func setup(progress: SkillProgress, skills: DataCatalog, inventory: Inventory,
+		items: ItemDatabase, cooldowns: Cooldowns) -> void:
 	_skills = skills
+	var potions := PotionSlot.new()
+	$HealthRow.add_child(potions)
+	potions.setup(inventory, items, cooldowns)
 	_bar_fill.color = BAR_FULL_COLOR
 	progress.changed.connect(_on_skills_changed.bind(progress).unbind(2))
 	_on_skills_changed(progress)

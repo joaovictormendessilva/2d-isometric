@@ -31,6 +31,7 @@ const DROP_CLEARANCE := 4.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
 const IMMUNE_COLOR := Color("a0a0b4")
+const HEAL_COLOR := UiStyle.POSITIVE
 ## Tom dos personagens dos OUTROS jogadores, para cada um se reconhecer no coop.
 const OTHER_PLAYER_TINT := Color(0.6, 1.0, 0.75)
 ## Limites dos dados de criação recebidos do host (nada maior é legítimo).
@@ -321,6 +322,7 @@ func _register(entity: Character, entity_id: int) -> void:
 	var health: Health = entity.get_node("Health")  # `entity.health` só existe na árvore
 	health.damaged.connect(_on_entity_damaged.bind(entity))
 	health.blocked.connect(_on_entity_blocked.bind(entity).unbind(1))
+	health.healed.connect(_on_entity_healed.bind(entity))
 
 
 ## Tipo dos dados de criação, ou -1 se algum campo for inválido.
@@ -368,6 +370,11 @@ func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 	if _is_shown(entity):
 		var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
 		damage_numbers.show_number(entity.position, info.amount, color)
+
+
+func _on_entity_healed(amount: int, entity: Character) -> void:
+	if _is_shown(entity):
+		damage_numbers.show_text(entity.position, Texts.format(&"COMBAT_HEALED", [amount]), HEAL_COLOR)
 
 
 func _on_entity_blocked(entity: Character) -> void:

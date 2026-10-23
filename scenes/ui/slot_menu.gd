@@ -1,10 +1,12 @@
 class_name SlotMenu
 extends PanelContainer
-## Menu do botão direito num espaço do inventário: "Equipar" (equipamentos), "Dividir" (pilhas
+## Menu do botão direito num espaço do inventário: "Usar" (consumíveis, como a poção),
+## "Equipar" (equipamentos), "Dividir" (pilhas
 ## de 2 ou mais), "Soltar" (a pilha inteira cai no chão) e, com uma loja aberta que compra o
 ## item, "Vender 1" e "Vender tudo" (com quanto rende). Fecha ao escolher, com Esc ou com um
 ## clique fora dele; esse clique não vira ataque (o menu está no grupo que segura o mouse).
 
+signal use_chosen(index: int)
 signal equip_chosen(index: int)
 signal split_chosen(index: int)
 signal drop_chosen(index: int)
@@ -12,6 +14,7 @@ signal sell_chosen(index: int, amount: int)
 
 var _index := 0
 var _amount := 0
+var _use := Button.new()
 var _equip := Button.new()
 var _split := Button.new()
 var _drop := Button.new()
@@ -24,7 +27,8 @@ func _ready() -> void:
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 	var column := VBoxContainer.new()
 	add_child(column)
-	for entry: Array in [[_equip, &"SLOT_MENU_EQUIP", equip_chosen],
+	for entry: Array in [[_use, &"SLOT_MENU_USE", use_chosen],
+			[_equip, &"SLOT_MENU_EQUIP", equip_chosen],
 			[_split, &"SLOT_MENU_SPLIT", split_chosen], [_drop, &"SLOT_MENU_DROP", drop_chosen]]:
 		var button: Button = entry[0]
 		button.text = Texts.get_text(entry[1])
@@ -38,9 +42,11 @@ func _ready() -> void:
 
 ## Abre para o espaço `index` (com `amount` itens), perto de `at` (tela). `sell_price`: quanto
 ## a loja aberta paga por unidade (0 = sem venda).
-func open(index: int, amount: int, equippable: bool, sell_price: int, at: Vector2) -> void:
+func open(index: int, amount: int, usable: bool, equippable: bool, sell_price: int,
+		at: Vector2) -> void:
 	_index = index
 	_amount = amount
+	_use.visible = usable
 	_equip.visible = equippable
 	_split.visible = amount > 1
 	_sell_one.visible = sell_price > 0
