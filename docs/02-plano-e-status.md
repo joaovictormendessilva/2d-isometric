@@ -239,7 +239,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     (2,5 s), projétil violeta que acerta o primeiro inimigo no caminho (14 de dano, alcance 170);
     aprender lendo o "Tomo: Projétil arcano" (mercador, 50 moedas; vai para a tecla 1); coop
     (o dono vê na hora, o host decide) e save. Ainda sem barra no HUD (G2b). 169 testes.
-  - G2b: barra de habilidades no HUD (ícone, tecla, recarga) e trocar habilidades de espaço.
+  - G2b 🟡 implementado: barra de habilidades embaixo no meio da tela (4 quadrados com ícone, a
+    tecla embaixo e a recarga escurecendo o ícone com os segundos); dica com dano e recarga;
+    botão direito numa tecla escolhe qual habilidade aprendida vai nela (ou esvazia). Pendente:
+    trocar de tecla só com teclado/controle. 170 testes. Aguardando validação do João (G2a+G2b).
   - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
     combate").
   - G2d (a decidir com o João): segunda habilidade, em área com aviso no chão.
@@ -296,6 +299,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   6 s; sem atordoar). Poção de rapidez no mercador (25 moedas): botão direito → Usar, +25% de
   velocidade por 30 s. Os efeitos aparecem acima da vida com os segundos (borda verde = bom,
   vermelha = ruim) e como partículas no personagem.
+- Habilidades (G2): compre o "Tomo: Projétil arcano" no mercador (50 moedas, ou de graça no de
+  testes), botão direito → Usar: a habilidade vai para a tecla 1. Aperte 1 para lançar na direção
+  do mouse (recarga de 2,5 s, mostrada na barra embaixo no meio). Botão direito numa tecla da
+  barra muda a habilidade de tecla.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

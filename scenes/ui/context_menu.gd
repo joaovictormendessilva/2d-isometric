@@ -5,8 +5,11 @@ extends PanelContainer
 ## vira ataque (o menu está no grupo que segura o mouse enquanto aberto).
 
 
+func _init() -> void:
+	visible = false  # fechado desde a criação, mesmo antes de entrar na árvore
+
+
 func _ready() -> void:
-	visible = false
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 
 

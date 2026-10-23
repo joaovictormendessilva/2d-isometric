@@ -696,7 +696,11 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     Primeiro tomo, "Projétil arcano", no mercador (50 moedas).
   - **Projétil** (`Projectile`): voa no plano do chão e para no primeiro inimigo; não é entidade
     (nada dele passa pela rede). Em todo computador ele voa e some ao tocar; só o do host fere.
-  - **Pendência**: projéteis ainda atravessam árvores e pedras.
+  - **Barra** (G2b, `AbilityBar`): embaixo no meio (V Rising); recarga escurece o ícone de cima
+    para baixo; botão direito numa tecla abre `ChoiceMenu` (base `ContextMenu`, extraída do menu
+    do inventário) com as habilidades aprendidas.
+  - **Pendências**: projéteis ainda atravessam árvores e pedras; trocar de tecla só com
+    teclado/controle (hoje só com o mouse).
 - **Rede e segurança** (ADR-013): `AbilitySync` (base `HostRequests`, extraída do
   `PlayerStateSync`). O dono confere antes de pedir, mostra o lançamento na hora (previsão) e
   pede ao host com espaço e direção; o host confere livro, recarga, vida e direção (NaN/zero

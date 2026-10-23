@@ -188,6 +188,35 @@ func test_client_casts_through_host() -> void:
 	check(not client_book.cooldowns.is_ready(BOLT, NetRules.now()), "a recarga está no cliente")
 
 
+## G2b: a barra mostra a habilidade da tecla e a recarga; o botão direito troca de tecla.
+func test_ability_bar_shows_slots_and_moves_abilities() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var bar: AbilityBar = game.find_children("*", "AbilityBar", true, false)[0]
+	var book := (game.session as GameSession).get_ability_book(1)
+	var bolt := AbilityDatabase.shared().get_ability(BOLT)
+	check(bar._slots.size() == AbilityBook.SLOTS and bar._slots.all(
+		func(slot: AbilityBar.Slot) -> bool: return slot.ability == null), "4 teclas vazias")
+	bar._open_menu(1)
+	check(not bar._menu.visible, "nada aprendido: sem menu")
+	book.learn(bolt)
+	check(bar._slots[0].ability == bolt and bar._slots[0].tooltip_text.contains(
+		bolt.get_display_name()), "aprendeu: aparece na tecla 1, com dica")
+	(game.abilities as AbilitySync).request_cast(1, 0, Vector2.UP)
+	await physics_frames(2)
+	check(bar._slots[0].cooldown_left > 0.0 and bar._slots[0]._seconds.text != "",
+		"recarga contando na tecla")
+	bar._open_menu(2)
+	check(bar._menu.visible and bar._menu.choice_count() == 1, "tecla 3: oferece o projétil")
+	(bar._menu._column.get_child(0) as Button).pressed.emit()
+	check(book.in_slot(2) == bolt and book.in_slot(0) == null and bar._slots[2].ability == bolt,
+		"mudou para a tecla 3")
+	bar._open_menu(2)
+	check(bar._menu.choice_count() == 1, "na própria tecla: só Esvaziar")
+	(bar._menu._column.get_child(0) as Button).pressed.emit()
+	check(book.in_slot(2) == null and book.knows(BOLT), "esvaziou (continua aprendida)")
+
+
 func _another_monster(game: Node, other: Monster) -> Monster:
 	for node in (game.region as Region).entities.get_children():
 		if node is Monster and node != other:

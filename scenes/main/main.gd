@@ -50,6 +50,8 @@ var _local_ui_ready := false
 var _traveling: Dictionary[int, bool] = {}
 ## Barra do chefe no alto da tela (criada aqui: só existe para o jogador local).
 var _boss_bar := BossBar.new()
+## Teclas de habilidade embaixo no meio da tela (só do jogador local).
+var _ability_bar := AbilityBar.new()
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
@@ -244,6 +246,8 @@ func _on_local_player_spawned(character: Character) -> void:
 		return
 	_local_ui_ready = true
 	$UI.add_child(_boss_bar)
+	$UI.add_child(_ability_bar)
+	_ability_bar.setup(session.get_ability_book(local_player_id()), abilities)
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()),
