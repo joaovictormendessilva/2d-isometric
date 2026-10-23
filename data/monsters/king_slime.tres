@@ -1,0 +1,92 @@
+[gd_resource type="Resource" script_class="MonsterData" load_steps=13 format=3]
+
+[ext_resource type="Script" path="res://core/actors/monster_data.gd" id="1_monster"]
+[ext_resource type="Script" path="res://core/actors/actor_stats.gd" id="2_stats"]
+[ext_resource type="Script" path="res://core/combat/melee_attack_data.gd" id="3_attack"]
+[ext_resource type="Script" path="res://core/items/drop_entry.gd" id="4_drop"]
+[ext_resource type="Resource" path="res://data/items/gel.tres" id="5_gel"]
+[ext_resource type="Script" path="res://core/combat/slam_attack_data.gd" id="6_slam"]
+[ext_resource type="Resource" path="res://data/items/king_slime_core.tres" id="7_core"]
+[ext_resource type="PackedScene" path="res://scenes/actors/monsters/slime.tscn" id="8_minion"]
+
+[sub_resource type="Resource" id="Resource_stats"]
+script = ExtResource("2_stats")
+move_speed = 32.0
+acceleration = 300.0
+friction = 600.0
+horizontal_speed_factor = 0.8
+max_health = 300
+defense = 0
+invulnerability_time = 0.0
+hit_stun = 0.0
+knockback_resistance = 1.0
+
+[sub_resource type="Resource" id="Resource_attack"]
+script = ExtResource("3_attack")
+damage = 12
+reach = 16.0
+arc_degrees = 160.0
+knockback = 180.0
+lunge = 200.0
+lunge_hit_time = 0.2
+engage_distance = 24.0
+windup = 0.6
+recovery = 1.0
+move_multiplier = 0.0
+interruptible = false
+
+[sub_resource type="Resource" id="Resource_slam"]
+script = ExtResource("6_slam")
+damage = 25
+radius = 34.0
+knockback = 240.0
+min_distance = 50.0
+max_distance = 170.0
+windup = 0.9
+air_time = 0.6
+recovery = 1.2
+cooldown = 3.5
+height = 36.0
+
+[sub_resource type="Resource" id="Resource_slam_enraged"]
+script = ExtResource("6_slam")
+damage = 25
+radius = 34.0
+knockback = 240.0
+min_distance = 50.0
+max_distance = 190.0
+windup = 0.6
+air_time = 0.5
+recovery = 0.8
+cooldown = 2.0
+height = 40.0
+
+[sub_resource type="Resource" id="Resource_drop_core"]
+script = ExtResource("4_drop")
+item = ExtResource("7_core")
+chance = 1.0
+min_amount = 1
+max_amount = 1
+
+[sub_resource type="Resource" id="Resource_drop_gel"]
+script = ExtResource("4_drop")
+item = ExtResource("5_gel")
+chance = 1.0
+min_amount = 5
+max_amount = 10
+
+[resource]
+script = ExtResource("1_monster")
+id = &"king_slime"
+stats = SubResource("Resource_stats")
+attack = SubResource("Resource_attack")
+slam = SubResource("Resource_slam")
+is_boss = true
+aggro_radius = 150.0
+leash_radius = 240.0
+phase_two_health = 0.5
+phase_two_slam = SubResource("Resource_slam_enraged")
+minion_scene = ExtResource("8_minion")
+minions_per_slam = 2
+max_minions = 4
+drops = Array[ExtResource("4_drop")]([SubResource("Resource_drop_core"), SubResource("Resource_drop_gel")])

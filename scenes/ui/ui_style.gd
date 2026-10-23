@@ -23,6 +23,8 @@ const DANGER := Color(1.0, 0.45, 0.4)
 ## Ganho bom (subiu de nível).
 const POSITIVE := Color("8fe388")
 const HEALTH := Color("d94a4a")
+## Chefe enfurecido (fase 2): barra de vida e aviso.
+const ENRAGED := Color("ff7a3d")
 
 # --- Texto -----------------------------------------------------------------------------------
 const TEXT := Color.WHITE

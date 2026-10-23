@@ -60,6 +60,8 @@ func _ready() -> void:
 	_body.revived.connect(_on_revived.unbind(1))
 	if _body.attacker:
 		_body.attacker.attack_started.connect(_on_attack_started.unbind(1))
+	if _body.slammer:
+		_body.slammer.slam_started.connect(_on_slam_started.unbind(1))
 	if _body.health:
 		_body.health.damaged.connect(_on_damaged)
 		_body.health.changed.connect(_on_health_changed)
@@ -224,6 +226,19 @@ func _attack_played(direction: Vector2) -> void:
 	direction = NetRules.clean_direction(direction)
 	if direction != Vector2.ZERO:
 		_body.play_remote_attack(direction, ATTACK_TOLERANCE)
+
+
+## Host → clientes: o salto (só o host simula criaturas). O cliente mostra o salto com o mesmo
+## atraso de desenho da posição.
+func _on_slam_started(landing: Vector2) -> void:
+	if is_online() and multiplayer.is_server():
+		_send_to_clients(&"_slam_played", [landing], false)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _slam_played(landing: Vector2) -> void:
+	if _body.slammer and NetRules.is_valid_vector(landing) and _body.is_alive():
+		_body.slammer.play_remote(landing, INTERPOLATION_DELAY)
 
 
 # --- Coleta ------------------------------------------------------------------------------

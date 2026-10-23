@@ -1,7 +1,8 @@
 class_name MeleeAttacker
 extends Node
 ## Executa ataques corpo a corpo do Character pai: preparação (telegrafia) → golpe → recuperação.
-## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão.
+## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
+## investida (`lunge_hit_time`), continua acertando quem o avanço tocar, uma vez cada.
 ## Só o HOST aplica o dano (`multiplayer.is_server()`; offline também é host). Nos outros
 ## computadores o ataque roda igual, só para a apresentação e o bote.
 
@@ -11,16 +12,17 @@ signal attack_finished
 
 enum Phase { READY, WINDUP, RECOVERY }
 
-## Maior raio de pegada esperado num alvo; amplia a busca física inicial.
-const MAX_TARGET_RADIUS := 16.0
-const MAX_TARGETS := 32
-
 @export var attack: MeleeAttackData
 
 var _phase := Phase.READY
 var _time_left := 0.0
 var _direction := Vector2.DOWN
 var _next_attack: MeleeAttackData
+## Investida: tempo que o avanço ainda acerta, quem pode ser acertado (uma consulta de física no
+## golpe, larga o bastante para o avanço; depois, só distância) e quem já foi acertado.
+var _hit_left := 0.0
+var _candidates: Array = []  # sem tipo: um alvo pode ser liberado no meio (saiu da partida)
+var _hit: Dictionary = {}
 
 @onready var _body: Character = get_parent()
 
@@ -64,6 +66,9 @@ func interrupt() -> void:
 func _physics_process(delta: float) -> void:
 	if _phase == Phase.READY:
 		return
+	if _hit_left > 0.0:
+		_hit_left -= delta
+		_hit_targets()
 	_time_left -= delta
 	if _time_left > 0.0:
 		return
@@ -77,11 +82,23 @@ func _strike() -> void:
 	_phase = Phase.RECOVERY
 	_time_left = attack.recovery
 	_body.add_ground_impulse(_direction * attack.lunge)
-	if multiplayer.is_server():
-		for target in _find_targets():
+	_hit.clear()
+	_hit_left = attack.lunge_hit_time
+	if multiplayer.is_server():  # só o host aplica dano
+		_candidates = ActorQuery.hostiles_near(_body, _body.global_position,
+			_body.footprint_radius(), attack.reach + attack.lunge * attack.lunge_hit_time)
+	_hit_targets()
+	attack_struck.emit(_direction, attack)
+
+
+## Candidatos agora ao alcance e dentro do arco; cada alvo uma vez por ataque.
+func _hit_targets() -> void:
+	for target: Variant in _candidates:
+		if is_instance_valid(target) and not _hit.has(target) and ActorQuery.is_hit(_body, target, _body.global_position,
+				_body.footprint_radius(), attack.reach) and _in_arc(target):
+			_hit[target] = true
 			target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
 				attack.knockback, _body.entity_id, _body.player_id))
-	attack_struck.emit(_direction, attack)
 
 
 ## Troca o golpe (ex.: arma vestida). No meio de um ataque, vale a partir do próximo.
@@ -94,35 +111,17 @@ func set_attack(value: MeleeAttackData) -> void:
 
 func _finish() -> void:
 	_phase = Phase.READY
+	_hit_left = 0.0
+	_hit.clear()
+	_candidates.clear()
 	if _next_attack:
 		attack = _next_attack
 		_next_attack = null
 	attack_finished.emit()
 
 
-func _find_targets() -> Array[Character]:
-	# Busca física larga (círculo de tela cobre a elipse do chão), depois filtro exato no chão.
-	var shape := CircleShape2D.new()
-	shape.radius = _body.footprint_radius() + attack.reach + MAX_TARGET_RADIUS
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = shape
-	query.transform = Transform2D(0.0, _body.global_position)
-	query.collision_mask = PhysicsLayers.ACTORS
-	var targets: Array[Character] = []
-	for hit in _body.get_world_2d().direct_space_state.intersect_shape(query, MAX_TARGETS):
-		var target := hit.collider as Character
-		if target != null and _can_hit(target):
-			targets.append(target)
-	return targets
-
-
-func _can_hit(target: Character) -> bool:
-	if target == _body or target.faction == _body.faction or not target.is_alive():
-		return false
+func _in_arc(target: Character) -> bool:
 	var to_target := Iso.screen_to_ground(target.global_position - _body.global_position)
-	var gap := to_target.length() - target.footprint_radius() - _body.footprint_radius()
-	if gap > attack.reach:
-		return false
 	if attack.arc_degrees >= 360.0 or to_target.is_zero_approx():
 		return true
 	return absf(rad_to_deg(_direction.angle_to(to_target))) <= attack.arc_degrees / 2.0

@@ -7,7 +7,8 @@ extends SceneTree
 ## Rodar (com janela; `--fixed-fps 60` = 1 passo de física por quadro, tempo exato):
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
-##   --scenario=<nome>  idle | walk | attack | gather | inventory  (padrão: attack)
+##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss  (padrão: attack)
+##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
 ##   --frames=<n>       quadros na folha (padrão 16)
 ##   --every=<n>        passos de física entre quadros (padrão 2 = 30 quadros/s)
 ##   --crop=<L>x<A>     recorte em volta do jogador, em pixels do jogo (padrão 96x72;
@@ -22,6 +23,8 @@ const ATTACK_DIRECTION := Vector2.RIGHT
 const WALK_DIRECTION := Vector2(1, 0.5)
 ## Distância (no chão) em que a criatura é posta à frente no cenário de ataque.
 const TARGET_DISTANCE := 22.0
+## Onde o jogador fica no cenário do chefe (chão): a meia distância, para ele saltar.
+const BOSS_DISTANCE := Vector2(100, 0)
 
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
@@ -52,7 +55,7 @@ func _run() -> void:
 	var character := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
 	game.detach_local_input()
 	var scenario: String = _options["scenario"]
-	_prepare(game, character, scenario)
+	character = await _prepare(game, character, scenario)
 
 	var frames: Array[Image] = []
 	var every := maxi(int(_options["every"]), 1)
@@ -71,8 +74,9 @@ func _run() -> void:
 	quit(error)
 
 
-## Monta o cenário uma vez (posições, alvos, janelas abertas).
-func _prepare(game: Node, character: Character, scenario: String) -> void:
+## Monta o cenário uma vez (posições, alvos, janelas abertas). Retorna o personagem do jogador
+## (uma viagem o recria).
+func _prepare(game: Node, character: Character, scenario: String) -> Character:
 	match scenario:
 		"attack":
 			var monster := _nearest_monster(game, character)
@@ -88,6 +92,16 @@ func _prepare(game: Node, character: Character, scenario: String) -> void:
 				character.reset_physics_interpolation()
 		"inventory":
 			(game.get_node("UI/InventoryPanel") as InventoryPanel).set_open(true)
+		"boss":
+			game._travel(game.local_player_id(), &"forest", &"to_meadow")
+			await physics_frame
+			await physics_frame
+			character = (game.session as GameSession).get_player_entity(game.local_player_id())
+			var boss := _nearest(game, character, func(n: Node) -> bool:
+				return n is Monster and n.data.is_boss) as Monster
+			character.position = boss.position + Iso.ground_to_screen(BOSS_DISTANCE)
+			character.reset_physics_interpolation()
+	return character
 
 
 ## Intenções a cada passo (como o jogador segurando a tecla).

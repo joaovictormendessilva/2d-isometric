@@ -44,6 +44,8 @@ var _input_detached := false
 var _local_ui_ready := false
 ## Host: jogadores com viagem já marcada (a passagem pode disparar mais de uma vez).
 var _traveling: Dictionary[int, bool] = {}
+## Barra do chefe no alto da tela (criada aqui: só existe para o jogador local).
+var _boss_bar := BossBar.new()
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
@@ -224,12 +226,14 @@ func _on_local_player_spawned(character: Character) -> void:
 	_camera.follow(character)
 	var inventory := session.get_inventory(local_player_id())
 	_hud.set_character(character)
+	_boss_bar.set_character(character)
 	_player_feedback.set_character(character)
 	_interaction_prompt.setup(character)
 	_placement_preview.setup(inventory, items, character)
 	if _local_ui_ready:
 		return
 	_local_ui_ready = true
+	$UI.add_child(_boss_bar)
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()))

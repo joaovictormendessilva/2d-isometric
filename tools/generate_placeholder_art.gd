@@ -159,6 +159,9 @@ const ICON_PALETTE := {
 	"R": Color("f0705a"),  # poção (luz, puxa para o quente)
 	"e": Color("c8323c"),  # poção
 	"E": Color("7a1c3e"),  # poção (sombra, puxa para o roxo)
+	"q": Color("b48ae8"),  # gosma (luz)
+	"p": Color("8a5cc7"),  # gosma
+	"P": Color("6a42a3"),  # gosma (sombra)
 }
 const LOG := [
 	"........",
@@ -281,6 +284,26 @@ const POTION := [
 	".oeEEEo.",
 	"..oooo..",
 ]
+## Núcleo do Rei Slime: esfera de gosma com reflexo e um brilho dourado no meio (drop do chefe).
+const KING_CORE := [
+	"..oooo..",
+	".oqqppo.",
+	"oqgpppPo",
+	"oqpGypPo",
+	"oppyYpPo",
+	"oppppPPo",
+	".oPPPPo.",
+	"..oooo..",
+]
+## Coroa do Rei Slime, pousada no alto da gota; contorno em ouro escuro (cor do material).
+const CROWN := [
+	".o..o..o.",
+	"oGooyooYo",
+	"oGyyyyyYo",
+	"oyyyeyyYo",
+	".ooooooo.",
+]
+const CROWN_OUTLINE := Color("6a4a1a")
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -298,6 +321,7 @@ const ICONS := {
 	"magnet_ring": [RING, {}],
 	"coin": [COIN, {}],
 	"health_potion": [POTION, {}],
+	"king_slime_core": [KING_CORE, {}],
 }
 
 
@@ -316,8 +340,10 @@ func _initialize() -> void:
 	_save(_sprite(MERCHANT, MERCHANT_PALETTE), OUT_DIR + "merchant.png")
 	for icon: String in ICONS:
 		_save(_icon(ICONS[icon][0], ICONS[icon][1]), OUT_DIR + "icon_%s.png" % icon)
-	_save(_shadow(), OUT_DIR + "shadow.png")
+	_save(_shadow(Vector2i(12, 5)), OUT_DIR + "shadow.png")
 	_save(_slime(), OUT_DIR + "slime.png")
+	_save(_king_slime(), OUT_DIR + "king_slime.png")
+	_save(_shadow(Vector2i(26, 8)), OUT_DIR + "shadow_large.png")
 	_save(_gel(), OUT_DIR + "gel.png")
 	_save(_slash(), OUT_DIR + "slash.png")
 	quit(0)
@@ -472,8 +498,8 @@ func _rock(ore: Array = []) -> Image:
 	return img
 
 
-func _shadow() -> Image:
-	var img := Image.create(12, 5, false, Image.FORMAT_RGBA8)
+func _shadow(size: Vector2i) -> Image:
+	var img := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
 	var half := Vector2(img.get_size()) / 2.0
 	for y in img.get_height():
 		for x in img.get_width():
@@ -501,6 +527,16 @@ func _slime() -> Image:
 	for eye in [Vector2i(6, 6), Vector2i(10, 6)]:
 		img.set_pixelv(eye, SLIME_EYES)
 		img.set_pixelv(eye + Vector2i.DOWN, SLIME_EYES)
+	return img
+
+
+## Rei Slime (F4): gota grande com olhos de 2x2 e coroa. Pés no centro da base: (15, 24).
+func _king_slime() -> Image:
+	var img := _blob(Vector2i(30, 25), Vector2(15, 15.5), Vector2(14, 8.5), 4.0)
+	for eye in [Vector2i(10, 14), Vector2i(18, 14)]:
+		img.fill_rect(Rect2i(eye, Vector2i(2, 3)), SLIME_EYES)
+	var crown := _sprite(CROWN, ICON_PALETTE.merged({"o": CROWN_OUTLINE}, true))
+	img.blend_rect(crown, Rect2i(Vector2i.ZERO, crown.get_size()), Vector2i(11, 2))
 	return img
 
 

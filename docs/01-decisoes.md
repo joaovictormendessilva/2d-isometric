@@ -582,3 +582,50 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: a F5 (chefe libera receita) pode dar uma receita pelo mesmo livro
   (`learn` no host), sem NPC. Novas receitas de NPC = arquivo em `data/recipes/` com
   `must_learn` + preço no `recipe_offers` do NPC.
+
+## ADR-024 — Mini boss: Rei Slime e o salto com aviso no chão
+
+- **Status**: Hipótese (F4a + F4b, aguardando validação do João)
+- **Direção do João (2026-10-22)**: o primeiro mini boss é o **Rei Slime** (slime gigante), numa
+  clareira da floresta; fase 2 se divide em slimes pequenos e salta mais rápido (F4b).
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Salto com queda em área** = `SlamAttackData` (dano, raio, recuo, distâncias, aviso, voo,
+    recuperação, espera, altura, tremor) num componente reaproveitável `SlamAttacker`: qualquer
+    criatura com o nó e `MonsterData.slam` salta. A IA (`MonsterBrain`) salta em alvos a meia
+    distância se o ponto de queda for chão livre; perto, usa o golpe comum.
+  - **Justo e legível** (game-feel): o ponto de queda é decidido no início (onde o alvo estava) e
+    mostrado no chão (`GroundTelegraph`: contorno + miolo que enche até a queda). Sair do
+    círculo evita o dano. Depois da queda, 1,2 s parado (janela para bater). O chefe avermelha
+    no aviso, sobe num arco com a sombra no chão, esborracha ao cair, com onda no chão e tremor
+    de câmera para quem está perto (só apresentação, nada pela rede).
+  - **Camada de efeitos no chão** (`Region.ground_effects`): criada em cada computador, entre o
+    chão e as entidades; nunca replicada.
+  - **Alvos** de golpes e do impacto num lugar só (`ActorQuery.hostiles_near`).
+  - **Chefe** = `MonsterData.is_boss`: barra de vida no alto da tela (`BossBar`) para quem está
+    perto. Rei Slime: 300 de vida (escala por jogadores como as criaturas), lento, imune a recuo,
+    golpe 12, salto 25. Drop pessoal: **Núcleo do Rei Slime** (sempre) e 5 a 10 gosmas.
+    Renasce em 5 min. Clareira aberta pelo gerador no leste da floresta (último ponto de
+    criatura: os outros mantêm o número).
+  - **Rede**: só o host simula o chefe e aplica o dano; ele avisa os clientes do salto (ponto de
+    queda, conferido) e eles o mostram com o mesmo atraso de desenho da posição.
+    Protocolo de rede: versão 9.
+  - **Fase 2** (F4b, `MonsterData.phase_two_*`): abaixo de metade da vida o chefe se enfurece:
+    salto mais rápido (aviso 0,6 s, espera 2 s), aviso "Rei Slime se enfurece!" e barra laranja;
+    curado (voltou para casa), volta à fase 1. A fase vem da vida, que todo computador conhece.
+    Cada queda na fase 2 solta 2 filhotes (slimes comuns, no máximo 4 vivos), sem drops (não vira
+    fazenda de gosma) e sem renascer; somem se o chefe morre ou desiste. Rede: tipo de criação
+    "filhote" ligado ao chefe que o invocou (o cliente confere que esse chefe existe ali e tem
+    filhotes; nada de cena vinda da rede). Protocolo de rede: versão 10.
+  - **Bote dos slimes vira investida** (relato do João na F4a): o flash de dano apagava o
+    vermelho do aviso (o bote parecia sair do nada) e o dano só valia no instante do golpe, para
+    quem estava colado (correr anulava o bote). Agora o flash volta ao vermelho, o avanço é mais
+    longo e acerta quem tocar (`lunge_hit_time`, uma vez cada) e a criatura começa de mais longe
+    (`engage_distance`). Vale para todos os slimes. Desempenho: uma consulta de física por bote
+    (candidatos), depois só distância.
+- **Core x conteúdo** (João, 2026-10-22): o Rei Slime é um **banco de testes** das mecânicas de
+  chefe, não um chefe definitivo (arte, números, nome e lugar podem mudar quando os chefes de
+  verdade forem desenhados). O que é core e fica: salto com aviso, fases por vida, filhotes
+  ligados ao chefe (seguem o chefe e atacam o alvo dele; correção do teste do João), barra de
+  chefe, drop especial.
+- **Consequências**: novos chefes ou criaturas que saltam = dados + cena com `SlamAttacker`. A F4b
+  (fases) e a F5 (o núcleo libera algo) usam esta base.

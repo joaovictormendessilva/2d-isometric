@@ -12,6 +12,12 @@ extends Resource
 @export var knockback: float = 150.0
 ## Impulso do próprio atacante na direção do golpe (px/s no chão); 0 = parado.
 @export var lunge: float = 0.0
+## Depois do golpe, o avanço (`lunge`) continua acertando quem ele tocar por este tempo (s): o
+## bote de uma criatura vira uma investida de verdade. Cada alvo leva no máximo um acerto.
+@export var lunge_hit_time: float = 0.0
+## IA: começa o ataque quando a folga até o alvo (chão) for até esta; 0 = 80% do alcance.
+## Investidas começam de mais longe (o avanço cobre a distância).
+@export var engage_distance: float = 0.0
 @export_group("Tempo (s)")
 @export var windup: float = 0.05
 @export var recovery: float = 0.3

@@ -8,11 +8,11 @@ extends Node
 ## região onde o jogador dele está. Toda entidade criada tem um "portão" (MultiplayerSynchronizer
 ## sem propriedades) cuja visibilidade, decidida no host, controla a quem ela é enviada.
 ## Em todos os computadores: registro na sessão e apresentação (números de dano).
-## Só no host: morte, renascimento, drops pessoais e IA das criaturas.
+## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes e IA das criaturas.
 
 signal local_player_spawned(character: Character)
 
-enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE }
+enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION }
 
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
@@ -28,10 +28,16 @@ const RETIRE_TIME := 1.0
 const DROP_DISTANCE_MIN := 10.0
 const DROP_DISTANCE_MAX := 24.0
 const DROP_CLEARANCE := 4.0
+## Onde os filhotes do chefe surgem: distância (chão) do ponto de queda e raio livre exigido.
+const MINION_DISTANCE_MIN := 22.0
+const MINION_DISTANCE_MAX := 40.0
+const MINION_CLEARANCE := 6.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
 const IMMUNE_COLOR := Color("a0a0b4")
 const HEAL_COLOR := UiStyle.POSITIVE
+## Aviso de fúria do chefe: mais tempo na tela que um número de dano.
+const ENRAGED_TEXT_TIME := 1.6
 ## Tom dos personagens dos OUTROS jogadores, para cada um se reconhecer no coop.
 const OTHER_PLAYER_TINT := Color(0.6, 1.0, 0.75)
 ## Limites dos dados de criação recebidos do host (nada maior é legítimo).
@@ -58,6 +64,8 @@ var _rng := RandomNumberGenerator.new()
 ## Equipamento de cada jogador já ligado ao tamanho do inventário (uma vez: o personagem é
 ## recriado a cada viagem, o equipamento continua).
 var _sized: Dictionary[int, Equipment] = {}
+## Host: filhotes vivos de cada chefe (id da entidade do chefe -> filhotes).
+var _minions: Dictionary[int, Array] = {}
 
 
 func setup(p_session: GameSession, p_local_player_id: int, p_damage_numbers: DamageNumbers,
@@ -144,6 +152,13 @@ func spawn_monster(region: Region, point_index: int) -> Monster:
 			maxi(players_in(region), 1), PLAYER_SCALING)})
 
 
+## Filhote de um chefe (fase 2), em `at`. Não deixa drops nem renasce.
+func spawn_minion(region: Region, summoner: Monster, at: Vector2) -> Monster:
+	return _replicator(region).spawn({"kind": Kind.MINION,
+		"entity_id": session.allocate_entity_id(), "summoner": summoner.entity_id, "position": at,
+		"health_multiplier": summoner.max_health_multiplier})
+
+
 ## `from`: onde o item nasce (a criatura); `at`: onde ele pousa.
 ## `dropped_by_owner`: o próprio dono jogou fora (ele só pega de volta depois de se afastar).
 func spawn_pickup(region: Region, item: ItemData, amount: int, owner_player_id: int,
@@ -201,6 +216,8 @@ func _instantiate(data: Variant, region: Region) -> Node:
 			node = _instantiate_player(data)
 		Kind.MONSTER:
 			node = _instantiate_monster(data, region)
+		Kind.MINION:
+			node = _instantiate_minion(data, region)
 		Kind.PICKUP:
 			node = _instantiate_pickup(data)
 		Kind.STRUCTURE:
@@ -286,9 +303,69 @@ func _instantiate_monster(data: Dictionary, region: Region) -> Monster:
 	monster.max_health_multiplier = data["health_multiplier"]
 	_register(monster, data["entity_id"])
 	monster.died.connect(_on_monster_died.bind(data["point"], weakref(region)))
+	monster.phase_changed.connect(_on_boss_phase_changed.bind(monster))
 	if multiplayer.is_server():
 		(monster.get_node("Brain") as MonsterBrain).session = session  # IA só no host
+		if monster.data.minion_scene:
+			_track_minions(monster, region)
 	return monster
+
+
+## Host: chefe com filhotes. Na fase 2, cada queda solta filhotes; se ele desiste (volta para casa,
+## imune) ou morre, os filhotes somem.
+func _track_minions(boss: Monster, region: Region) -> void:
+	var boss_ref: WeakRef = weakref(boss)
+	var region_ref: WeakRef = weakref(region)
+	(boss.get_node("SlamAttacker") as SlamAttacker).slam_landed.connect(
+		func(landing: Vector2, _attack: SlamAttackData) -> void:
+			_on_boss_landed(boss_ref.get_ref(), region_ref.get_ref(), landing))
+	(boss.get_node("Health") as Health).immunity_changed.connect(func(immune: bool) -> void:
+		if immune:
+			_clear_minions(boss.entity_id))
+	boss.tree_exiting.connect(_clear_minions.bind(boss.entity_id))
+
+
+func _on_boss_landed(boss: Monster, region: Region, landing: Vector2) -> void:
+	if boss == null or region == null or boss.phase != 2 or not boss.is_alive():
+		return
+	var alive: Array = _minions.get(boss.entity_id, []).filter(func(minion: Variant) -> bool:
+		return is_instance_valid(minion) and minion.is_alive())
+	var count := mini(boss.data.minions_per_slam, boss.data.max_minions - alive.size())
+	var space := region.get_world_2d().direct_space_state
+	for i in count:
+		var spot := GroundQuery.find_drop_spot(space, landing, _rng, MINION_DISTANCE_MIN,
+			MINION_DISTANCE_MAX, MINION_CLEARANCE)
+		alive.append(spawn_minion(region, boss, spot))
+	_minions[boss.entity_id] = alive
+
+
+func _clear_minions(boss_entity_id: int) -> void:
+	for minion: Variant in _minions.get(boss_entity_id, []):
+		if is_instance_valid(minion) and not minion.is_queued_for_deletion():
+			minion.queue_free()
+	_minions.erase(boss_entity_id)
+
+
+func _instantiate_minion(data: Dictionary, region: Region) -> Monster:
+	var summoner := _summoner_of(data, region)
+	var minion: Monster = summoner.data.minion_scene.instantiate()
+	minion.position = data["position"]
+	minion.max_health_multiplier = data["health_multiplier"]
+	_register(minion, data["entity_id"])
+	minion.died.connect(_on_minion_died)
+	if multiplayer.is_server():
+		var brain := minion.get_node("Brain") as MonsterBrain
+		brain.session = session
+		brain.leader = summoner  # segue o chefe e ataca o alvo dele
+	return minion
+
+
+## Chefe que invocou o filhote: entidade conhecida aqui, na mesma região, que tem filhotes.
+func _summoner_of(data: Dictionary, region: Region) -> Monster:
+	var summoner := session.get_entity(data["summoner"]) as Monster
+	if summoner and Region.of(summoner) == region and summoner.data.minion_scene:
+		return summoner
+	return null
 
 
 func _instantiate_pickup(data: Dictionary) -> Pickup:
@@ -341,6 +418,13 @@ func _valid_kind(data: Variant, region: Region) -> int:
 					and multiplier is float and is_finite(multiplier) \
 					and multiplier > 0.0 and multiplier <= MAX_HEALTH_MULTIPLIER:
 				return Kind.MONSTER
+		Kind.MINION:
+			var multiplier: Variant = d.get("health_multiplier")
+			if _is_id(d, "entity_id") and _is_id(d, "summoner") and _is_position(d, "position") \
+					and _summoner_of(d, region) != null and multiplier is float \
+					and is_finite(multiplier) and multiplier > 0.0 \
+					and multiplier <= MAX_HEALTH_MULTIPLIER:
+				return Kind.MINION
 		Kind.PICKUP:
 			var item: Variant = d.get("item")
 			if _is_id(d, "pickup_id") and _is_id(d, "owner") and _is_position(d, "position") \
@@ -375,6 +459,13 @@ func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 func _on_entity_healed(amount: int, entity: Character) -> void:
 	if _is_shown(entity):
 		damage_numbers.show_text(entity.position, Texts.format(&"COMBAT_HEALED", [amount]), HEAL_COLOR)
+
+
+## Chefe se enfureceu (fase 2): aviso flutuante para quem está vendo a região.
+func _on_boss_phase_changed(phase: int, boss: Monster) -> void:
+	if phase == 2 and _is_shown(boss):
+		damage_numbers.show_text(boss.position, Texts.format(&"BOSS_ENRAGED",
+			[boss.data.get_display_name()]), UiStyle.ENRAGED, ENRAGED_TEXT_TIME)
 
 
 func _on_entity_blocked(entity: Character) -> void:
@@ -421,6 +512,13 @@ func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef)
 	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
 	get_tree().create_timer(region.get_monster_spawn_points()[point_index].respawn_time) \
 		.timeout.connect(_respawn_monster.bind(point_index, region_ref))
+
+
+## Filhote morto: sai do registro e, no host, some (sem drops nem renascimento).
+func _on_minion_died(minion: Character) -> void:
+	session.unregister_entity(minion.entity_id)
+	if multiplayer.is_server():
+		get_tree().create_timer(CORPSE_TIME).timeout.connect(minion.queue_free)
 
 
 ## Drops pessoais: a tabela é sorteada separadamente para cada jogador da região. Cada item

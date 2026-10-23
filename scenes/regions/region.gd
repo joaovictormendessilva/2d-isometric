@@ -16,6 +16,9 @@ signal player_exited(player_id: int)
 ## Luz ambiente (multiplica as cores do mundo; a interface não muda). Branco = sem mudança.
 @export var ambient := Color.WHITE
 
+## Efeitos desenhados no chão, por baixo de tudo que está em `entities` (aviso do salto do chefe).
+## Só apresentação: criada aqui em cada computador, nunca replicada.
+var ground_effects := Node2D.new()
 var _players: Dictionary[int, bool] = {}
 
 @onready var ground: TileMapLayer = $Ground
@@ -24,6 +27,9 @@ var _players: Dictionary[int, bool] = {}
 
 
 func _ready() -> void:
+	ground_effects.name = "GroundEffects"
+	add_child(ground_effects)
+	move_child(ground_effects, entities.get_index())
 	if ambient != Color.WHITE:
 		var light := CanvasModulate.new()
 		light.color = ambient

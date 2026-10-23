@@ -96,3 +96,6 @@ SHOP_RECIPE_AT_HAND,Fabrique em qualquer lugar: %s,Craft anywhere: %s
 SHOP_RECIPE_AT_WORKBENCH,Fabrique na bancada: %s,Craft at a workbench: %s
 RECIPE_INGREDIENT,%d %s,%d %s
 FEEDBACK_RECIPE_LEARNED,Receita aprendida: %s,Recipe learned: %s
+MONSTER_KING_SLIME,Rei Slime,King Slime
+ITEM_KING_SLIME_CORE,Núcleo do Rei Slime,King Slime core
+BOSS_ENRAGED,%s se enfurece!,%s is enraged!
