@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 ✅ (moedas, poção, receitas de NPC); F4 ✅ (Rei Slime, 2 fases); F5 em andamento |
+| F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -201,11 +201,13 @@ Ordem proposta (cada um com validação do João antes do próximo):
   Correção do teste do João: os filhotes seguem o chefe e atacam o alvo dele (antes, correndo um
   pouco, eles ficavam parados). O Rei Slime é banco de testes; as mecânicas são o core.
   144 testes. Validado pelo João (2026-10-23).
-- **F5 – Ciclo de progressão** 🟡 (branch `stage-f/progression`): algo liberado pelo chefe e balanceamento.
-  F5a 🟡 implementado (escolha do João: receita de equipamento): o Núcleo do Rei Slime fabrica na
+- **F5 – Ciclo de progressão** ✅ (branch `stage-f/progression`): algo liberado pelo chefe e balanceamento.
+  F5a ✅ implementado (escolha do João: receita de equipamento): o Núcleo do Rei Slime fabrica na
   bancada a **Coroa do Rei Slime** (cabeça: +20 de vida, +3 de defesa; o elmo de cobre dá +10/+2)
   com 1 núcleo, 8 gosmas e 4 cobres. Teste genérico: todo drop exclusivo de chefe tem que servir
-  para alguma receita. 146 testes. Aguardando validação do João.
+  para alguma receita. 146 testes. Validado pelo João (2026-10-23): ciclo chefe → núcleo → coroa
+  funcionando; a dificuldade atual (slimes com investida, chefe em 2 fases) é a desejada, então o
+  balanceamento fica como está (números provisórios em `data/`, revistos com mais conteúdo).
 
 ## Funcionalidades
 
@@ -297,6 +299,12 @@ Ordem proposta (cada um com validação do João antes do próximo):
   tempo de conjuração. Correção do João: NÃO significa que cada arma define os ataques (isso
   foi coincidência entre os dois jogos); de onde vêm as habilidades fica para decidir.
   Registrar ADR quando o sistema de habilidades começar.
+- **Chefes corpo a corpo x classes à distância** (João, 2026-10-23): mago e arqueiro têm menos
+  defesa, mas não podem lutar com folga. O chefe tem que se "irritar" com quem o ataca de longe e
+  ir atrás dele, obrigando a correr, usar dash etc. Técnica prevista: ameaça por dano recebido
+  (quem causa dano vira alvo, mesmo fora do raio de visão) e habilidades de aproximação do chefe
+  (salto/investida já existem). Entra junto com armas e habilidades à distância.
+- **Dificuldade** (João, 2026-10-23): o nível atual (slimes com investida, Rei Slime) é o desejado.
 
 ## Textos e idiomas
 
@@ -318,6 +326,9 @@ Ideias do João para considerar nas etapas certas — não são compromissos ain
   valores finais (vida, defesa, dano, velocidade, ímã); a dica do item continua com a base.
 - **Variedade de armas** (arco + aljava, cajados, tomo): regras de mão prontas no E4; o
   comportamento precisa do sistema de habilidades e projéteis (etapa própria, a definir).
+
+- **Coroa de ouro** (João, 2026-10-23): numa visão mais de fantasia, uma coroa pede minério de
+  ouro. Quando houver ouro no mundo, a receita da coroa (ou do equipamento final de chefe) usa ouro.
 
 - **Atravessar água**: buff, poção ou montaria que permite andar sobre a água (ou nadar),
   abrindo atalhos e áreas escondidas. Técnica prevista: mover a colisão da água para uma

@@ -632,3 +632,5 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **F5a (João, 2026-10-23)**: o drop do chefe libera uma **receita de equipamento** (não uma área).
   O núcleo é ingrediente da Coroa do Rei Slime (bancada; cabeça, melhor que o elmo de cobre).
   Regra testada (`tests/test_progression.gd`): drop exclusivo de chefe sempre serve a uma receita.
+  Validado pelo João (2026-10-23). Pendente para quando houver ataques à distância: o chefe passa a
+  perseguir quem o fere de longe (ameaça por dano), ver "Direção de combate" no plano.
