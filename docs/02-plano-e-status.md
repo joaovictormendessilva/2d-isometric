@@ -387,6 +387,15 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   (salto/investida já existem). Entra junto com armas e habilidades à distância.
   Ameaça por dano feita na G2c (ADR-027).
 - **Dificuldade** (João, 2026-10-23): o nível atual (slimes com investida, Rei Slime) é o desejado.
+- **Magia x corpo a corpo** (achado do João no teste da G2d, 2026-10-23): o Rei Slime morre fácil
+  com magia à distância; com a espada é preciso se reposicionar o tempo todo e o risco de apanhar
+  é bem maior. Hoje o dano por segundo da espada é maior que o das magias (projétil 14 a cada
+  2,5 s; explosão 20 a cada 6 s), mas à distância quase não se apanha, e quem usa magia não perde
+  nada em troca (mesma defesa, espada junto). Fica para o balanceamento, com mais conteúdo.
+  Alavancas previstas: custo de build para quem usa magia (equipamento de mago com menos
+  defesa, arma mágica em vez da espada); chefes com mais pressão em quem ataca de longe
+  (investida/salto até o alvo da ameaça, ataques à distância); recompensa para o corpo a corpo
+  (janelas de punição depois dos ataques do chefe, golpes mais fortes, roubo de vida).
 
 ## Textos e idiomas
 
