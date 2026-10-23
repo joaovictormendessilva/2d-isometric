@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="MonsterData" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://core/actors/monster_data.gd" id="1_monster"]
+[ext_resource type="Resource" path="res://data/actors/slime_stats.tres" id="2_stats"]
+[ext_resource type="Resource" path="res://data/actors/slime_lunge.tres" id="3_attack"]
+[ext_resource type="Script" path="res://core/items/drop_entry.gd" id="4_drop"]
+[ext_resource type="Resource" path="res://data/items/gel.tres" id="5_gel"]
+[ext_resource type="Resource" path="res://data/effects/poison.tres" id="6_poison"]
+[ext_resource type="Script" path="res://core/effects/status_effect_data.gd" id="7_effect"]
+
+[sub_resource type="Resource" id="Resource_drop_gel"]
+script = ExtResource("4_drop")
+item = ExtResource("5_gel")
+chance = 1.0
+min_amount = 1
+max_amount = 3
+
+[resource]
+script = ExtResource("1_monster")
+id = &"poison_slime"
+stats = ExtResource("2_stats")
+attack = ExtResource("3_attack")
+aggro_radius = 110.0
+leash_radius = 260.0
+on_hit_effects = Array[ExtResource("7_effect")]([ExtResource("6_poison")])
+drops = Array[ExtResource("4_drop")]([SubResource("Resource_drop_gel")])

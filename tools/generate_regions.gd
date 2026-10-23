@@ -13,6 +13,7 @@ const REGION_SCRIPT := "res://scenes/regions/region.gd"
 const TREE_SCENE := "res://scenes/props/tree.tscn"
 const ROCK_SCENE := "res://scenes/props/rock.tscn"
 const SLIME_SCENE := "res://scenes/actors/monsters/slime.tscn"
+const POISON_SLIME_SCENE := "res://scenes/actors/monsters/poison_slime.tscn"
 const SPAWN_POINT_SCRIPT := "res://scenes/regions/monster_spawn_point.gd"
 const PASSAGE_SCENE := "res://scenes/regions/passage.tscn"
 const LUMBER_TREE := "res://scenes/gathering/lumber_tree.tscn"
@@ -45,6 +46,7 @@ const PASSAGE_INSET := 22.0
 ## Receita de cada região. `spawn`: ponto de entrada (null = centro). `resources`: [cena,
 ## quantidade, quantos perto da entrada]. `far`: distância máxima (chão) da entrada para
 ## criaturas e pontos de coleta. `passages`: [id, lado, y, região destino, passagem destino].
+## `monster_scenes`: criaturas dos pontos, alternando na ordem dos pontos (sem ele: slime).
 ## `npcs`: [cena, posição em relação à entrada (px de tela)], dentro da área livre da entrada.
 ## `boss`: [cena, posição (px de tela), raio da clareira (chão), renascimento (s)]: a clareira é
 ## aberta (sem água, objetos, pontos de coleta nem criaturas) e o chefe nasce no meio dela.
@@ -64,6 +66,8 @@ var REGIONS := [
 		"seed": 11, "spawn": Vector2(160, 480), "ambient": Color(0.68, 0.8, 0.72),
 		"tree_chance": 0.13, "rock_chance": 0.02, "lake_threshold": 0.5,
 		"monsters": 10, "far": 1500.0,
+		# Slimes venenosos (João, G1c): metade dos pontos da floresta, alternados com os comuns.
+		"monster_scenes": [SLIME_SCENE, POISON_SLIME_SCENE],
 		"resources": [[OLD_OAK, 8, 1], [LUMBER_TREE, 8, 1], [COPPER_VEIN, 3, 0]],
 		"passages": [[&"to_meadow", Side.WEST, 480.0, &"meadow", &"to_forest"]],
 		"boss": [KING_SLIME, Vector2(1250, 480), 120.0, 300.0],
@@ -272,11 +276,12 @@ func _place_monster_spawns(region: Node2D, ground: TileMapLayer, grass_cells: Ar
 	_add_owned(region, container, region)
 	var placed := _pick_spots(ground, _shuffled(grass_cells, rng), spawn, props, _r["monsters"],
 		NEAR_MONSTER_SPAWNS, NEAR_MONSTER_DISTANCE, Vector2(220.0, _r["far"]), MONSTER_SPAWN_SPACING)
-	for p in placed:
+	var scenes: Array = _r.get("monster_scenes", [SLIME_SCENE])
+	for index in placed.size():
 		var point := Marker2D.new()
 		point.set_script(load(SPAWN_POINT_SCRIPT))
-		point.position = p
-		point.set(&"monster_scene", load(SLIME_SCENE))
+		point.position = placed[index]
+		point.set(&"monster_scene", load(scenes[index % scenes.size()]))
 		point.set(&"respawn_time", rng.randf_range(15.0, 25.0))
 		_add_owned(container, point, region)
 	print("[gen] %s monster spawns: %d" % [_r["id"], placed.size()])

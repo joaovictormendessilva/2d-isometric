@@ -390,10 +390,14 @@ func _use_slot(player_id: int, index: int) -> void:
 	if character == null:
 		return
 	var health := character.health
-	var heal := ConsumableRules.use(session.get_inventory(player_id), index, items, health.current,
+	var used := ConsumableRules.use(session.get_inventory(player_id), index, items, health.current,
 		health.max_health, session.get_cooldowns(player_id), NetRules.now())
-	if heal > 0:
-		health.heal(heal)
+	if used == null:
+		return
+	if used.heal > 0:
+		health.heal(used.heal)
+	for effect in used.effects:
+		character.status_effects.apply(effect, player_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")

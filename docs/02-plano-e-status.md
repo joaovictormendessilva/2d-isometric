@@ -224,8 +224,12 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     pés na rapidez; em dados, no máximo 8 por efeito); aviso flutuante ao ganhar um efeito; dano de
     veneno em amarelo-esverdeado. Captura: `--effect=<id>` (tela) e `--effects=` (folha de
     quadros). 155 testes.
-  - G1c: primeiras fontes: um golpe de criatura que envenena e uma poção de buff vendida pelo
-    mercador.
+  - G1c 🟡 implementado: **slime venenoso** (escolha do João; verde-limão, só na floresta, metade
+    dos pontos alternados com o slime comum, mesmos atributos e bote; o bote que acerta envenena;
+    solta 1 a 3 gosmas) e **poção de rapidez** (mercador, 25 moedas; +25% de velocidade por 30 s;
+    espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
+    qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
+    Aguardando validação do João (G1 inteira).
 - **G2 – Primeira habilidade mágica** ⬜: tecla de habilidade, mira no cursor, aviso no chão,
   efeito mágico (estilo Albion/V Rising). Primeiro ataque à distância; com ele, o chefe passa a
   perseguir quem o ataca de longe (ver "Direção de combate").
@@ -272,6 +276,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   Na metade da vida ele se enfurece: salta mais rápido e solta slimes a cada queda.
 - Coroa do Rei Slime (F5a): com o Núcleo do Rei Slime, 8 gosmas e 4 cobres, perto de uma bancada,
   aparece na coluna Fabricar. Vista na cabeça no lugar do elmo de cobre.
+- Buffs e debuffs (G1): na floresta, slimes verde-limão envenenam com o bote (3 de dano por segundo,
+  6 s; sem atordoar). Poção de rapidez no mercador (25 moedas): botão direito → Usar, +25% de
+  velocidade por 30 s. Os efeitos aparecem acima da vida com os segundos (borda verde = bom,
+  vermelha = ruim) e como partículas no personagem.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

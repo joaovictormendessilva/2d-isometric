@@ -80,8 +80,10 @@ SHOP_NOT_SOLD,Não está à venda,Not for sale
 SLOT_MENU_SELL_ONE,Vender 1 (%d),Sell 1 (%d)
 SLOT_MENU_SELL_ALL,Vender tudo (%d),Sell all (%d)
 ITEM_HEALTH_POTION,Poção de vida,Health potion
+ITEM_SWIFTNESS_POTION,Poção de rapidez,Swiftness potion
 SLOT_MENU_USE,Usar,Use
 STAT_HEAL,Cura %d de vida,Restores %d health
+STAT_EFFECT,%s por %d s,%s for %d s
 STAT_COOLDOWN,Espera %d s entre poções,%d s between potions
 COMBAT_HEALED,+%d,+%d
 USE_FULL_HEALTH,Vida cheia,Health is full
@@ -100,5 +102,6 @@ MONSTER_KING_SLIME,Rei Slime,King Slime
 ITEM_KING_SLIME_CORE,Núcleo do Rei Slime,King Slime core
 ITEM_KING_SLIME_CROWN,Coroa do Rei Slime,King Slime crown
 EFFECT_POISON,Veneno,Poison
+MONSTER_POISON_SLIME,Slime venenoso,Poison slime
 EFFECT_SWIFTNESS,Rapidez,Swiftness
 BOSS_ENRAGED,%s se enfurece!,%s is enraged!

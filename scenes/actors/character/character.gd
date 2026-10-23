@@ -30,6 +30,8 @@ var facing := Vector2.DOWN
 ## Bônus do equipamento vestido (jogadores; ver `apply_equipment`) mais os dos efeitos ativos
 ## (StatusEffects). Somam a `stats`, que é compartilhado e nunca muda.
 var bonuses := StatBonuses.new()
+## Efeitos aplicados em quem os ataques deste ator acertam (criaturas: `MonsterData`).
+var on_hit_effects: Array[StatusEffectData] = []
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -173,6 +175,13 @@ func face_towards(screen_point: Vector2) -> void:
 func play_remote_attack(direction: Vector2, tolerance: float) -> void:
 	if attacker and is_alive() and attacker.try_attack(direction, tolerance):
 		facing = direction.normalized()
+
+
+## Host: um ataque deste ator acertou `target` (dano já aplicado): aplica os efeitos do golpe.
+func apply_hit_effects(target: Character) -> void:
+	if target.status_effects:
+		for effect in on_hit_effects:
+			target.status_effects.apply(effect, player_id)
 
 
 func add_ground_impulse(impulse: Vector2) -> void:

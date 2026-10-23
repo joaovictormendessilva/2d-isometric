@@ -11,6 +11,7 @@ offers = Dictionary[StringName, int]({
 &"simple_backpack": 120,
 &"stone_axe": 20,
 &"stone_pickaxe": 20,
+&"swiftness_potion": 25,
 &"workbench": 30
 })
 recipe_offers = Dictionary[StringName, int]({

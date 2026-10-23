@@ -26,6 +26,9 @@ const OAK_TRUNK := [Color("4e3522"), Color("3a271a")]
 const COPPER := [Color("d9823b"), Color("a85f28"), Color("f2b06a")]
 const SLIME := [Color("8a5cc7"), Color("6a42a3"), Color("b48ae8")]
 const SLIME_OUTLINE := Color("2a1840")
+## Slime venenoso (G1c): verde-limão mais claro e saturado que a grama, contorno verde-escuro.
+const POISON_SLIME := [Color("9ccc3a"), Color("4f8a3a"), Color("d4f05a")]
+const POISON_SLIME_OUTLINE := Color("1c2e1a")
 const SLIME_EYES := Color("1b1a26")
 const SLASH := Color(1.0, 0.97, 0.85)
 const SHADOW := Color(0.05, 0.04, 0.1, 0.35)
@@ -167,6 +170,7 @@ const ICON_PALETTE := {
 	"V": Color("3f7a4a"),  # veneno (sombra, puxa para o azul)
 	"b": Color("a8e8f8"),  # rapidez (luz)
 	"B": Color("4a9ad8"),  # rapidez
+	"N": Color("2e4a8a"),  # rapidez (sombra, puxa para o roxo)
 }
 const LOG := [
 	"........",
@@ -358,6 +362,7 @@ const ICONS := {
 	"magnet_ring": [RING, {}],
 	"coin": [COIN, {}],
 	"health_potion": [POTION, {}],
+	"swiftness_potion": [POTION, {"R": "b", "e": "B", "E": "N"}],
 	"king_slime_core": [KING_CORE, {}],
 	"king_slime_crown": [CROWN_ICON, {}],
 	"effect_poison": [POISON_DROP, {}],
@@ -382,6 +387,7 @@ func _initialize() -> void:
 		_save(_icon(ICONS[icon][0], ICONS[icon][1]), OUT_DIR + "icon_%s.png" % icon)
 	_save(_shadow(Vector2i(12, 5)), OUT_DIR + "shadow.png")
 	_save(_slime(), OUT_DIR + "slime.png")
+	_save(_slime(POISON_SLIME, POISON_SLIME_OUTLINE), OUT_DIR + "poison_slime.png")
 	_save(_king_slime(), OUT_DIR + "king_slime.png")
 	_save(_shadow(Vector2i(26, 8)), OUT_DIR + "shadow_large.png")
 	_save(_gel(), OUT_DIR + "gel.png")
@@ -549,21 +555,22 @@ func _shadow(size: Vector2i) -> Image:
 
 
 ## Gota de gosma sombreada com brilho; usada pelo slime e pelo item que ele derruba.
-func _blob(size: Vector2i, center: Vector2, radii: Vector2, band: float) -> Image:
+func _blob(size: Vector2i, center: Vector2, radii: Vector2, band: float, palette: Array = SLIME,
+		outline_color: Color = SLIME_OUTLINE) -> Image:
 	var img := Image.create(size.x, size.y, false, Image.FORMAT_RGBA8)
 	for y in size.y:
 		for x in size.x:
 			if in_ellipse(x, y, center, radii):
 				var v := (x - center.x) * 0.5 + (y - center.y) * 0.9
-				img.set_pixel(x, y, shade(SLIME, v, band, x, y))
+				img.set_pixel(x, y, shade(palette, v, band, x, y))
 	var shine := Vector2i(center - radii * 0.45)
 	img.set_pixelv(shine, Color.WHITE)
-	outline(img, SLIME_OUTLINE)
+	outline(img, outline_color)
 	return img
 
 
-func _slime() -> Image:
-	var img := _blob(Vector2i(16, 12), Vector2(8, 6.5), Vector2(7.5, 5.5), 2.5)
+func _slime(palette: Array = SLIME, outline_color: Color = SLIME_OUTLINE) -> Image:
+	var img := _blob(Vector2i(16, 12), Vector2(8, 6.5), Vector2(7.5, 5.5), 2.5, palette, outline_color)
 	for eye in [Vector2i(6, 6), Vector2i(10, 6)]:
 		img.set_pixelv(eye, SLIME_EYES)
 		img.set_pixelv(eye + Vector2i.DOWN, SLIME_EYES)

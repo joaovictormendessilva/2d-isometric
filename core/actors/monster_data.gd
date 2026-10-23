@@ -26,6 +26,8 @@ extends Resource
 @export var minions_per_slam: int = 2
 ## Máximo de filhotes vivos ao mesmo tempo.
 @export var max_minions: int = 4
+## Efeitos aplicados em quem o golpe ou o salto acerta (ex.: veneno do slime venenoso).
+@export var on_hit_effects: Array[StatusEffectData] = []
 @export_group("Recompensas")
 @export var drops: Array[DropEntry] = []
 

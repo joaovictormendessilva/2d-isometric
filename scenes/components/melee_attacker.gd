@@ -97,8 +97,9 @@ func _hit_targets() -> void:
 		if is_instance_valid(target) and not _hit.has(target) and ActorQuery.is_hit(_body, target, _body.global_position,
 				_body.footprint_radius(), attack.reach) and _in_arc(target):
 			_hit[target] = true
-			target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
-				attack.knockback, _body.entity_id, _body.player_id))
+			if target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
+					attack.knockback, _body.entity_id, _body.player_id)):
+				_body.apply_hit_effects(target)
 
 
 ## Troca o golpe (ex.: arma vestida). No meio de um ataque, vale a partir do próximo.

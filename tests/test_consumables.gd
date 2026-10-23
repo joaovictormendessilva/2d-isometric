@@ -30,12 +30,12 @@ func test_use_heals_spends_one_and_starts_cooldown() -> void:
 	inventory.add(&"gel", 1)
 	inventory.add(POTION, 3)
 	check(ConsumableRules.healing_slot(inventory, items) == 1, "a tecla acha a poção, não a gosma")
-	check(ConsumableRules.use(inventory, 1, items, 30, 100, cooldowns, 5.0) == potion.heal, "curou")
+	check(ConsumableRules.use(inventory, 1, items, 30, 100, cooldowns, 5.0) == potion, "usou a poção")
 	check(inventory.count(POTION) == 2, "gastou uma")
 	check_near(cooldowns.remaining(potion.cooldown_group, 5.0), potion.cooldown, 0.001, "espera começou")
 	check(ConsumableRules.check_use(inventory, 1, items, 30, 100, cooldowns, 6.0)
 		== ConsumableRules.Check.COOLING_DOWN, "esperando: recusa")
-	check(ConsumableRules.use(inventory, 1, items, 30, 100, cooldowns, 6.0) == -1
+	check(ConsumableRules.use(inventory, 1, items, 30, 100, cooldowns, 6.0) == null
 		and inventory.count(POTION) == 2, "recusa não gasta")
 	var later := 5.0 + potion.cooldown
 	check(ConsumableRules.check_use(inventory, 1, items, 30, 100, cooldowns, later)
@@ -61,7 +61,7 @@ func test_refusals_change_nothing() -> void:
 	for entry: Array in cases:
 		check(ConsumableRules.check_use(inventory, entry[0], items, entry[1], 100, cooldowns, 0.0)
 			== entry[2], entry[3])
-		check(ConsumableRules.use(inventory, entry[0], items, entry[1], 100, cooldowns, 0.0) == -1,
+		check(ConsumableRules.use(inventory, entry[0], items, entry[1], 100, cooldowns, 0.0) == null,
 			"%s: não usa" % entry[3])
 	check(inventory.count(POTION) == 1 and inventory.count(&"gel") == 1, "nada foi gasto")
 	check(cooldowns.is_ready(&"potion", 0.0), "nenhuma espera começou")
