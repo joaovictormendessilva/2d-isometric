@@ -17,10 +17,16 @@ extends Resource
 static func total(items: Array[EquipmentData]) -> StatBonuses:
 	var sum := StatBonuses.new()
 	for item in items:
-		if item.bonuses:
-			sum.max_health += item.bonuses.max_health
-			sum.defense += item.bonuses.defense
-			sum.move_speed_percent += item.bonuses.move_speed_percent
-			sum.pickup_radius += item.bonuses.pickup_radius
-			sum.inventory_slots += item.bonuses.inventory_slots
+		sum.add(item.bonuses)
 	return sum
+
+
+## Soma `other` a estes bônus (null = nada).
+func add(other: StatBonuses) -> void:
+	if other == null:
+		return
+	max_health += other.max_health
+	defense += other.defense
+	move_speed_percent += other.move_speed_percent
+	pickup_radius += other.pickup_radius
+	inventory_slots += other.inventory_slots

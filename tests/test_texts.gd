@@ -9,6 +9,7 @@ const NAMED_DATA := {
 	"NODE": "res://data/resource_nodes/",
 	"MONSTER": "res://data/monsters/",
 	"NPC": "res://data/npcs/",
+	"EFFECT": "res://data/effects/",
 }
 
 

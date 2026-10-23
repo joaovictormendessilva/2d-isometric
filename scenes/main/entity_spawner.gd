@@ -252,6 +252,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var gatherer: Gatherer = character.get_node("Gatherer")
 	gatherer.session = session
 	gatherer.items = items
+	(character.get_node("StatusEffects") as StatusEffects).effects = session.get_effects(character.player_id)
 	# Equipamento → atributos e golpe, em todos os computadores (cada um recebe o de todos).
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)

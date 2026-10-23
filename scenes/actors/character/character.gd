@@ -4,12 +4,15 @@ extends CharacterBody2D
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
 ## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, SlamAttacker, Gatherer,
-## NetSync ("Net").
+## StatusEffects, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
 signal died(character: Character)
 signal revived(character: Character)
+
+## Lentidão nunca para o ator de vez: no mínimo esta fração da velocidade.
+const MIN_SPEED_FACTOR := 0.2
 
 @export var stats: ActorStats
 ## Atores da mesma facção não se ferem.
@@ -24,8 +27,8 @@ var max_health_multiplier := 1.0
 var ground_velocity := Vector2.ZERO
 ## Direção em que o ator olha, no plano do chão. Usada pela apresentação e pelo ataque.
 var facing := Vector2.DOWN
-## Bônus do equipamento vestido (jogadores; ver `apply_equipment`). Somam a `stats`, que é
-## compartilhado e nunca muda.
+## Bônus do equipamento vestido (jogadores; ver `apply_equipment`) mais os dos efeitos ativos
+## (StatusEffects). Somam a `stats`, que é compartilhado e nunca muda.
 var bonuses := StatBonuses.new()
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
@@ -34,12 +37,14 @@ var health: Health
 var attacker: MeleeAttacker
 var slammer: SlamAttacker
 var gatherer: Gatherer
+var status_effects: StatusEffects
 var net: NetSync
 
 var _footprint: Footprint
 var _move_intent := Vector2.ZERO
 var _stun_left := 0.0
 var _weapon_attack: MeleeAttackData
+var _equipment_bonuses := StatBonuses.new()
 
 @onready var _collision_layer := collision_layer
 
@@ -49,14 +54,18 @@ func _enter_tree() -> void:
 	attacker = get_node_or_null("MeleeAttacker")
 	slammer = get_node_or_null("SlamAttacker")
 	gatherer = get_node_or_null("Gatherer")
+	status_effects = get_node_or_null("StatusEffects")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 
 
 func _ready() -> void:
 	reset_physics_interpolation()  # nasce na posição dada, sem deslizar da origem
+	bonuses = _total_bonuses()
+	if status_effects:
+		status_effects.effects.changed.connect(_update_bonuses)
 	if health:
-		health.setup(_max_health(), stats.defense + bonuses.defense, stats.invulnerability_time)
+		health.setup(_max_health(), _defense(), stats.invulnerability_time)
 		health.damaged.connect(_on_damaged)
 		health.died.connect(_on_died.unbind(1))
 	if attacker and attacker.attack == null:
@@ -72,19 +81,31 @@ func is_alive() -> bool:
 ## Equipamento vestido mudou: soma os bônus e troca o golpe pelo da arma (sem arma: o golpe
 ## desarmado de `stats`). Vale antes de entrar na árvore (aplicado no `_ready`).
 func apply_equipment(equipment: Equipment) -> void:
-	bonuses = StatBonuses.total(equipment.equipped())
+	_equipment_bonuses = StatBonuses.total(equipment.equipped())
 	var weapon := equipment.weapon()
 	_weapon_attack = weapon.attack if weapon else null
-	if not is_node_ready():
-		return
-	if health:
-		health.set_limits(_max_health(), stats.defense + bonuses.defense)
-	if attacker:
+	_update_bonuses()
+	if is_node_ready() and attacker:
 		attacker.set_attack(_weapon_attack if _weapon_attack else stats.unarmed_attack)
 
 
+## Equipamento ou efeitos mudaram: recalcula os bônus (vida máxima e defesa, já na árvore).
+func _update_bonuses() -> void:
+	bonuses = _total_bonuses()
+	if is_node_ready() and health:
+		health.set_limits(_max_health(), _defense())
+
+
+func _total_bonuses() -> StatBonuses:
+	var total := StatBonuses.new()
+	total.add(_equipment_bonuses)
+	if status_effects:
+		total.add(status_effects.effects.bonuses())
+	return total
+
+
 func move_speed() -> float:
-	return stats.move_speed * (1.0 + bonuses.move_speed_percent / 100.0)
+	return stats.move_speed * maxf(1.0 + bonuses.move_speed_percent / 100.0, MIN_SPEED_FACTOR)
 
 
 ## Raio do ímã de itens no chão (ver `Pickup`).
@@ -93,7 +114,12 @@ func pickup_radius() -> float:
 
 
 func _max_health() -> int:
-	return roundi((stats.max_health + bonuses.max_health) * max_health_multiplier)
+	return maxi(roundi((stats.max_health + bonuses.max_health) * max_health_multiplier), 1)
+
+
+## Bônus negativos (debuffs) nunca deixam a defesa abaixo de zero.
+func _defense() -> int:
+	return maxi(stats.defense + bonuses.defense, 0)
 
 
 func footprint_radius() -> float:
@@ -199,6 +225,8 @@ func _physics_process(delta: float) -> void:
 
 
 func _on_damaged(info: DamageInfo) -> void:
+	if info.periodic:
+		return  # veneno e afins não atordoam, não empurram nem interrompem
 	if gatherer:
 		gatherer.stop()  # apanhar interrompe a coleta
 	_stun_left = stats.hit_stun

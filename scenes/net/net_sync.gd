@@ -8,8 +8,8 @@ extends Node
 ##
 ## Segurança (ADR-013): todo estado vem do host. O dono de um personagem só envia AO HOST
 ## a própria posição e pedidos de ataque; o host confere remetente, valores, frequência e
-## velocidade antes de aceitar e repassar. Vida, dano, morte e renascimento são decididos
-## só pelo host.
+## velocidade antes de aceitar e repassar. Vida, dano, morte, renascimento e efeitos (buffs e
+## debuffs) são decididos só pelo host.
 
 ## Estados por segundo enviados por quem simula (20 Hz).
 const SEND_INTERVAL := 0.05
@@ -68,6 +68,8 @@ func _ready() -> void:
 		_body.health.healed.connect(_on_healed)
 		_body.health.blocked.connect(_on_blocked.unbind(1))
 		_body.health.immunity_changed.connect(_on_immunity_changed)
+	if _body.status_effects:
+		_body.status_effects.effects.changed.connect(_on_effects_changed)
 	if _body.gatherer:
 		_body.gatherer.started.connect(_on_gather_started.unbind(1))
 		_body.gatherer.stopped.connect(_on_gather_stopped)
@@ -302,7 +304,8 @@ func _sibling_resource_node(node_name: String) -> ResourceNode:
 # --- Vida, decidida pelo host ----------------------------------------------------------------
 
 func _on_damaged(info: DamageInfo) -> void:
-	_send_to_clients(&"_damaged", [info.amount, info.direction, info.knockback], true)
+	_send_to_clients(&"_damaged", [info.amount, info.direction, info.knockback, info.periodic],
+		true)
 
 
 func _on_health_changed(current: int, _maximum: int) -> void:
@@ -321,6 +324,15 @@ func _on_immunity_changed(immune: bool) -> void:
 	_send_to_clients(&"_immunity", [immune], true)
 
 
+func _on_effects_changed() -> void:
+	if multiplayer.is_server():
+		_send_to_clients(&"_effects", [_effects_snapshot()], true)
+
+
+func _effects_snapshot() -> Dictionary:
+	return _body.status_effects.effects.snapshot() if _body.status_effects else {}
+
+
 func _on_revived() -> void:
 	_snapshots.clear()
 	_accepted_position = _body.position
@@ -328,11 +340,13 @@ func _on_revived() -> void:
 
 
 @rpc("authority", "call_remote", "reliable")
-func _damaged(amount: int, direction: Vector2, knockback: float) -> void:
+func _damaged(amount: int, direction: Vector2, knockback: float, periodic: bool) -> void:
 	if amount < 0 or not is_finite(knockback):
 		return
-	_body.health.replicate_damage(DamageInfo.create(amount, NetRules.clean_direction(direction),
-		clampf(knockback, 0.0, NetRules.MAX_COORDINATE), 0, 0))
+	var info := DamageInfo.create(amount, NetRules.clean_direction(direction),
+		clampf(knockback, 0.0, NetRules.MAX_COORDINATE), 0, 0)
+	info.periodic = periodic
+	_body.health.replicate_damage(info)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -356,6 +370,13 @@ func _immunity(immune: bool) -> void:
 	_body.health.set_immune(immune)
 
 
+## Host → clientes: lista oficial dos efeitos ({id: segundos}); conferida contra os dados locais.
+@rpc("authority", "call_remote", "reliable")
+func _effects(state: Dictionary) -> void:
+	if _body.status_effects:
+		_body.status_effects.effects.replicate(state, EffectDatabase.shared())
+
+
 @rpc("authority", "call_remote", "reliable")
 func _revived(at: Vector2) -> void:
 	if NetRules.is_valid_vector(at):
@@ -377,12 +398,14 @@ func _request_full_state() -> void:
 	var peer := multiplayer.get_remote_sender_id()
 	if not multiplayer.is_server() or not _broadcast.add_peer(peer):
 		return
-	_full_state.rpc_id(peer, _body.position, _body.health.current, _body.health.is_immune())
+	_full_state.rpc_id(peer, _body.position, _body.health.current, _body.health.is_immune(),
+		_effects_snapshot())
 
 
 @rpc("authority", "call_remote", "reliable")
-func _full_state(position: Vector2, current: int, immune: bool) -> void:
+func _full_state(position: Vector2, current: int, immune: bool, effects: Dictionary) -> void:
 	if not is_simulating() and NetRules.is_valid_vector(position):
 		_teleport(position)
 	_body.health.replicate_current(current)
 	_body.health.set_immune(immune)
+	_effects(effects)

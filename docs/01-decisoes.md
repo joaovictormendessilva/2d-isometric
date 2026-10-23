@@ -634,3 +634,30 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   Regra testada (`tests/test_progression.gd`): drop exclusivo de chefe sempre serve a uma receita.
   Validado pelo João (2026-10-23). Pendente para quando houver ataques à distância: o chefe passa a
   perseguir quem o fere de longe (ameaça por dano), ver "Direção de combate" no plano.
+
+## ADR-025 — Buffs e debuffs (efeitos com duração)
+
+- **Status**: Hipótese (G1a implementada; G1b/G1c a seguir; validação do João no fim da G1)
+- **Direção do João (2026-10-23)**: a Etapa G começa por buffs e debuffs (base que habilidades,
+  auras e poções vão usar); auras e cosméticos vêm na G3.
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Efeito = dado** (`StatusEffectData` em `data/effects/`): duração, buff ou debuff, bônus de
+    atributos (o mesmo `StatBonuses` do equipamento, podendo ser negativo) e dano/cura por tick.
+    Quem aplica (golpe, poção, habilidade) só aponta para o efeito.
+  - **Reaplicar renova** o tempo cheio, sem empilhar nem somar; o ritmo dos ticks continua.
+  - **Regras sem nós** em `ActiveEffects`; o componente `StatusEffects` (na cena base de todo ator)
+    cobra os ticks no host. Bônus dos efeitos somam aos do equipamento em `Character.bonuses`.
+    Pisos: velocidade nunca abaixo de 20%, defesa nunca negativa, vida máxima no mínimo 1.
+  - **Dano de efeito** (`DamageInfo.periodic`): ignora defesa e invulnerabilidade e não atordoa,
+    empurra nem interrompe (veneno não trava o jogador nem vira "stun-lock").
+  - **Jogadores**: os efeitos ficam na sessão, por jogador (como carteira e esperas): continuam
+    depois de viajar entre regiões e vão no save (tempo restante). Criaturas: no próprio componente.
+  - **Morrer ou ficar imune** (criatura voltando para casa) limpa os efeitos.
+  - **Desempenho**: sem efeito ativo, o componente não roda por quadro (medido: sem custo extra
+    com 200 slimes).
+- **Rede e segurança** (ADR-013): só o host aplica efeitos e cobra ticks; nenhuma RPC nova que o
+  cliente possa chamar. O host envia a lista inteira ({id: segundos}) a cada mudança e no estado
+  completo; o cliente confere cada id no catálogo local e limita o tempo à duração do efeito
+  (nada de recurso vindo da rede). O save passa pela mesma conferência. Protocolo: versão 11.
+- **Consequências**: novas fontes de efeito (G1c: golpe que envenena, poção de buff; G2:
+  habilidades; G3: auras) só chamam `StatusEffects.apply`.

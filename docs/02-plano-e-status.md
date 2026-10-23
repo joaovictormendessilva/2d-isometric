@@ -215,8 +215,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
 
 - **G1 – Buffs e debuffs** 🟡 (branch `stage-g/status-effects`): base de efeitos com duração,
   em dados, para jogadores e criaturas; o host decide.
-  - G1a: núcleo (efeito em `data/`: duração, bônus de atributos, dano/cura por segundo, o que
-    acontece ao reaplicar), aplicado pelo host e enviado aos clientes; vai no save.
+  - G1a 🟡 implementado (ADR-025): núcleo (efeito em `data/`: duração, bônus de atributos,
+    dano/cura por tick; reaplicar renova), aplicado pelo host e enviado aos clientes; vai no save.
+    Primeiros efeitos: veneno (3 por segundo, 6 s) e rapidez (+25% de velocidade, 30 s). Ainda
+    sem nada visível no jogo (vem na G1b/G1c). 154 testes.
   - G1b: apresentação: ícones com tempo no HUD, cor/brilho no personagem ou criatura, números de
     dano do veneno.
   - G1c: primeiras fontes: um golpe de criatura que envenena e uma poção de buff vendida pelo

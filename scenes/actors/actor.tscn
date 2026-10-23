@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scenes/actors/character/character.gd" id="1_character"]
 [ext_resource type="Script" path="res://scenes/components/footprint.gd" id="2_footprint"]
@@ -7,6 +7,7 @@
 [ext_resource type="Script" path="res://scenes/components/actor_feedback.gd" id="5_feedback"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/shadow.png" id="6_shadow"]
 [ext_resource type="Script" path="res://scenes/net/net_sync.gd" id="7_net"]
+[ext_resource type="Script" path="res://scenes/components/status_effects.gd" id="8_effects"]
 
 [node name="Actor" type="CharacterBody2D"]
 collision_layer = 2
@@ -19,6 +20,9 @@ script = ExtResource("2_footprint")
 
 [node name="Health" type="Node" parent="."]
 script = ExtResource("3_health")
+
+[node name="StatusEffects" type="Node" parent="."]
+script = ExtResource("8_effects")
 
 [node name="MeleeAttacker" type="Node" parent="."]
 script = ExtResource("4_attacker")

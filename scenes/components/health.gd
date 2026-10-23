@@ -58,14 +58,16 @@ func set_immune(value: bool) -> void:
 
 
 ## Retorna se o dano foi aplicado (falha se já morto, invulnerável ou imune). Fora do host
-## não faz nada: cliente nenhum decide dano, nem por engano.
+## não faz nada: cliente nenhum decide dano, nem por engano. Dano de efeito (`info.periodic`)
+## ignora defesa e invulnerabilidade.
 func apply_damage(info: DamageInfo) -> bool:
-	if not multiplayer.is_server() or is_dead() or is_invulnerable():
+	if not multiplayer.is_server() or is_dead() or (is_invulnerable() and not info.periodic):
 		return false
 	if _immune:
 		blocked.emit(info)
 		return false
-	info.amount = CombatRules.mitigate(info.amount, defense)
+	if not info.periodic:
+		info.amount = CombatRules.mitigate(info.amount, defense)
 	_take(info)
 	return true
 
@@ -121,7 +123,8 @@ func replicate_blocked() -> void:
 
 func _take(info: DamageInfo) -> void:
 	current = maxi(current - info.amount, 0)
-	_invulnerable_left = invulnerability_time
+	if not info.periodic:
+		_invulnerable_left = invulnerability_time
 	damaged.emit(info)
 	changed.emit(current, max_health)
 	if is_dead():
