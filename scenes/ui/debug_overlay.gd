@@ -1,7 +1,8 @@
 class_name DebugOverlay
 extends Label
 ## Painel de debug (F3): FPS, tempo de quadro, draw calls, entidades, posição do jogador, velocidade,
-## defesa e efeitos ativos.
+## defesa, efeitos ativos e a qualidade dos efeitos (F4 troca, só com o painel aberto, até existir
+## um menu de opções).
 
 var session: GameSession
 var player_id := 0
@@ -10,6 +11,8 @@ var player_id := 0
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"toggle_debug"):
 		visible = not visible
+	elif visible and event.is_action_pressed(&"cycle_effects_quality"):
+		VfxQuality.shared().cycle()
 
 
 func _process(_delta: float) -> void:
@@ -23,6 +26,7 @@ func _process(_delta: float) -> void:
 		"draw calls %d  |  nós %d" % [
 			Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
 			Performance.get_monitor(Performance.OBJECT_NODE_COUNT)],
+		_quality_line(),
 	])
 	if session != null:
 		lines.append("jogadores %d  |  entidades %d" % [
@@ -36,6 +40,12 @@ func _process(_delta: float) -> void:
 		if character != null:
 			lines.append(_stats_line(character))
 	text = "\n".join(lines)
+
+
+func _quality_line() -> String:
+	var quality := VfxQuality.shared()
+	return "efeitos %s (F4 troca)  |  partículas %d / %d" % [quality.level().id,
+		quality.in_use(), quality.level().particle_budget]
 
 
 ## Velocidade (base → atual), defesa e efeitos ativos com os segundos: conferir buffs e debuffs.

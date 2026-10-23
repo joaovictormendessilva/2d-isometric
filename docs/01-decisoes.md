@@ -748,3 +748,116 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   chega aos clientes como antes.
 - **Consequências**: classes à distância precisam se mexer (o chefe vem e salta neles). Futuro:
   ameaça extra por cura/provocação e "fúria" que esquece a ameaça com o tempo, se o João quiser.
+
+## ADR-028 — Níveis de qualidade dos efeitos e teto de partículas
+
+- **Status**: Aceita (G3a validada pelo João em 2026-10-23)
+- **Contexto**: a visão pede efeitos marcantes com níveis de qualidade e limite de partículas
+  (`docs/03-desempenho.md`); as auras da G3 vão somar muitas partículas na tela.
+- **Decisões** (técnicas, valores em `data/vfx/quality.tres`):
+  - Três níveis: **baixo** (40% das partículas, teto 150), **médio** (70%, teto 400) e **alto**
+    (100%, teto 800). Padrão: alto (até existir menu de opções e medição em hardware modesto).
+  - Serviço `VfxQuality` (só apresentação, um por execução): todo emissor de partículas passa por
+    `claim`, que corta a quantidade pelo nível e pelo que sobra do teto do computador. Teto cheio:
+    o efeito aparece sem partículas (o resto do efeito continua). Conta só emissores na árvore.
+  - Trocar de nível refaz as partículas dos efeitos que duram (veneno, rapidez); faíscas e rastros
+    curtos pegam o nível novo no próximo uso.
+  - A escolha fica nas preferências locais (`UserSettings`, seção `graphics`). Por enquanto troca
+    com **F4 com o painel F3 aberto** (provisório); `--quality=low|medium|high` vale só para a
+    execução (capturas e testes de desempenho).
+- **Rede e segurança**: nada passa pela rede; cada computador escolhe a própria qualidade.
+- **Consequências**: as auras (G3b) usam o mesmo `claim`. Pendente: menu de opções para o jogador
+  (com textos traduzíveis); o host com várias regiões conta também as partículas das regiões que
+  não está mostrando (aceitável; revisar se pesar).
+
+## ADR-029 — Auras (anel de runas, luz no chão e faíscas)
+
+- **Status**: Aceita (G3b validada pelo João em 2026-10-23: acompanha o personagem, some ao tirar a coroa)
+- **Direção do João (2026-10-23)**: a primeira aura vem da **Coroa do Rei Slime** (recompensa
+  visível de quem venceu o chefe).
+- **Decisões** (técnicas, ajustáveis em `data/auras/`):
+  - **Aura = dado** (`AuraData`): raio, cores do anel e das runas, número de runas, giro, pulso
+    (clarear e período), luz no chão e faíscas. Só aparência: não muda atributo nem regra.
+  - **Fonte**: `EquipmentData.aura`. O personagem junta as auras do equipamento vestido
+    (`Character.auras`, sinal `auras_changed`); efeitos e criaturas podem ser fontes depois.
+  - **Desenho** (técnica de ADR-007): anel elíptico pixel a pixel, metade de trás antes do sprite
+    e metade da frente depois (`AuraRing`), dentro do Visual (pisca e some junto com o ator).
+    Giro e pulso em passos de 12 por segundo, como animação de pixel art. Cor cheia, sem soma de
+    luz: somada, a cor desbotava sobre a grama (dourado virava amarelo-claro, violeta sumia).
+    Luz translúcida no chão dentro do anel, pulsando com ele.
+  - **Faíscas** de 2 px subindo de dentro do anel, pelo `VfxQuality.claim` (ADR-028).
+  - **Primeira aura** (`slime_royalty`): anel dourado da coroa, 4 runas violeta do Rei Slime
+    girando devagar, faíscas douradas.
+- **Rede e segurança**: nada novo. O equipamento de cada jogador já chega a todos (o host envia,
+  o cliente confere cada id no catálogo local); a aura sai dos dados locais desse item.
+- **Desempenho**: sem aura, nada roda por quadro (200 slimes: 3,8 ms, igual às medições
+  anteriores). Com aura: 2 desenhos simples a cada passo do giro + 6 partículas.
+  **Teste de carga (G3d, 2026-10-23)**: pintar o anel pixel a pixel em cada ator dava picos de
+  ~7,5 ms com 60 auras (todos os anéis redesenhavam no mesmo quadro, 12 vezes por segundo). Agora
+  cada (aura, metade) tem uma imagem compartilhada (`AuraRingImage`), pintada uma vez por passo;
+  cada anel só desenha a textura, atualizada no lugar. Mesmo visual. 60 auras: +0,45 ms de média,
+  p99 1,5 ms. Medido com `tests/benchmark_auras.gd` (`docs/03-desempenho.md`). Consequência: auras
+  futuras de outro tipo devem seguir a mesma ideia (pintar uma vez, dividir entre atores).
+- **Consequências**: qualquer item ganha aura apontando para um arquivo. O sprite da coroa na
+  cabeça do personagem ainda não existe (só o ícone); fica para a arte de equipamentos.
+- **Diretrizes do João para os próximos efeitos (2026-10-23)**:
+  - O anel de runas **não é o padrão de todas as auras**: é o primeiro tipo e o nível "simples".
+    Haverá itens sem aura, com aura simples e com muito efeito. Temas diferentes (sombrio com
+    caveirinhas e mãos de esqueleto saindo do chão, angelical, etc.) serão definidos junto com as
+    habilidades.
+  - Os efeitos **podem sair do pixel quadrado**: a ideia é fantasia (formas, brilho e movimento
+    mais livres), desde que leiam bem na tela e não briguem com a arte (referência Hero Siege).
+  - **Efeitos são seletivos e difíceis de conseguir**: precisam despertar vontade de conquistar.
+    Isso vale para o balanceamento de drops e receitas, não para o código.
+  - **Transmog** entra nos cosméticos (G3c): usar a aparência de um item com os atributos de outro,
+    para o item bonito do começo não ficar preso ao baú.
+  - Consequência técnica: a `AuraData` vira uma lista de camadas de tipos diferentes (anel,
+    sprites animados saindo do chão, partículas com forma), em vez de crescer com campos de um
+    tipo só. Fazer quando o primeiro efeito de outro tipo for pedido.
+
+## ADR-030 — Cosméticos e transmog: coleção permanente de aparências
+
+- **Status**: Aceita (G3c validada pelo João em 2026-10-23)
+- **Direção do João (2026-10-23)**: transmog = aparência de um item com os atributos de outro;
+  **coleção permanente** (conseguir o item uma vez libera a aparência para sempre, mesmo
+  vendendo ou destruindo); a **aura vai junto com a aparência**; a aparência **vale sozinha**,
+  sem item vestido no espaço (estilo Terraria/Grand Fantasia), e um espaço pode ser escondido.
+- **Decisões** (técnicas):
+  - **Coleção** (`AppearanceCollection`, uma por jogador na `GameSession`): todo
+    `EquipmentData` que entra no inventário, na mão ou no corpo é colecionado
+    (`AppearanceCollection.watch`). Sem item especial de "desbloqueio" e sem custo.
+  - **Aparência por espaço** no `Equipment` (não por tipo: os 2 acessórios têm a sua):
+    `OWN_LOOK` (o item vestido), `HIDDEN_LOOK` (nada) ou o id de um equipamento colecionado
+    **do mesmo tipo de espaço**. `Equipment.shown` / `shown_items` dizem o que aparece.
+    Atributos e golpe continuam vindo de `equipped()`; auras (e, um dia, sprites), de `shown`.
+    A mesma aura não se repete (ex.: duas aparências iguais nos acessórios).
+  - **Regra** em `EquipmentRules.set_look` (só o host aplica); `is_valid_look` confere o que
+    é possível sem conhecer a coleção (usado para aparências de outros jogadores).
+  - **Tela**: botão direito num espaço de equipamento → menu (mostrar o item vestido, as
+    aparências colecionadas do tipo, esconder); selo 10×10 no canto do espaço com a aparência
+    escolhida (ou um traço, se escondida); a dica diz a aparência. Aviso "Nova aparência: X".
+    O item vestido não se repete no menu pelo nome (é o "mostrar o item vestido").
+  - **Novidade** (`AppearanceCollection.announces`): só depois de o jogador estar montado (host:
+    equipamento inicial ou save aplicados; cliente: primeira coleção oficial do host). Antes
+    disso nada avisa nem é enviado; depois, a coleção oficial que chega também avisa o que
+    trouxer de novo (o host pode mandá-la antes do próprio item).
+  - **Avisos ao carregar** (2026-10-23, vale para todos os avisos do jogador local):
+    `PlayerFeedback` fica em silêncio até `start_announcing` (host: `local_player_prepared` do
+    spawner, com o save aplicado; cliente: `AbilitySync.full_state_received`, a resposta
+    `_full_book` ao pedido de estado completo, que é o último a sair e chega por último porque
+    as mensagens confiáveis chegam na ordem de envio). Até lá, só anota habilidades, níveis e
+    efeitos que o jogador já tem. Protocolo 14 (mensagem nova).
+  - **Save**: `appearances` (ids) e `looks` (um por espaço) no registro do personagem. A
+    coleção volta antes do inventário, então saves anteriores colecionam o que o personagem
+    já tem.
+- **Rede e segurança (ADR-013)**: protocolo 13. As aparências escolhidas vão a todos junto
+  com o equipamento (`_equipment`), tudo ou nada: cada uma é a própria, escondida ou um
+  equipamento conhecido do tipo do espaço. A coleção vai só ao dono (`_collection`), conferida
+  contra o catálogo local e limitada a 1024 ids. O pedido `_set_look_requested` só mexe no
+  equipamento de quem pediu e é conferido com a coleção **do host** (aparência não colecionada
+  é recusada). Nada de recursos pela rede: só ids procurados no catálogo.
+- **Consequências**: o personagem ainda não desenha capacete, armadura nem arma vestidos (só a
+  aura muda); quando houver sprites de equipamento, eles saem de `shown`, sem mudar a regra.
+  Itens puramente cosméticos (sem atributos) já cabem: são equipamentos com bônus vazios.
+  Pendente: escolher a aparência só com teclado/controle (como a troca de tecla das
+  habilidades).

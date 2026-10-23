@@ -64,6 +64,12 @@ EQUIP_SLOT_CHEST,Peito,Chest
 EQUIP_SLOT_LEGS,Pernas,Legs
 EQUIP_SLOT_BACKPACK,Mochila,Backpack
 EQUIP_SLOT_ACCESSORY,Acessório,Accessory
+EQUIP_LOOK_SHOWN,Aparência: %s,Appearance: %s
+EQUIP_LOOK_HIDDEN,Aparência escondida,Appearance hidden
+EQUIP_LOOK_HINT,Botão direito: aparência,Right-click: appearance
+LOOK_MENU_OWN,Mostrar o item vestido,Show worn item
+LOOK_MENU_HIDE,Esconder,Hide
+FEEDBACK_LOOK_COLLECTED,Nova aparência: %s,New appearance: %s
 STAT_DAMAGE,Dano %d,Damage %d
 STAT_TWO_HANDED,Duas mãos,Two-handed
 STAT_MAX_HEALTH,Vida máxima +%d,Max health +%d

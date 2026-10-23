@@ -17,8 +17,9 @@ signal player_exited(player_id: int)
 @export var ambient := Color.WHITE
 
 ## Efeitos desenhados no chão, por baixo de tudo que está em `entities` (aviso do salto do chefe).
-## Só apresentação: criada aqui em cada computador, nunca replicada.
-var ground_effects := Node2D.new()
+## Só apresentação: criada aqui em cada computador, nunca replicada. Nasce no _ready (já dentro da
+## região): uma região liberada sem entrar na árvore não deixa o nó solto.
+var ground_effects: Node2D
 var _players: Dictionary[int, bool] = {}
 
 @onready var ground: TileMapLayer = $Ground
@@ -27,6 +28,7 @@ var _players: Dictionary[int, bool] = {}
 
 
 func _ready() -> void:
+	ground_effects = Node2D.new()
 	ground_effects.name = "GroundEffects"
 	add_child(ground_effects)
 	move_child(ground_effects, entities.get_index())

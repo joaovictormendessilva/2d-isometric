@@ -15,6 +15,11 @@ extends Node
 ##   --effect=<id>                aplica esse efeito (data/effects/) no jogador antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
+##   --quality=<low|medium|high>  qualidade dos efeitos só nesta execução (ADR-028).
+##   --equip=<ids>                veste esses itens (data/items/, separados por vírgula) antes da
+##                                captura.
+##   --look=<ids>                 coleciona esses equipamentos e os mostra como aparência
+##                                (transmog) no primeiro espaço do tipo de cada um.
 
 const REGIONS_DIR := "res://data/regions/"
 const START_REGION := &"meadow"
@@ -48,10 +53,10 @@ var _input_detached := false
 var _local_ui_ready := false
 ## Host: jogadores com viagem já marcada (a passagem pode disparar mais de uma vez).
 var _traveling: Dictionary[int, bool] = {}
-## Barra do chefe no alto da tela (criada aqui: só existe para o jogador local).
-var _boss_bar := BossBar.new()
-## Teclas de habilidade embaixo no meio da tela (só do jogador local).
-var _ability_bar := AbilityBar.new()
+## Barra do chefe no alto da tela e teclas de habilidade embaixo (só do jogador local). Criadas
+## quando o personagem local chega: um cliente recusado antes disso não deixa nós soltos.
+var _boss_bar: BossBar
+var _ability_bar: AbilityBar
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
@@ -74,6 +79,7 @@ var _ability_bar := AbilityBar.new()
 
 func _ready() -> void:
 	Texts.apply_command_line(OS.get_cmdline_user_args())
+	VfxQuality.shared().apply_command_line(OS.get_cmdline_user_args())
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	network.start()
@@ -101,6 +107,9 @@ func _ready() -> void:
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
 		_spawner.starter_kit = load(STARTER_KIT)
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
+	# Avisos só depois de o estado do jogador chegar: o que veio do save ou do host não é novidade.
+	_spawner.local_player_prepared.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
+	abilities.full_state_received.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():
@@ -238,6 +247,9 @@ func _on_local_player_spawned(character: Character) -> void:
 	_camera.follow(character)
 	var inventory := session.get_inventory(local_player_id())
 	_hud.set_character(character)
+	if not _local_ui_ready:
+		_boss_bar = BossBar.new()
+		$UI.add_child(_boss_bar)
 	_boss_bar.set_character(character)
 	_player_feedback.set_character(character)
 	_interaction_prompt.setup(character)
@@ -245,7 +257,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	if _local_ui_ready:
 		return
 	_local_ui_ready = true
-	$UI.add_child(_boss_bar)
+	_ability_bar = AbilityBar.new()
 	$UI.add_child(_ability_bar)
 	_ability_bar.setup(session.get_ability_book(local_player_id()), abilities)
 	var progress := session.get_skills(local_player_id())
@@ -258,6 +270,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	abilities.cast_refused.connect(_player_feedback.show_cast_refusal)
 	_player_feedback.watch_abilities(session.get_ability_book(local_player_id()))
 	_player_feedback.watch_effects(session.get_effects(local_player_id()))
+	_player_feedback.watch_appearances(session.get_appearances(local_player_id()), items)
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	_setup_shop(inventory, wallet)
@@ -298,8 +311,14 @@ func _handle_command_line() -> void:
 	var open_shop := false
 	var shop_npc := &""
 	var effects: Array[StatusEffectData] = []
+	var equip := ""
+	var looks := ""
 	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--screenshot="):
+		if arg.begins_with("--equip="):
+			equip = arg.trim_prefix("--equip=")
+		elif arg.begins_with("--look="):
+			looks = arg.trim_prefix("--look=")
+		elif arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
@@ -315,6 +334,8 @@ func _handle_command_line() -> void:
 				effects.append(effect)
 	if screenshot_path.is_empty():
 		return
+	dev_equip(local_player_id(), equip)
+	_dev_look(local_player_id(), looks)
 	for i in SCREENSHOT_FRAMES:
 		await get_tree().physics_frame
 		var character := session.get_player_entity(local_player_id()) as Character
@@ -333,6 +354,30 @@ func _handle_command_line() -> void:
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)
 	get_tree().quit()
+
+
+## Capturas (tela e folha de quadros): veste itens novos de `ids` (separados por vírgula) direto
+## no equipamento do jogador, onde couberem. Não é ação de jogo: só ferramentas chamam.
+func dev_equip(player_id: int, ids: String) -> void:
+	var equipment := session.get_equipment(player_id)
+	for id in ids.split(",", false):
+		var item := equipment.data_of(StringName(id))
+		if item == null or not EquipmentRules.give_equipped(equipment, item):
+			push_warning("[main] --equip: %s não é equipamento ou não coube" % id)
+
+
+## Capturas: coleciona cada equipamento de `ids` e o mostra no primeiro espaço do tipo dele.
+func _dev_look(player_id: int, ids: String) -> void:
+	var equipment := session.get_equipment(player_id)
+	var collection := session.get_appearances(player_id)
+	for id in ids.split(",", false):
+		var item := equipment.data_of(StringName(id))
+		if item == null:
+			push_warning("[main] --look: %s não é equipamento" % id)
+			continue
+		collection.collect(item.id)
+		EquipmentRules.set_look(equipment, collection, equipment.index_of_type(item.get_slot()),
+			item.id)
 
 
 ## Captura de tela da loja: põe o jogador ao lado do primeiro NPC da região e abre a loja.

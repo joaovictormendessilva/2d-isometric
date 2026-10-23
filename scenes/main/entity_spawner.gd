@@ -11,6 +11,8 @@ extends Node
 ## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes e IA das criaturas.
 
 signal local_player_spawned(character: Character)
+## Host: o jogador local chegou ao mundo com o save (ou o equipamento inicial) já aplicado.
+signal local_player_prepared
 
 enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION }
 
@@ -255,10 +257,12 @@ func _instantiate_player(data: Dictionary) -> Character:
 	gatherer.session = session
 	gatherer.items = items
 	(character.get_node("StatusEffects") as StatusEffects).effects = session.get_effects(character.player_id)
-	# Equipamento → atributos e golpe, em todos os computadores (cada um recebe o de todos).
+	# Equipamento → atributos, golpe e aparência, em todos os computadores (cada um recebe o de
+	# todos).
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
 	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
+	equipment.look_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
 	if _sized.get(character.player_id) != equipment:
 		_sized[character.player_id] = equipment
 		equipment.slot_changed.connect(_fit_inventory.bind(character.player_id).unbind(1))
@@ -279,15 +283,18 @@ func _instantiate_player(data: Dictionary) -> Character:
 
 
 ## Host, com o personagem já na árvore (vida pronta): quem já jogou neste mundo volta como
-## estava; quem é novo ganha o equipamento inicial (e o kit de testes, se houver).
+## estava; quem é novo ganha o equipamento inicial (e o kit de testes, se houver). Só depois disso
+## uma aparência colecionada é novidade (avisa e vai para o dono).
 func _prepare_player(character: Character) -> void:
-	if saves and saves.restore_player(character):
-		return
-	var equipment := session.get_equipment(character.player_id)
-	for item in character.stats.starting_equipment:
-		EquipmentRules.give_equipped(equipment, item)
-	if starter_kit:
-		starter_kit.give_to(session.get_inventory(character.player_id))
+	if not (saves and saves.restore_player(character)):
+		var equipment := session.get_equipment(character.player_id)
+		for item in character.stats.starting_equipment:
+			EquipmentRules.give_equipped(equipment, item)
+		if starter_kit:
+			starter_kit.give_to(session.get_inventory(character.player_id))
+	session.get_appearances(character.player_id).announces = true
+	if character.player_id == local_player_id:
+		local_player_prepared.emit()
 
 
 ## Tamanho do inventário = base do jogador + espaços das mochilas vestidas, somados direto do

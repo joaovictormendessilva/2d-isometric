@@ -10,6 +10,8 @@ enum Slot { MAIN_HAND, OFF_HAND, HEAD, CHEST, LEGS, BACKPACK, ACCESSORY }
 ## Espaço deste item (armas e itens secundários definem o próprio; ver `get_slot`).
 @export var slot: Slot = Slot.ACCESSORY
 @export var bonuses: StatBonuses
+## Aura de quem veste o item (só aparência, ADR-029); vazio = sem aura.
+@export var aura: AuraData
 
 
 func _init() -> void:

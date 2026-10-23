@@ -5,7 +5,8 @@ extends Control
 ## Itens: um clique pega a pilha (ela segue o ponteiro); clicar num espaço põe, junta ou troca;
 ## clicar fora da janela joga no chão (estruturas, como a bancada, são colocadas ali); botão
 ## direito abre um menu: usar (poção), dividir (a parte separada vai para a mão), soltar a
-## pilha no chão, equipar ou, com a loja de um NPC aberta, vender. Embaixo da grade, as moedas.
+## pilha no chão, equipar ou, com a loja de um NPC aberta, vender (num espaço de equipamento: a
+## aparência). Embaixo da grade, as moedas.
 ## Fechar com algo na mão devolve aos espaços. Ao lado, as colunas de equipamento
 ## (EquipmentColumn) e de fabricação (CraftingList).
 ## Cada ação é um pedido ao host (PlayerStateSync).
@@ -25,6 +26,7 @@ var _player_state: PlayerStateSync
 var _window := DraggableWindow.new()
 var _split := SplitDialog.new()
 var _menu := SlotMenu.new()
+var _look_menu := ChoiceMenu.new()  # aparência de um espaço de equipamento
 var _held := HeldItemCursor.new()
 var _slots: Array[InventorySlot] = []
 var _grid: GridContainer
@@ -40,6 +42,7 @@ func _ready() -> void:
 	add_child(_window)
 	add_child(_split)
 	add_child(_menu)
+	add_child(_look_menu)
 	add_child(_held)
 	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
 
@@ -56,7 +59,8 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 	_equipment = player_state.session.get_equipment(player_id)
 	var equipment_column := EquipmentColumn.new()
 	columns.add_child(equipment_column)
-	equipment_column.setup(_equipment, inventory, player_state)
+	equipment_column.setup(_equipment, inventory, player_state,
+		player_state.session.get_appearances(player_id), _look_menu)
 	var items_column := VBoxContainer.new()
 	columns.add_child(items_column)
 	var crafting := CraftingList.new()
@@ -110,6 +114,7 @@ func set_open(open: bool) -> void:
 	visible = open
 	_split.hide()
 	_menu.hide()
+	_look_menu.hide()
 	if not open and _inventory.is_holding():
 		_player_state.request_return_held()
 

@@ -79,6 +79,42 @@ static func give_equipped(equipment: Equipment, item: EquipmentData) -> bool:
 	return false
 
 
+## Aparência que pode existir no espaço `index` (sem olhar coleção): a própria, escondida ou um
+## equipamento conhecido do tipo do espaço. Basta para conferir a aparência de OUTROS jogadores
+## vinda do host (a coleção deles não chega aqui).
+static func is_valid_look(equipment: Equipment, index: int, look_id: StringName) -> bool:
+	if not equipment.is_valid_index(index):
+		return false
+	if look_id == Equipment.OWN_LOOK or look_id == Equipment.HIDDEN_LOOK:
+		return true
+	var item := equipment.data_of(look_id)
+	return item != null and item.get_slot() == equipment.slot_type(index)
+
+
+## Escolhe a aparência do espaço (transmog, ADR-030): só aparências colecionadas do tipo do
+## espaço, a própria ou escondida. Não precisa de item vestido. Retorna se mudou algo.
+static func set_look(equipment: Equipment, collection: AppearanceCollection, index: int,
+		look_id: StringName) -> bool:
+	if not is_valid_look(equipment, index, look_id) or equipment.look(index) == look_id:
+		return false
+	if look_id != Equipment.OWN_LOOK and look_id != Equipment.HIDDEN_LOOK \
+			and not collection.has(look_id):
+		return false
+	equipment.replicate_look(index, look_id)
+	return true
+
+
+## Aparências lidas do save (dado NÃO confiável), na ordem dos espaços; a coleção já restaurada.
+static func restore_looks(looks: Variant, equipment: Equipment,
+		collection: AppearanceCollection) -> void:
+	if not (looks is Array or looks is PackedStringArray):
+		return
+	var ids := Array(looks)
+	for index in mini(ids.size(), equipment.size()):
+		if ids[index] is String:
+			set_look(equipment, collection, index, StringName(ids[index]))
+
+
 ## Espaço de destino: primeiro livre onde cabe; senão, o primeiro onde cabe (troca).
 static func _target_index(equipment: Equipment, item: EquipmentData) -> int:
 	var occupied := -1

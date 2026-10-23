@@ -19,6 +19,7 @@ extends SceneTree
 ##   --warmup=<n>       passos antes de começar (padrão 30)
 ##   --effects=<ids>    efeitos (data/effects/, separados por vírgula) aplicados no jogador
 ##   --ability=<id>     habilidade do cenário cast (data/abilities/; padrão arcane_bolt)
+##   --equip=<ids>      itens (data/items/, separados por vírgula) vestidos no jogador
 
 const MAIN_SCENE := "res://scenes/main/main.tscn"
 const SEPARATOR := Color(0.9, 0.2, 0.9)  # magenta: nunca confunde com a arte
@@ -36,6 +37,7 @@ var _abilities: AbilitySync
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
 	"columns": "8", "warmup": "30", "out": "", "effects": "", "ability": "arcane_bolt",
+	"equip": "",
 }
 
 
@@ -63,6 +65,7 @@ func _run() -> void:
 	game.detach_local_input()
 	var scenario: String = _options["scenario"]
 	character = await _prepare(game, character, scenario)
+	game.dev_equip(game.local_player_id(), _options["equip"])
 	for id in (_options["effects"] as String).split(",", false):
 		var effect := EffectDatabase.shared().get_effect(StringName(id))
 		if effect:

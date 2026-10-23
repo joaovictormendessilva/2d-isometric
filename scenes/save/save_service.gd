@@ -96,16 +96,21 @@ func restore_player(character: Character) -> bool:
 	if record == null:
 		return false
 	var player_id := character.player_id
+	var appearances := _session.get_appearances(player_id)
+	# Coleção antes do inventário: o que o personagem tem se junta a ela (saves de antes da G3c).
+	appearances.replicate(record.get("appearances") if record is Dictionary else null, _items)
 	var health := CharacterRecord.restore(record, _session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
 		_session.get_wallet(player_id), _session.get_recipe_book(player_id), _skills, _items,
 		_recipes)
 	if health > 0:
 		character.health.set_current(health)
-	if record is Dictionary:  # efeitos ativos e habilidades (conferidos como dado não confiável)
+	if record is Dictionary:  # o resto conferido como dado não confiável
 		_session.get_effects(player_id).replicate(record.get("effects"), EffectDatabase.shared())
 		_session.get_ability_book(player_id).replicate(record.get("abilities"),
 			AbilityDatabase.shared())
+		EquipmentRules.restore_looks(record.get("looks"), _session.get_equipment(player_id),
+			appearances)
 	return true
 
 
@@ -142,6 +147,8 @@ func _remember(player_id: int) -> void:
 		health.max_health if health.is_dead() else health.current)
 	record["effects"] = _session.get_effects(player_id).snapshot()
 	record["abilities"] = _session.get_ability_book(player_id).snapshot()
+	record["appearances"] = Array(_session.get_appearances(player_id).snapshot())
+	record["looks"] = Array(_session.get_equipment(player_id).looks())
 	var region := Region.of(character)
 	if region:
 		record["region"] = String(region.region_id)

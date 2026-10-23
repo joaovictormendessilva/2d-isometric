@@ -2,8 +2,9 @@ class_name PlayerFeedback
 extends Node
 ## Avisos flutuantes do jogador LOCAL: itens e moedas ganhos ("+1 Madeira"), receita aprendida,
 ## nível de coleta subindo, por que não dá para coletar ("Precisa de ferramenta nível 2") ou beber
-## uma poção ("Vida cheia") e efeitos ganhos ("Veneno", "Rapidez"). Avisos que chegam juntos (ex.: minério e pedra da mesma coleta) saem
-## um de cada vez, sem se sobrepor. Só apresentação.
+## uma poção ("Vida cheia"), efeitos ganhos ("Veneno", "Rapidez") e aparências colecionadas.
+## Avisos que chegam juntos (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se
+## sobrepor. Só apresentação.
 
 const GAIN_COLOR := UiStyle.TEXT_SOFT
 const LEVEL_COLOR := UiStyle.POSITIVE
@@ -31,6 +32,9 @@ var _numbers: DamageNumbers
 var _levels: Dictionary[StringName, int] = {}
 ## Efeitos já anunciados: renovar um efeito ativo não repete o aviso.
 var _known_effects: Dictionary[StringName, bool] = {}
+## Desligado até o estado do jogador chegar (`start_announcing`): até lá, os acompanhamentos só
+## anotam o que ele já tem (habilidades, níveis, efeitos), sem avisar.
+var _announcing := false
 var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
 var _last_refusal := ""
@@ -67,6 +71,13 @@ func watch_abilities(book: AbilityBook) -> void:
 				known[ability.id] = true
 				_show(Texts.format(&"FEEDBACK_ABILITY_LEARNED", [ability.get_display_name()]),
 					LEVEL_COLOR))
+
+
+## Uma vez: aparência nova colecionada vira aviso (transmog, ADR-030).
+func watch_appearances(collection: AppearanceCollection, items: ItemDatabase) -> void:
+	collection.collected.connect(func(item_id: StringName) -> void:
+		_show(Texts.format(&"FEEDBACK_LOOK_COLLECTED", [items.get_item(item_id).get_display_name()]),
+			LEVEL_COLOR))
 
 
 ## Uma vez: efeitos novos no jogador viram aviso (debuff em vermelho, buff em verde).
@@ -125,7 +136,15 @@ func _on_gather_refused(node: ResourceNode, reason: GatheringRules.Check) -> voi
 	_show_refusal(GatheringTexts.refusal(node.data, reason))
 
 
+## O estado do jogador local chegou (save no host, estado completo vindo do host no cliente): daqui
+## em diante, o que mudar é novidade.
+func start_announcing() -> void:
+	_announcing = true
+
+
 func _show(text: String, color: Color) -> void:
+	if not _announcing:
+		return
 	if _queue.size() >= MAX_QUEUED:
 		_queue.pop_front()  # avisos velhos perdem a vez
 	_queue.append([text, color])

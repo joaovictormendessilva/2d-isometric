@@ -37,7 +37,7 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 |---|---|---|
 | Muitos inimigos | 50 / 100 / 200 perseguindo | ✅ 2026-10-21 (ver Resultados) |
 | Muitos projéteis | 200 / 500 / 1000 | ⬜ |
-| Partículas e auras | 10 / 30 / 60 auras ativas | ⬜ |
+| Partículas e auras | 10 / 30 / 60 auras ativas | ✅ 2026-10-23 (ver Resultados) |
 | Itens no chão | 200 / 500 | ⬜ |
 | Coop | 2 / 4 jogadores na mesma região | 🟡 2 jogadores (tráfego medido); 4 ⬜ |
 
@@ -56,12 +56,21 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 | 2026-10-22 | `benchmark_monsters.gd` depois do bote virar investida (F4) | PC de dev | 50: **0,88 ms** (p99 1,26) · 100: **1,70 ms** (p99 2,17) · 200: **3,73 ms** (p99 4,74, pior 5,6). A 1ª versão (consulta de física a cada quadro do avanço) dobrava o custo (50: 1,6 ms); agora 1 consulta por bote. O resto da alta: slimes atacam de mais longe, mais vezes |
 | 2026-10-23 | `benchmark_monsters.gd` com o componente de efeitos (G1a) em todo ator, medido junto com a `main` na mesma sessão | PC de dev | 200 slimes: `main` **4,0–4,2 ms**, branch **3,8–3,9 ms** (sem custo extra: o componente só roda com efeito ativo). Variação entre sessões da máquina: ~0,5 ms |
 | 2026-10-23 | `benchmark_monsters.gd` com ameaça e passeio (G2c), medido junto com a `main` na mesma sessão | PC de dev | 200 slimes: `main` **4,19 ms**, branch **4,43 ms** (+5%: as criaturas agora andam pela área em vez de ficar paradas; dentro da variação entre sessões) |
+| 2026-10-23 | `benchmark_monsters.gd` com o nó de aura (G3b) em todo ator, sem aura ativa | PC de dev | 50: **0,94 ms** · 100: **1,75 ms** · 200: **3,79 ms** (p99 4,76): sem custo extra (sem aura, nada roda por quadro) |
+| 2026-10-23 | `benchmark_auras.gd` (G3d) — N personagens parados, todos na tela, sem aura e com a aura da coroa em cada nível de qualidade, 600 quadros. **Antes** (anel pintado pixel a pixel em cada ator) | PC de dev | sem aura → com aura (média, p99): 10: 0,25 → **0,35 ms** (p99 0,53) · 30: 0,45 → **0,83 ms** (p99 2,5–3,6) · 60: 0,69 → **1,6–1,7 ms** (p99 **7,5**, picos a cada passo do giro, iguais em todo nível: o custo era o desenho do anel, não as partículas) |
+| 2026-10-23 | Mesmo `benchmark_auras.gd` **depois** da imagem compartilhada (`AuraRingImage`) | PC de dev | 10: 0,26 → **0,33 ms** (p99 0,48) · 30: 0,43 → **0,67–0,71 ms** (p99 0,9–1,1) · 60: 0,71–0,76 → **1,14–1,23 ms** (p99 1,4–1,6). Partículas (60 auras): 120 / 240 / 360 em baixo / médio / alto; draw calls +3 por aura (2 metades do anel + faíscas) |
 | 2026-10-22 | `benchmark_region.gd` depois da F2c (regiões em mundos próprios), campina, sem save | PC de dev | média **0,87–0,88 ms**, p99 1,4–1,5 ms, 55,6 draw calls, 56 MB (conteúdo da Etapa E incluso; antes da F2c o teste lia o save de quem joga, agora não) |
 
 Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
 200 criaturas cabem na meta de 4 ms do PC de dev. Supondo que o hardware modesto seja 3–4×
 mais lento, ~100 criaturas ativas por região seguem dentro de 60 FPS. Ainda não diz nada sobre o
 hardware modesto real nem sobre projéteis e efeitos — esses testes vêm nas próximas etapas.
+
+Leitura das auras (G3d): depois da correção, ~7,5 µs por aura na tela (anel + faíscas), sem
+picos. 60 auras somam ~0,45 ms; supondo o hardware modesto 3–4× mais lento, ~1,5–2 ms. Cabe com
+folga. O nível de qualidade quase não muda o tempo no PC de dev (as partículas são baratas aqui);
+ele existe para GPUs integradas, onde ainda não foi medido. O teto de partículas (150 / 400 / 800)
+não chegou a cortar nada com 60 auras da coroa.
 
 Leitura das regiões ativas (F2b): uma região a mais que só simula (sem desenho) custa ~0,15–0,2 ms
 calma; o que pesa são as criaturas em combate (~15 µs cada, como acima), não as regiões em si.

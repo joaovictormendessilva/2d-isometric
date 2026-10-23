@@ -1,16 +1,18 @@
 class_name SparkBurst
 extends RefCounted
 ## Faíscas de uma vez só que se espalham em volta de um ponto e somem (impacto de habilidade).
-## Só apresentação; cada uma se remove ao terminar.
+## Só apresentação; cada uma se remove ao terminar. A quantidade passa pela qualidade (ADR-028).
 
 
 static func spawn(parent: Node, at: Vector2, color: Color, amount: int, speed: float,
 		lifetime: float) -> void:
 	var burst := CPUParticles2D.new()
+	if not VfxQuality.shared().claim(burst, amount):
+		burst.free()
+		return
 	burst.position = at
 	burst.one_shot = true
 	burst.explosiveness = 1.0
-	burst.amount = amount
 	burst.lifetime = lifetime
 	burst.spread = 180.0
 	burst.gravity = Vector2.ZERO

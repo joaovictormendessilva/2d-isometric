@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 (auras e cosméticos) a seguir |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -268,8 +268,46 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     mira passou a levar a distância (não só a direção); no controle, sem mira própria ainda, a
     área cai 80 à frente. O aviso no chão é o mesmo do salto do Rei Slime, na cor da habilidade
     (vermelho continua sendo só "perigo para você"). 179 testes.
-- **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
+- **G3 – Auras e cosméticos** ✅ (na `main`): brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
+  Divisão proposta (2026-10-23), cada parte validada pelo João antes da próxima:
+  - G3a ✅ (validado pelo João, 2026-10-23; branch `stage-g/effect-quality`, ADR-028): níveis de
+    qualidade dos efeitos (baixo/médio/alto) e teto de partículas do computador, em
+    `data/vfx/quality.tres`; valem para o veneno, a rapidez, as faíscas e o rastro das magias.
+    Troca: F4 com o painel F3 aberto (provisório, sem menu de opções ainda); `--quality=` nas
+    capturas. 182 testes.
+  - G3b ✅ (validado pelo João, 2026-10-23; branch `stage-g/crown-aura`, ADR-029): aura em dados
+    (`data/auras/`), ligada ao equipamento vestido. A **Coroa do Rei Slime** (escolha do João,
+    2026-10-23) acende a primeira: anel dourado nos pés com 4 runas violeta girando devagar
+    (metade de trás atrás do corpo, metade da frente na frente), luz translúcida no chão
+    pulsando e faíscas douradas subindo. Aparece para todos no coop. Capturas: `--equip=<ids>`
+    (tela e folha de quadros). 185 testes.
+  - G3c ✅ (validado pelo João, 2026-10-23; branch `stage-g/transmog`, ADR-030):
+    cosméticos (aparência separada dos atributos) e **transmog** (pedido do João,
+    2026-10-23: a aparência de um item com os atributos de outro). Diretrizes de efeitos em ADR-029.
+    Escolha do João (2026-10-23): **coleção permanente**, conseguir o item uma vez libera a
+    aparência para sempre, mesmo vendendo ou destruindo o item.
+    A **aura vai junto com a aparência** (João, 2026-10-23): quem colecionou a coroa exibe a aura
+    dela com qualquer capacete. E a aparência **vale sozinha**, sem nada vestido no espaço, e dá
+    para esconder um espaço (João, 2026-10-23).
+    - G3c1: núcleo (coleção por jogador, aparência por espaço, aura do que aparece), rede
+      (protocolo 13, host confere com a coleção dele) e save (saves antigos colecionam o que o
+      personagem tem).
+    - G3c2: botão direito num espaço de equipamento → menu de aparências; selo no canto do
+      espaço; dica com a aparência; aviso "Nova aparência: X". Captura: `--look=<ids>`.
+      Pendente: escolher só com teclado/controle. 192 testes.
+    - Ajustes pós-avaliação do João (2026-10-23): o item vestido não se repete no menu pelo
+      nome ("Mostrar o item vestido" já é ele); "Nova aparência" não aparece mais para o que o
+      jogador já tinha (espada inicial num mundo novo, itens ao entrar no mundo de outro), só
+      para item novo de verdade. 193 testes.
+    - Futuro (pedido do João, 2026-10-23): com muitos itens por tipo, trocar a lista por uma
+      **tela de aparências com a grade de imagens** liberadas daquele tipo. Fica para quando a
+      interface definitiva (menus, inventário, bolsa, HUD) for desenhada, na referência Hero Siege.
+  - G3d ✅ (validado pelo João, 2026-10-23; branch `stage-g/aura-load-test`): teste de
+    carga com 10 / 30 / 60 auras (`tests/benchmark_auras.gd`, `docs/03-desempenho.md`). Achado:
+    picos de 7,5 ms com 60 auras (o anel era pintado pixel a pixel em cada personagem). Corrigido:
+    cada quadro do anel é pintado uma vez e dividido por todos com a mesma aura; mesmo visual,
+    p99 1,5 ms. 194 testes.
 
 ## Funcionalidades
 
@@ -352,6 +390,20 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   personagem é recriado a cada viagem). Agora o tamanho vem direto do equipamento vestido.
 - Corrigido (`fix/death-cancels-attack`): criatura que morria no meio da preparação ainda dava
   o bote ("fantasma", sem acertar). Agora a morte encerra qualquer ataque.
+- Corrigido (2026-10-23): avisos "leaked at exit" na saída da Godot (452 objetos nos testes).
+  Nós criados antes de entrar na árvore e postos nela só depois (`call_deferred` ou no `setup`)
+  ficavam soltos quando o jogo fechava antes: frente da aura, menu da barra de habilidades,
+  barras do chefe e de habilidades, peças da loja, efeitos no chão da região. Agora nascem já
+  dentro da árvore. Os testes terminam sem nenhum aviso.
+- Corrigido (2026-10-23): `render_checks.gd` reprovava desde a G3c2: o aviso falso "Nova
+  aparência: Espada" num mundo novo cobria o texto de teste.
+- Corrigido (2026-10-23, achado do João; branch `stage-g/aura-load-test`): ao abrir o jogo
+  apareciam "Nova habilidade: X", "Minerador nível N!" e o nome de efeitos ativos (ex.:
+  "Rapidez"). É a mesma causa do aviso falso de aparência: os avisos anotavam o que o jogador
+  tinha no instante em que o personagem aparecia, e o save (ou o estado vindo do host) chegava
+  logo depois. Agora os avisos do jogador local ficam em silêncio até o estado chegar (host:
+  save aplicado; cliente: última resposta do estado completo, protocolo 14). Teste: reabrir o
+  mundo e voltar como amigo não avisa nada; habilidade nova de verdade avisa. 195 testes.
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 
