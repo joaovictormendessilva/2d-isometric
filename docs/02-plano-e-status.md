@@ -284,6 +284,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     (tela e folha de quadros). 185 testes.
   - G3c ⬜: cosméticos (aparência separada dos atributos) e **transmog** (pedido do João,
     2026-10-23: a aparência de um item com os atributos de outro). Diretrizes de efeitos em ADR-029.
+    Escolha do João (2026-10-23): **coleção permanente**, conseguir o item uma vez libera a
+    aparência para sempre, mesmo vendendo ou destruindo o item.
+    A **aura vai junto com a aparência** (João, 2026-10-23): quem colecionou a coroa exibe a aura
+    dela com qualquer capacete.
   - G3d ⬜: teste de carga com 10 / 30 / 60 auras (`docs/03-desempenho.md`).
 
 ## Funcionalidades
