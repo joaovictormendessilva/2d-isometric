@@ -295,6 +295,17 @@ const KING_CORE := [
 	".oPPPPo.",
 	"..oooo..",
 ]
+## Ícone da coroa fabricada com o núcleo: ouro com uma gema de gosma no meio.
+const CROWN_ICON := [
+	"........",
+	".o.oo.o.",
+	"oGoyyoYo",
+	"oGyqpyYo",
+	"oGyPPyYo",
+	"oyyyyyYo",
+	"oYYYYYYo",
+	".oooooo.",
+]
 ## Coroa do Rei Slime, pousada no alto da gota; contorno em ouro escuro (cor do material).
 const CROWN := [
 	".o..o..o.",
@@ -322,6 +333,7 @@ const ICONS := {
 	"coin": [COIN, {}],
 	"health_potion": [POTION, {}],
 	"king_slime_core": [KING_CORE, {}],
+	"king_slime_crown": [CROWN_ICON, {}],
 }
 
 

@@ -201,7 +201,11 @@ Ordem proposta (cada um com validação do João antes do próximo):
   Correção do teste do João: os filhotes seguem o chefe e atacam o alvo dele (antes, correndo um
   pouco, eles ficavam parados). O Rei Slime é banco de testes; as mecânicas são o core.
   144 testes. Validado pelo João (2026-10-23).
-- **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
+- **F5 – Ciclo de progressão** 🟡 (branch `stage-f/progression`): algo liberado pelo chefe e balanceamento.
+  F5a 🟡 implementado (escolha do João: receita de equipamento): o Núcleo do Rei Slime fabrica na
+  bancada a **Coroa do Rei Slime** (cabeça: +20 de vida, +3 de defesa; o elmo de cobre dá +10/+2)
+  com 1 núcleo, 8 gosmas e 4 cobres. Teste genérico: todo drop exclusivo de chefe tem que servir
+  para alguma receita. 146 testes. Aguardando validação do João.
 
 ## Funcionalidades
 
@@ -241,6 +245,8 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - Rei Slime (F4a): na floresta, siga para o leste até a clareira. Ele salta em quem está a meia
   distância: saia do círculo vermelho antes de ele cair e bata nele enquanto se recupera.
   Na metade da vida ele se enfurece: salta mais rápido e solta slimes a cada queda.
+- Coroa do Rei Slime (F5a): com o Núcleo do Rei Slime, 8 gosmas e 4 cobres, perto de uma bancada,
+  aparece na coluna Fabricar. Vista na cabeça no lugar do elmo de cobre.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

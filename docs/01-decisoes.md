@@ -629,3 +629,6 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   chefe, drop especial.
 - **Consequências**: novos chefes ou criaturas que saltam = dados + cena com `SlamAttacker`. A F4b
   (fases) e a F5 (o núcleo libera algo) usam esta base.
+- **F5a (João, 2026-10-23)**: o drop do chefe libera uma **receita de equipamento** (não uma área).
+  O núcleo é ingrediente da Coroa do Rei Slime (bancada; cabeça, melhor que o elmo de cobre).
+  Regra testada (`tests/test_progression.gd`): drop exclusivo de chefe sempre serve a uma receita.
