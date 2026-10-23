@@ -230,7 +230,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
     Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
-- **G2 – Primeira habilidade mágica** 🟡 (G2a+G2b na `main`; G2c na branch `stage-g/ranged-threat`; ADR-026, ADR-027): habilidades
+- **G2 – Primeira habilidade mágica** 🟡 (G2a+G2b na `main`; G2c ✅ na branch `stage-g/ranged-threat`; ADR-026, ADR-027): habilidades
   **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
   são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
   (sem mana, como no V Rising).
@@ -251,7 +251,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     olha. Proposta para depois: analógico direito mira (estilo twin-stick) e, sem ele, leve
     ajuda de mira no inimigo mais próximo à frente. Mexe só na entrada (`LocalPlayerInput`): o
     lançamento já recebe uma direção pronta.
-  - G2c 🟡 implementado (ADR-027; aguardando validação do João): criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
+  - G2c ✅ (validado pelo João, 2026-10-23; ADR-027): criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
     combate"). Achado do João: atacada de fora do raio de agressão, a criatura nem reage; e,
     perseguindo, desiste assim que o jogador sai desse raio (volta andando, sem ficar imune),
     bem antes da coleira. Escopo: quem fere vira alvo de qualquer distância; perseguição com
