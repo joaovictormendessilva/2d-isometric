@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 🟡 (carga de projéteis) |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ (carga de projéteis) |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -315,7 +315,7 @@ Divisão proposta (2026-10-23), a partir dos testes de estresse ainda abertos em
 `docs/03-desempenho.md` e das limitações de `docs/04-multiplayer.md`; cada parte validada pelo
 João antes da próxima:
 
-- **H1 – Carga de projéteis** 🟡 implementada, aguarda validação do João (branch
+- **H1 – Carga de projéteis** ✅ (validado pelo João, 2026-10-23: projétil acerta, segue o mouse e mata; branch
   `stage-h/projectile-load-test`): `tests/benchmark_projectiles.gd`, 200 / 500 / 1000 Projéteis
   arcanos no ar, sem e com alvos, em cada nível de qualidade. Achado: ~13 µs e 3 chamadas de
   desenho por projétil (os 3 círculos eram polígonos, que não se agrupam). Corrigido: imagem do
