@@ -35,6 +35,7 @@ func add_to_tree(node: Node) -> Node:
 func start_game(save_path: String = "") -> Node:
 	var game := MAIN_SCENE.instantiate()
 	game.use_debug_starter_kit = false  # testes contam itens: começam de mãos vazias
+	game.use_dev_merchant = false
 	game.save_path = save_path
 	add_to_tree(game)
 	game.detach_local_input()
@@ -95,6 +96,7 @@ func start_network_game(instance_name: String, role: Network.Role, port: int,
 	var game := MAIN_SCENE.instantiate()
 	game.configure_network_from_command_line = false
 	game.use_debug_starter_kit = false
+	game.use_dev_merchant = false
 	game.save_path = save_path
 	var network: Network = game.get_node("Network")
 	network.role = role

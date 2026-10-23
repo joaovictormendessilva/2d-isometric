@@ -15,6 +15,9 @@ Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidad
 - **V Rising** — o mesmo estilo de lançar habilidades (teclas de habilidade, mira no cursor).
 - **Hero Siege** — referência de design (João, 2026-10-22): HUD, ambientação medieval que muda
   conforme o mundo, cosméticos que mudam o personagem, skills, grind e mapas em pixel art.
+  **Referência de arte prioritária por enquanto** (João, 2026-10-23): pesa sobre as outras na
+  arte definitiva (paleta, proporções, sprites, HUD). Até lá, a arte provisória só não deve ir
+  contra ela.
 
 Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
 arquitetura considera **coop LAN** desde o início e uma possível evolução para online.
@@ -126,7 +129,7 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Só alguns arquivos de teste: `... -s res://tests/run_tests.gd -- network` (filtro no nome).
     - Coop local (duas janelas, host + cliente): `tools/coop-local.bat`, ou
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`.
-    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory] [--region=forest]`
+    - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory] [--region=forest] [--effect=poison]`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
       importar, `G --headless --path . -s res://tools/generate_regions.gd`, importar.
     - Folha de quadros (animação): `G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<png> --scenario=attack`

@@ -10,6 +10,7 @@ items = Dictionary[StringName, int]({
 &"stone": 20,
 &"gel": 15,
 &"health_potion": 5,
+&"swiftness_potion": 3,
 &"oak_wood": 5,
 &"stone_axe": 1,
 &"stone_pickaxe": 1,

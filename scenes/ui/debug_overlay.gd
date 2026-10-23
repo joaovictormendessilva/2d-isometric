@@ -1,6 +1,7 @@
 class_name DebugOverlay
 extends Label
-## Painel de debug (F3): FPS, tempo de quadro, draw calls, entidades e posição do jogador.
+## Painel de debug (F3): FPS, tempo de quadro, draw calls, entidades, posição do jogador, velocidade,
+## defesa e efeitos ativos.
 
 var session: GameSession
 var player_id := 0
@@ -31,4 +32,18 @@ func _process(_delta: float) -> void:
 			var g := Iso.screen_to_ground(player.position)
 			lines.append("jogador %d  tela (%d, %d)  chão (%d, %d)" % [
 				player_id, player.position.x, player.position.y, g.x, g.y])
+		var character := player as Character
+		if character != null:
+			lines.append(_stats_line(character))
 	text = "\n".join(lines)
+
+
+## Velocidade (base → atual), defesa e efeitos ativos com os segundos: conferir buffs e debuffs.
+func _stats_line(character: Character) -> String:
+	var effects := PackedStringArray()
+	if character.status_effects:
+		for entry in character.status_effects.effects.entries():
+			effects.append("%s %.1fs" % [entry.data.id, entry.remaining])
+	return "velocidade %d -> %d  |  defesa %d  |  efeitos: %s" % [character.stats.move_speed,
+		character.move_speed(), character.health.defense if character.health else 0,
+		", ".join(effects) if not effects.is_empty() else "nenhum"]

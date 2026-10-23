@@ -252,6 +252,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 	var gatherer: Gatherer = character.get_node("Gatherer")
 	gatherer.session = session
 	gatherer.items = items
+	(character.get_node("StatusEffects") as StatusEffects).effects = session.get_effects(character.player_id)
 	# Equipamento → atributos e golpe, em todos os computadores (cada um recebe o de todos).
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
@@ -453,6 +454,8 @@ static func _is_position(data: Dictionary, key: String) -> bool:
 func _on_entity_damaged(info: DamageInfo, entity: Character) -> void:
 	if _is_shown(entity):
 		var color := DAMAGE_TO_PLAYER_COLOR if entity.player_id != 0 else DAMAGE_TO_MONSTER_COLOR
+		if info.periodic:
+			color = UiStyle.EFFECT_DAMAGE
 		damage_numbers.show_number(entity.position, info.amount, color)
 
 

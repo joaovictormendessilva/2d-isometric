@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ConsumableData" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://core/items/consumable_data.gd" id="1_consumable"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_swiftness_potion.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/effects/swiftness.tres" id="3_swiftness"]
+[ext_resource type="Script" path="res://core/effects/status_effect_data.gd" id="4_effect"]
+
+[resource]
+script = ExtResource("1_consumable")
+effects = Array[ExtResource("4_effect")]([ExtResource("3_swiftness")])
+cooldown = 5.0
+cooldown_group = &"tonic"
+id = &"swiftness_potion"
+max_stack = 20
+sell_price = 6
+icon = ExtResource("2_icon")

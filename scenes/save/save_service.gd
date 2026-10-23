@@ -102,6 +102,8 @@ func restore_player(character: Character) -> bool:
 		_recipes)
 	if health > 0:
 		character.health.set_current(health)
+	if record is Dictionary:  # efeitos ainda ativos ao sair (conferidos como dado não confiável)
+		_session.get_effects(player_id).replicate(record.get("effects"), EffectDatabase.shared())
 	return true
 
 
@@ -136,6 +138,7 @@ func _remember(player_id: int) -> void:
 		_session.get_equipment(player_id), _session.get_skills(player_id),
 		_session.get_wallet(player_id), _session.get_recipe_book(player_id),
 		health.max_health if health.is_dead() else health.current)
+	record["effects"] = _session.get_effects(player_id).snapshot()
 	var region := Region.of(character)
 	if region:
 		record["region"] = String(region.region_id)

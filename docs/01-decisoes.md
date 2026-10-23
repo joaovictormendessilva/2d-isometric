@@ -263,6 +263,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
   - **Espera da poção não vai no save** (ADR-022): sair e voltar zera a espera (10 s). Risco
     pequeno; se incomodar, guardar o tempo restante no personagem.
+- **Ferramentas de desenvolvimento** (kit de testes, mercador de testes que dá tudo por 0): só
+  existem com `OS.is_debug_build()` e a chave em `game/debug/` ligada; um jogo exportado nunca as
+  tem. No coop de desenvolvimento o host com o mercador de testes também dá tudo de graça aos
+  clientes (é o objetivo); a compra continua decidida no host, com o preço dos dados dele.
 - **Software em geral**: nunca carregar recursos (`.tres`/`.tscn`) ou scripts vindos de
   saves, mods ou rede (podem conter código); saves em formato de dados puro (JSON ou
   `var_to_bytes` sem objetos). Nada de executar comandos do sistema a partir do jogo.
@@ -634,3 +638,41 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   Regra testada (`tests/test_progression.gd`): drop exclusivo de chefe sempre serve a uma receita.
   Validado pelo João (2026-10-23). Pendente para quando houver ataques à distância: o chefe passa a
   perseguir quem o fere de longe (ameaça por dano), ver "Direção de combate" no plano.
+
+## ADR-025 — Buffs e debuffs (efeitos com duração)
+
+- **Status**: Aceita (G1a, G1b e G1c validadas pelo João, 2026-10-23)
+- **Direção do João (2026-10-23)**: a Etapa G começa por buffs e debuffs (base que habilidades,
+  auras e poções vão usar); auras e cosméticos vêm na G3.
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Efeito = dado** (`StatusEffectData` em `data/effects/`): duração, buff ou debuff, bônus de
+    atributos (o mesmo `StatBonuses` do equipamento, podendo ser negativo) e dano/cura por tick.
+    Quem aplica (golpe, poção, habilidade) só aponta para o efeito.
+  - **Reaplicar renova** o tempo cheio, sem empilhar nem somar; o ritmo dos ticks continua.
+  - **Regras sem nós** em `ActiveEffects`; o componente `StatusEffects` (na cena base de todo ator)
+    cobra os ticks no host. Bônus dos efeitos somam aos do equipamento em `Character.bonuses`.
+    Pisos: velocidade nunca abaixo de 20%, defesa nunca negativa, vida máxima no mínimo 1.
+  - **Dano de efeito** (`DamageInfo.periodic`): ignora defesa e invulnerabilidade e não atordoa,
+    empurra nem interrompe (veneno não trava o jogador nem vira "stun-lock").
+  - **Jogadores**: os efeitos ficam na sessão, por jogador (como carteira e esperas): continuam
+    depois de viajar entre regiões e vão no save (tempo restante). Criaturas: no próprio componente.
+  - **Morrer ou ficar imune** (criatura voltando para casa) limpa os efeitos.
+  - **Desempenho**: sem efeito ativo, o componente não roda por quadro (medido: sem custo extra
+    com 200 slimes).
+- **Rede e segurança** (ADR-013): só o host aplica efeitos e cobra ticks; nenhuma RPC nova que o
+  cliente possa chamar. O host envia a lista inteira ({id: segundos}) a cada mudança e no estado
+  completo; o cliente confere cada id no catálogo local e limita o tempo à duração do efeito
+  (nada de recurso vindo da rede). O save passa pela mesma conferência. Protocolo: versão 11.
+- **Apresentação** (G1b): ícone, cor e partículas do efeito ficam nos dados (`vfx_amount`,
+  `vfx_color`, `vfx_rise_speed`, `vfx_at_feet`); teto de 8 partículas por efeito até os níveis de
+  qualidade da G3. O efeito não tinge o ator (a cor do Visual é do flash e do aviso de ataque; a do
+  sprite marca os outros jogadores): usa partículas próprias. Cor `UiStyle.EFFECT_DAMAGE` para
+  números de dano de efeito.
+- **Fontes** (G1c): `MonsterData.on_hit_effects` (efeitos em quem o golpe ou o salto acerta de
+  fato; `Character.apply_hit_effects`, pronto para armas depois) e `ConsumableData.effects`.
+  `ConsumableRules.use` devolve o item usado; o host aplica cura e efeitos. Slime venenoso (João,
+  2026-10-23) = mesmos atributos e bote do slime (`data/actors/slime_stats.tres` e
+  `slime_lunge.tres`, um arquivo só) + veneno no golpe. Poção de rapidez com grupo de espera
+  próprio (`tonic`).
+- **Consequências**: novas fontes de efeito (G1c: golpe que envenena, poção de buff; G2:
+  habilidades; G3: auras) só chamam `StatusEffects.apply`.

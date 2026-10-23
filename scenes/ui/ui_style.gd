@@ -23,6 +23,8 @@ const DANGER := Color(1.0, 0.45, 0.4)
 ## Ganho bom (subiu de nível).
 const POSITIVE := Color("8fe388")
 const HEALTH := Color("d94a4a")
+## Dano de efeito (veneno...): número amarelo-esverdeado, diferente do golpe e da cura.
+const EFFECT_DAMAGE := Color("c8e04a")
 ## Chefe enfurecido (fase 2): barra de vida e aviso.
 const ENRAGED := Color("ff7a3d")
 

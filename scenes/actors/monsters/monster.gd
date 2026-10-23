@@ -18,6 +18,7 @@ var phase := 1
 
 func _ready() -> void:
 	stats = data.stats
+	on_hit_effects = data.on_hit_effects
 	if attacker:
 		attacker.attack = data.attack
 	if slammer:

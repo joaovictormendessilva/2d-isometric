@@ -16,6 +16,8 @@ const DEFAULT_PLACE := Vector2(0.02, 0.5)
 const ROW_GAP := UiStyle.GAP
 ## Largura da dica (quebra em linhas): a da janela, sem esticá-la.
 const HINT_WIDTH := 150.0
+## Altura máxima da lista de ofertas: com mais itens, a lista rola (a janela cabe na tela de 360).
+const MAX_OFFERS_HEIGHT := 180.0
 
 var _inventory: Inventory
 var _wallet: Wallet
@@ -26,6 +28,7 @@ var _items: ItemDatabase
 var _npc: Npc
 var _window := DraggableWindow.new()
 var _offers := VBoxContainer.new()
+var _offers_scroll := ScrollContainer.new()
 var _rows: Array[OfferRow] = []
 ## Receitas que o NPC ensina (seção escondida quando não ensina nenhuma).
 var _recipe_section := VBoxContainer.new()
@@ -54,7 +57,10 @@ func setup(inventory: Inventory, wallet: Wallet, items: ItemDatabase,
 	coins.setup(wallet)
 	_window.add_content(coins)
 	_offers.add_theme_constant_override(&"separation", ROW_GAP)
-	_window.add_content(_offers)
+	_offers.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_offers_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_offers_scroll.add_child(_offers)
+	_window.add_content(_offers_scroll)
 	_recipe_section.add_theme_constant_override(&"separation", ROW_GAP)
 	var recipes_title := Label.new()
 	recipes_title.text = Texts.get_text(&"SHOP_RECIPES")
@@ -133,6 +139,13 @@ func _build_offers() -> void:
 		_recipe_offers.add_child(row)
 		_recipe_rows.append(row)
 	_recipe_section.visible = not _recipe_rows.is_empty()
+	# Loja curta: do tamanho das ofertas. Longa: altura máxima, rolando (com espaço para a barra).
+	var content := _offers.get_combined_minimum_size()
+	var scrolls := content.y > MAX_OFFERS_HEIGHT
+	_offers_scroll.custom_minimum_size = Vector2(
+		content.x + (UiStyle.SCROLL_BAR_WIDTH + UiStyle.GAP if scrolls else 0.0),
+		minf(content.y, MAX_OFFERS_HEIGHT))
+	_offers_scroll.scroll_vertical = 0
 
 
 ## Ids de uma tabela de preços em ordem estável na tela.

@@ -1,36 +1,10 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=8 format=3]
+[gd_resource type="Resource" script_class="MonsterData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://core/actors/monster_data.gd" id="1_monster"]
-[ext_resource type="Script" path="res://core/actors/actor_stats.gd" id="2_stats"]
-[ext_resource type="Script" path="res://core/combat/melee_attack_data.gd" id="3_attack"]
+[ext_resource type="Resource" path="res://data/actors/slime_stats.tres" id="2_stats"]
+[ext_resource type="Resource" path="res://data/actors/slime_lunge.tres" id="3_attack"]
 [ext_resource type="Script" path="res://core/items/drop_entry.gd" id="4_drop"]
 [ext_resource type="Resource" path="res://data/items/gel.tres" id="5_gel"]
-
-[sub_resource type="Resource" id="Resource_stats"]
-script = ExtResource("2_stats")
-move_speed = 42.0
-acceleration = 400.0
-friction = 600.0
-horizontal_speed_factor = 0.8
-max_health = 30
-defense = 0
-invulnerability_time = 0.0
-hit_stun = 0.2
-knockback_resistance = 0.4
-
-[sub_resource type="Resource" id="Resource_attack"]
-script = ExtResource("3_attack")
-damage = 8
-reach = 14.0
-arc_degrees = 100.0
-knockback = 140.0
-lunge = 230.0
-lunge_hit_time = 0.22
-engage_distance = 28.0
-windup = 0.55
-recovery = 0.9
-move_multiplier = 0.0
-interruptible = false
 
 [sub_resource type="Resource" id="Resource_drop_gel"]
 script = ExtResource("4_drop")
@@ -42,8 +16,8 @@ max_amount = 2
 [resource]
 script = ExtResource("1_monster")
 id = &"slime"
-stats = SubResource("Resource_stats")
-attack = SubResource("Resource_attack")
+stats = ExtResource("2_stats")
+attack = ExtResource("3_attack")
 aggro_radius = 110.0
 leash_radius = 260.0
 drops = Array[ExtResource("4_drop")]([SubResource("Resource_drop_gel")])

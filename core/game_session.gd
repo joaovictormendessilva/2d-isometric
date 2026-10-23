@@ -14,6 +14,7 @@ var _equipment: Dictionary[int, Equipment] = {}  # player_id -> equipamento vest
 var _wallets: Dictionary[int, Wallet] = {}  # player_id -> moedas
 var _cooldowns: Dictionary[int, Cooldowns] = {}  # player_id -> esperas (poções)
 var _recipe_books: Dictionary[int, RecipeBook] = {}  # player_id -> receitas aprendidas
+var _effects: Dictionary[int, ActiveEffects] = {}  # player_id -> buffs e debuffs
 var _items: ItemDatabase
 var _equipment_layout: EquipmentLayout
 
@@ -54,6 +55,7 @@ func add_player(player_id: int, entity_id: int,
 		_wallets[player_id] = Wallet.new()
 		_cooldowns[player_id] = Cooldowns.new()
 		_recipe_books[player_id] = RecipeBook.new()
+		_effects[player_id] = ActiveEffects.new()
 
 
 func get_inventory(player_id: int) -> Inventory:
@@ -80,6 +82,10 @@ func get_recipe_book(player_id: int) -> RecipeBook:
 	return _recipe_books.get(player_id)
 
 
+func get_effects(player_id: int) -> ActiveEffects:
+	return _effects.get(player_id)
+
+
 func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
@@ -94,6 +100,7 @@ func remove_player(player_id: int) -> void:
 	_wallets.erase(player_id)
 	_cooldowns.erase(player_id)
 	_recipe_books.erase(player_id)
+	_effects.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 (primeira habilidade) em andamento |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -209,6 +209,33 @@ Ordem proposta (cada um com validação do João antes do próximo):
   funcionando; a dificuldade atual (slimes com investida, chefe em 2 fases) é a desejada, então o
   balanceamento fica como está (números provisórios em `data/`, revistos com mais conteúdo).
 
+## Etapa G — incrementos
+
+Ordem combinada com o João (2026-10-23), cada um validado por ele antes do próximo:
+
+- **G1 – Buffs e debuffs** ✅ (branch `stage-g/status-effects`): base de efeitos com duração,
+  em dados, para jogadores e criaturas; o host decide.
+  - G1a ✅ implementado (ADR-025): núcleo (efeito em `data/`: duração, bônus de atributos,
+    dano/cura por tick; reaplicar renova), aplicado pelo host e enviado aos clientes; vai no save.
+    Primeiros efeitos: veneno (3 por segundo, 6 s) e rapidez (+25% de velocidade, 30 s). Ainda
+    sem nada visível no jogo (vem na G1b/G1c). 154 testes.
+  - G1b ✅ implementado: acima da vida, um quadrado por efeito com ícone e segundos (borda verde =
+    buff, vermelha = debuff); partículas no ator (bolhas verdes subindo no veneno, rastro azul nos
+    pés na rapidez; em dados, no máximo 8 por efeito); aviso flutuante ao ganhar um efeito; dano de
+    veneno em amarelo-esverdeado. Captura: `--effect=<id>` (tela) e `--effects=` (folha de
+    quadros). 155 testes.
+  - G1c ✅ implementado: **slime venenoso** (escolha do João; verde-limão, só na floresta, metade
+    dos pontos alternados com o slime comum, mesmos atributos e bote; o bote que acerta envenena;
+    solta 1 a 3 gosmas) e **poção de rapidez** (mercador, 25 moedas; +25% de velocidade por 30 s;
+    espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
+    qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
+    Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
+- **G2 – Primeira habilidade mágica** ⬜: tecla de habilidade, mira no cursor, aviso no chão,
+  efeito mágico (estilo Albion/V Rising). Primeiro ataque à distância; com ele, o chefe passa a
+  perseguir quem o ataca de longe (ver "Direção de combate").
+- **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
+  Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
+
 ## Funcionalidades
 
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
@@ -225,6 +252,12 @@ Ordem proposta (cada um com validação do João antes do próximo):
   de uma bancada). Passar o mouse mostra o que falta.
 - Bancada: pegue-a no inventário e clique no chão (prévia verde = pode; vermelha = não pode).
   Bloqueia a passagem; ainda não dá para recolher (pendência).
+- **Mercador de testes** (pedido do João, 2026-10-23; provisório): mercador dourado ao lado do
+  mercador da campina que vende todos os itens e ensina todas as receitas por 0 moedas. Só em
+  compilações de desenvolvimento (editor/F5), com `game/debug/dev_merchant` no project.godot
+  (false desliga). Pendente: decidir se sai do código ou fica só em desenvolvimento.
+- Painel F3 mostra também a velocidade (base -> atual), a defesa e os efeitos ativos com os
+  segundos: o jeito de conferir se um buff/debuff entrou e saiu.
 - Kit de testes: no editor (F5) o jogador já começa com itens (`data/debug/starter_kit.tres`,
   liga/desliga em `game/debug/starter_kit` no project.godot). Jogo exportado nunca tem kit.
 - Save: o mundo é guardado sozinho (ao fechar a janela, quando alguém sai e a cada 30 s) em
@@ -249,6 +282,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
   Na metade da vida ele se enfurece: salta mais rápido e solta slimes a cada queda.
 - Coroa do Rei Slime (F5a): com o Núcleo do Rei Slime, 8 gosmas e 4 cobres, perto de uma bancada,
   aparece na coluna Fabricar. Vista na cabeça no lugar do elmo de cobre.
+- Buffs e debuffs (G1): na floresta, slimes verde-limão envenenam com o bote (3 de dano por segundo,
+  6 s; sem atordoar). Poção de rapidez no mercador (25 moedas): botão direito → Usar, +25% de
+  velocidade por 30 s. Os efeitos aparecem acima da vida com os segundos (borda verde = bom,
+  vermelha = ruim) e como partículas no personagem.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 
@@ -277,6 +314,8 @@ Ordem proposta (cada um com validação do João antes do próximo):
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 
 ## Pendências de decisão
+
+- Mercador de testes (2026-10-23): remover do código ou manter só em desenvolvimento.
 
 - ~~Coop: jogadores em regiões diferentes ao mesmo tempo?~~ Sim (João, 2026-10-22); benchmark da F2b confirmou que o host aguenta.
 - Drops: regra padrão pessoal vs. compartilhado por tipo de item (decidir na Etapa D/E)

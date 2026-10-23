@@ -2,7 +2,8 @@ class_name ConsumableRules
 extends RefCounted
 ## Regras de usar um item consumível (sem nós): se dá e o uso em si, tudo ou nada. Usadas pelo
 ## host para decidir e pelo dono para explicar a recusa antes de pedir.
-## A vida entra como números (atual e máxima): quem aplica a cura é quem chama (Health.heal).
+## A vida entra como números (atual e máxima): quem aplica a cura e os efeitos do item usado é quem
+## chama (Health.heal, StatusEffects.apply).
 
 enum Check { OK, NOT_USABLE, NO_POTION, DEAD, FULL_HEALTH, COOLING_DOWN }
 
@@ -15,22 +16,23 @@ static func check_use(inventory: Inventory, index: int, items: ItemDatabase, cur
 		return Check.NOT_USABLE
 	if current <= 0:
 		return Check.DEAD
-	if item.heal > 0 and current >= maximum:
-		return Check.FULL_HEALTH  # não desperdiça a poção
+	if item.heal > 0 and item.effects.is_empty() and current >= maximum:
+		return Check.FULL_HEALTH  # não desperdiça a poção (com efeitos, ainda serve)
 	if not cooldowns.is_ready(item.cooldown_group, now):
 		return Check.COOLING_DOWN
 	return Check.OK
 
 
-## Gasta uma unidade do espaço e começa a espera. Retorna a cura a aplicar (-1 = recusado).
+## Gasta uma unidade do espaço e começa a espera. Retorna o item usado (null = recusado): a cura
+## e os efeitos dele.
 static func use(inventory: Inventory, index: int, items: ItemDatabase, current: int,
-		maximum: int, cooldowns: Cooldowns, now: float) -> int:
+		maximum: int, cooldowns: Cooldowns, now: float) -> ConsumableData:
 	if check_use(inventory, index, items, current, maximum, cooldowns, now) != Check.OK:
-		return -1
+		return null
 	var item := _consumable_at(inventory, index, items)
 	inventory.set_slot(index, item.id, inventory.slot_amount(index) - 1)
 	cooldowns.start(item.cooldown_group, item.cooldown, now)
-	return item.heal
+	return item
 
 
 ## Espaço que a tecla de poção usa: o primeiro com um item que cura (-1 = nenhum).

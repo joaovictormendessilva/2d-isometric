@@ -105,6 +105,7 @@ func test_client_sees_the_slam() -> void:
 		return client.region and client.region.region_id == &"forest" and _boss(client) != null),
 		"o cliente está na floresta e vê o chefe")
 	calm_monsters(host)
+	await physics_frames(10)  # o cliente se registra no host (estado completo) antes do salto
 	var host_boss := _boss(host)
 	host_boss.get_node("Brain").process_mode = Node.PROCESS_MODE_INHERIT
 	var player := _player(host)

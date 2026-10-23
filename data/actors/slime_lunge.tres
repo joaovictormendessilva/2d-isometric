@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="MeleeAttackData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/combat/melee_attack_data.gd" id="1_attack"]
+
+[resource]
+script = ExtResource("1_attack")
+damage = 8
+reach = 14.0
+arc_degrees = 100.0
+knockback = 140.0
+lunge = 230.0
+lunge_hit_time = 0.22
+engage_distance = 28.0
+windup = 0.55
+recovery = 0.9
+move_multiplier = 0.0
+interruptible = false
