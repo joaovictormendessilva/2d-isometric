@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 🟡 (itens no chão) |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -321,7 +321,7 @@ João antes da próxima:
   desenho por projétil (os 3 círculos eram polígonos, que não se agrupam). Corrigido: imagem do
   projétil pintada uma vez por habilidade e consulta física reaproveitada na busca de alvos (vale
   também para golpes). 1000 projéteis: 13,0 → 5,5 ms; mesmo visual. Fecha o risco 3 da Etapa D+.
-- **H2 – Itens no chão** 🟡 implementada, aguarda validação do João (branch
+- **H2 – Itens no chão** ✅ (validado pelo João, 2026-10-23, inclusive no coop; branch
   `stage-h/drop-load-test`): `tests/benchmark_drops.gd`, 200 / 500 gosmas no chão (parados,
   inventário cheio, coleta contínua, queda num quadro só) e o tráfego com host + cliente.
   Achados: cada item conferia o inventário do dono a cada quadro e mexia no balanço todo quadro
