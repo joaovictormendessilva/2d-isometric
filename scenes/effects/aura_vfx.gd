@@ -14,13 +14,16 @@ const SPARKLE_FADE_IN := 0.2
 
 @export var body: Character
 
-var _front := Node2D.new()
+var _front: Node2D
 
 
 func _ready() -> void:
+	_front = Node2D.new()
 	_front.name = "AuraFront"
-	# Por cima do sprite (o Body é irmão criado depois, nas cenas que herdam o ator).
-	get_parent().add_child.call_deferred(_front)
+	# Por cima do sprite (o Body é irmão criado depois, nas cenas que herdam o ator): entra quando
+	# o pai termina de montar os filhos. Não com call_deferred: se o ator fosse liberado antes,
+	# o nó ficaria solto na memória ("leaked at exit").
+	get_parent().ready.connect(get_parent().add_child.bind(_front), CONNECT_ONE_SHOT)
 	body.auras_changed.connect(_rebuild)
 	VfxQuality.shared().changed.connect(_rebuild)
 	_rebuild()

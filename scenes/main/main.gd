@@ -53,10 +53,10 @@ var _input_detached := false
 var _local_ui_ready := false
 ## Host: jogadores com viagem já marcada (a passagem pode disparar mais de uma vez).
 var _traveling: Dictionary[int, bool] = {}
-## Barra do chefe no alto da tela (criada aqui: só existe para o jogador local).
-var _boss_bar := BossBar.new()
-## Teclas de habilidade embaixo no meio da tela (só do jogador local).
-var _ability_bar := AbilityBar.new()
+## Barra do chefe no alto da tela e teclas de habilidade embaixo (só do jogador local). Criadas
+## quando o personagem local chega: um cliente recusado antes disso não deixa nós soltos.
+var _boss_bar: BossBar
+var _ability_bar: AbilityBar
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
@@ -244,6 +244,9 @@ func _on_local_player_spawned(character: Character) -> void:
 	_camera.follow(character)
 	var inventory := session.get_inventory(local_player_id())
 	_hud.set_character(character)
+	if not _local_ui_ready:
+		_boss_bar = BossBar.new()
+		$UI.add_child(_boss_bar)
 	_boss_bar.set_character(character)
 	_player_feedback.set_character(character)
 	_interaction_prompt.setup(character)
@@ -251,7 +254,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	if _local_ui_ready:
 		return
 	_local_ui_ready = true
-	$UI.add_child(_boss_bar)
+	_ability_bar = AbilityBar.new()
 	$UI.add_child(_ability_bar)
 	_ability_bar.setup(session.get_ability_book(local_player_id()), abilities)
 	var progress := session.get_skills(local_player_id())

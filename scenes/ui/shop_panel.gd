@@ -27,12 +27,12 @@ var _player_id := 0
 var _items: ItemDatabase
 var _npc: Npc
 var _window := DraggableWindow.new()
-var _offers := VBoxContainer.new()
-var _offers_scroll := ScrollContainer.new()
+var _offers: VBoxContainer
+var _offers_scroll: ScrollContainer
 var _rows: Array[OfferRow] = []
 ## Receitas que o NPC ensina (seção escondida quando não ensina nenhuma).
-var _recipe_section := VBoxContainer.new()
-var _recipe_offers := VBoxContainer.new()
+var _recipe_section: VBoxContainer
+var _recipe_offers: VBoxContainer
 var _recipe_rows: Array[RecipeOfferRow] = []
 var _refresh_queued := false
 
@@ -56,6 +56,11 @@ func setup(inventory: Inventory, wallet: Wallet, items: ItemDatabase,
 	var coins := CoinLabel.new()
 	coins.setup(wallet)
 	_window.add_content(coins)
+	# Criados aqui e já postos na janela: um jogo fechado antes do setup não deixa nós soltos.
+	_offers = VBoxContainer.new()
+	_offers_scroll = ScrollContainer.new()
+	_recipe_section = VBoxContainer.new()
+	_recipe_offers = VBoxContainer.new()
 	_offers.add_theme_constant_override(&"separation", ROW_GAP)
 	_offers.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_offers_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED

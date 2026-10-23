@@ -78,7 +78,7 @@ func _ready() -> void:
 func setup(book: AbilityBook, abilities: AbilitySync) -> void:
 	_book = book
 	_abilities = abilities
-	get_parent().add_child.call_deferred(_menu)
+	get_parent().add_child(_menu)
 	book.changed.connect(_show)
 	set_process(true)
 	_show()
