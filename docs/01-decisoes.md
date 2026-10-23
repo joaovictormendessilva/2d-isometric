@@ -532,7 +532,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-022 — Consumíveis e poção de vida
 
-- **Status**: Hipótese (F3b, aguardando validação do João)
+- **Status**: Aceita (F3b validada pelo João, 2026-10-22)
 - **Decisões** (técnicas, ajustáveis em `data/`):
   - **Consumível** = `ConsumableData` (item com `heal`, `cooldown` e `cooldown_group`). Usar gasta
     uma unidade. Regras puras em `ConsumableRules`, tudo ou nada: vida cheia não bebe (não
