@@ -142,12 +142,9 @@ func _land() -> void:
 	_phase = Phase.RECOVERY
 	_cooldown_left = attack.cooldown
 	if multiplayer.is_server():
-		for target in ActorQuery.hostiles_near(_body, _landing, 0.0, attack.radius):
-			var away := Iso.screen_to_ground(target.global_position - _landing)
-			var direction := away.normalized() if not away.is_zero_approx() else _body.facing
-			if target.health.apply_damage(DamageInfo.create(attack.damage, direction,
-					attack.knockback, _body.entity_id, _body.player_id)):
-				_body.apply_hit_effects(target)
+		for target in AreaStrike.hit(_body, _landing, attack.radius, attack.damage,
+				attack.knockback):
+			_body.apply_hit_effects(target)
 	slam_landed.emit(_landing, attack)
 
 

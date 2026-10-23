@@ -679,14 +679,14 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-026 — Habilidades aprendidas e equipadas
 
-- **Status**: Aceita (G2a e G2b validadas pelo João em 2026-10-23)
+- **Status**: Aceita (G2a e G2b validadas pelo João em 2026-10-23); G2d (área) aguardando validação
 - **Direção do João (2026-10-23)**: habilidades **aprendidas e equipadas** (livre para montar
   builds, estilo Terraria); mago e arqueiro são escolhas de equipamento e habilidade, não classe
   fixa. Lançar no estilo Albion/V Rising (tecla, mira no cursor).
 - **Decisões** (técnicas, ajustáveis em `data/`):
   - **Habilidade = dado** (`AbilityData` em `data/abilities/`): recarga, preparação (anda mais
     devagar; apanhar não interrompe), dano, recuo, velocidade, alcance, raio, efeitos no alvo
-    (os de ADR-025), cores. Hoje só projéteis; em área depois, no mesmo formato.
+    (os de ADR-025), cores. Projéteis e áreas (G2d), no mesmo formato.
   - **Sem mana**: só recarga, como no V Rising (decisão técnica reversível).
   - **4 espaços**, teclas **1–4** (controle: RB, B, direcional ↑ e →); mira = a do ataque (mouse
     ou direção do olhar).
@@ -701,10 +701,22 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     do inventário) com as habilidades aprendidas.
   - **Pendências**: projéteis ainda atravessam árvores e pedras; trocar de tecla só com
     teclado/controle (hoje só com o mouse).
+  - **Área** (G2d, escolha do João: Explosão arcana): `shape = AREA` no mesmo `AbilityData`
+    (`area_radius`, `area_delay`). A **mira passou a ser o caminho até o ponto mirado** (direção
+    e distância, no chão); o projétil usa só a direção, a área cai no ponto, limitada ao
+    `max_range` (`AbilityData.area_offset`). Controle, sem mira própria: 80 à frente.
+    `AreaBlast` (camada de efeitos do chão) mostra o aviso (`GroundTelegraph`, agora com cor por
+    uso: vermelho = perigo para o jogador; habilidade = cor dela) e, no fim, onda e faíscas; só o
+    do host fere. O dano em área virou `AreaStrike.hit`, usado também pelo salto dos chefes; as
+    faíscas, `SparkBurst` (também no projétil); os efeitos do golpe, `Character.apply_effects`.
+    O ponto é calculado em cada computador a partir da posição de quem lançou lá (no cliente, a
+    desenhada um pouco no passado): pode diferir alguns pixels, só na imagem; o dano é do host.
+    Protocolo: versão 12 (a mira do lançamento passou a levar a distância).
 - **Rede e segurança** (ADR-013): `AbilitySync` (base `HostRequests`, extraída do
   `PlayerStateSync`). O dono confere antes de pedir, mostra o lançamento na hora (previsão) e
-  pede ao host com espaço e direção; o host confere livro, recarga, vida e direção (NaN/zero
-  recusados) com o estado DELE e lança; o NetSync avisa os outros clientes (o id que chega é
+  pede ao host com espaço e mira; o host confere livro, recarga, vida e mira (NaN/zero/gigante
+  recusados; a distância só vale até o alcance da habilidade) com o estado DELE e lança; o
+  NetSync avisa os outros clientes (o id que chega é
   conferido no catálogo local). RPCs novas que o cliente chama: pedir lançamento, trocar espaço e
   pedir o livro — todas só mexem no livro de quem pediu. O host manda ao dono o livro inteiro a
   cada mudança e as recargas. Previsão recusada pelo host = só um projétil sem efeito no dono.

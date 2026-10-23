@@ -247,17 +247,17 @@ func _slam_played(landing: Vector2) -> void:
 
 ## Host → os outros clientes: lançamento decidido (ver AbilitySync). O dono não recebe: ele já
 ## mostrou o lançamento na hora (previsão).
-func _on_cast_started(ability: AbilityData, direction: Vector2) -> void:
+func _on_cast_started(ability: AbilityData, aim: Vector2) -> void:
 	if is_online() and multiplayer.is_server():
-		_send_to_clients(&"_cast_played", [ability.id, direction], false)
+		_send_to_clients(&"_cast_played", [ability.id, aim], false)
 
 
 @rpc("authority", "call_remote", "reliable")
-func _cast_played(ability_id: StringName, direction: Vector2) -> void:
+func _cast_played(ability_id: StringName, aim: Vector2) -> void:
 	var ability := AbilityDatabase.shared().get_ability(ability_id)
-	direction = NetRules.clean_direction(direction)
-	if ability and direction != Vector2.ZERO:
-		_body.play_remote_cast(ability, direction)
+	aim = NetRules.clean_aim(aim)
+	if ability and aim != Vector2.ZERO:
+		_body.play_remote_cast(ability, aim)
 
 
 # --- Coleta ------------------------------------------------------------------------------

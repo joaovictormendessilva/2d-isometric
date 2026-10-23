@@ -12,6 +12,7 @@ offers = Dictionary[StringName, int]({
 &"stone_axe": 20,
 &"stone_pickaxe": 20,
 &"swiftness_potion": 25,
+&"tome_arcane_blast": 80,
 &"tome_arcane_bolt": 50,
 &"workbench": 30
 })

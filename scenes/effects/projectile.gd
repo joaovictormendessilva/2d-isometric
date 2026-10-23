@@ -40,7 +40,7 @@ func _ready() -> void:
 	trail.gravity = Vector2.ZERO
 	trail.scale_amount_min = 1.0
 	trail.scale_amount_max = 2.0
-	trail.color_ramp = _fade(_ability.vfx_glow_color)
+	trail.color_ramp = SparkBurst.fade(_ability.vfx_glow_color)
 	add_child(trail)
 
 
@@ -63,31 +63,12 @@ func _hit(caster: Character, target: Character) -> void:
 	if multiplayer.is_server():
 		var info := DamageInfo.create(_ability.damage, _direction, _ability.knockback,
 			caster.entity_id, caster.player_id)
-		if target.health.apply_damage(info) and target.status_effects:
-			for effect in _ability.hit_effects:
-				target.status_effects.apply(effect, caster.player_id)
-	_burst()
+		if target.health.apply_damage(info):
+			caster.apply_effects(target, _ability.hit_effects)
+	# Faíscas no ponto do impacto (ficam na região depois que o projétil some).
+	SparkBurst.spawn(get_parent(), position + Vector2(0, -HEIGHT), _ability.vfx_color,
+		IMPACT_PARTICLES, IMPACT_SPEED, IMPACT_LIFETIME)
 	queue_free()
-
-
-## Faíscas no ponto do impacto (ficam na região depois que o projétil some).
-func _burst() -> void:
-	var burst := CPUParticles2D.new()
-	burst.position = position + Vector2(0, -HEIGHT)
-	burst.one_shot = true
-	burst.explosiveness = 1.0
-	burst.amount = IMPACT_PARTICLES
-	burst.lifetime = IMPACT_LIFETIME
-	burst.spread = 180.0
-	burst.gravity = Vector2.ZERO
-	burst.initial_velocity_min = IMPACT_SPEED * 0.5
-	burst.initial_velocity_max = IMPACT_SPEED
-	burst.scale_amount_min = 1.0
-	burst.scale_amount_max = 2.0
-	burst.color_ramp = _fade(_ability.vfx_color)
-	burst.finished.connect(burst.queue_free)
-	get_parent().add_child(burst)
-	burst.emitting = true
 
 
 func _draw() -> void:
@@ -96,10 +77,3 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 	draw_circle(Vector2(0, -HEIGHT), GLOW_RADIUS, _ability.vfx_glow_color)
 	draw_circle(Vector2(0, -HEIGHT), CORE_RADIUS, _ability.vfx_color)
-
-
-static func _fade(color: Color) -> Gradient:
-	var gradient := Gradient.new()
-	gradient.set_color(0, color)
-	gradient.set_color(1, Color(color, 0.0))
-	return gradient

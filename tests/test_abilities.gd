@@ -1,10 +1,12 @@
 extends TestCase
 ## Habilidades (G2a, ADR-026): aprendidas por tomo e postas nas teclas 1–4; lançar decidido pelo
-## host com recarga; o projétil acerta o primeiro inimigo no caminho; coop e save.
+## host com recarga; o projétil acerta o primeiro inimigo no caminho; a explosão (G2d) fere todos
+## na área mirada depois do aviso no chão; coop e save.
 
 const PORT := 24780
 const BOLT := &"arcane_bolt"
 const TOME := &"tome_arcane_bolt"
+const BLAST := &"arcane_blast"
 const SAVE_DIR := "user://test_saves/"
 const SAVE_PATH := SAVE_DIR + "abilities_world.json"
 
@@ -17,8 +19,14 @@ func test_ability_data_is_consistent() -> void:
 		check(ability.icon != null, "%s tem ícone" % ability.id)
 		check(ability.cooldown > 0.0 and ability.cooldown <= Cooldowns.MAX_SECONDS,
 			"%s: recarga dentro dos limites" % ability.id)
-		check(ability.speed > 0.0 and ability.max_range > 0.0 and ability.damage > 0,
-			"%s: voa, tem alcance e dano" % ability.id)
+		check(ability.max_range > 0.0 and ability.damage > 0, "%s: tem alcance e dano" % ability.id)
+		match ability.shape:
+			AbilityData.Shape.PROJECTILE:
+				check(ability.speed > 0.0 and ability.hit_radius > 0.0, "%s: voa" % ability.id)
+			AbilityData.Shape.AREA:
+				check(ability.area_radius > 0.0 and ability.area_delay > 0.0,
+					"%s: área com aviso" % ability.id)
+		check(_tome_for(ability.id) != null, "%s: algum tomo à venda ensina" % ability.id)
 	var tome := ItemDatabase.load_all().get_item(TOME) as ConsumableData
 	check(tome != null and tome.teaches_ability.id == BOLT, "o tomo ensina o projétil")
 	var merchant := load("res://data/npcs/merchant.tres") as NpcData
@@ -88,10 +96,11 @@ func test_tome_teaches_and_bolt_hits_the_first_monster() -> void:
 		"segundo tomo: já conhece, não gasta")
 
 	var bolt := book.in_slot(0)
-	var near := first_monster(game)
+	var monsters := _monsters(game)
+	var near := monsters[0]
 	near.position = player.position + Iso.ground_to_screen(Vector2(60, 0))
 	near.reset_physics_interpolation()
-	var far := _another_monster(game, near)
+	var far := monsters[1]
 	far.position = player.position + Iso.ground_to_screen(Vector2(110, 0))
 	far.reset_physics_interpolation()
 	await physics_frames(2)
@@ -187,6 +196,18 @@ func test_client_casts_through_host() -> void:
 		"o projétil do host feriu o slime")
 	check(not client_book.cooldowns.is_ready(BOLT, NetRules.now()), "a recarga está no cliente")
 
+	# Explosão (G2d) com mira forjada longe demais: o host a põe no alcance máximo.
+	var blast := AbilityDatabase.shared().get_ability(BLAST)
+	host_session.get_ability_book(client_id).learn(blast)
+	check(await wait_until(func() -> bool: return client_book.in_slot(1) == blast, 30),
+		"a explosão chegou à tecla 2 do cliente")
+	abilities._request(&"_cast_requested", [1, Vector2(5000, 0)])
+	check(await wait_until(func() -> bool: return not _area_blasts(host).is_empty(), 60),
+		"o host lançou a explosão")
+	var landing: Vector2 = _area_blasts(host)[0].position
+	check(Iso.ground_distance(landing, on_host.position) <= blast.max_range + 2.0,
+		"mira forjada: limitada ao alcance")
+
 
 ## G2b: a barra mostra a habilidade da tecla e a recarga; o botão direito troca de tecla.
 func test_ability_bar_shows_slots_and_moves_abilities() -> void:
@@ -217,8 +238,78 @@ func test_ability_bar_shows_slots_and_moves_abilities() -> void:
 	check(book.in_slot(2) == null and book.knows(BOLT), "esvaziou (continua aprendida)")
 
 
-func _another_monster(game: Node, other: Monster) -> Monster:
-	for node in (game.region as Region).entities.get_children():
-		if node is Monster and node != other:
-			return node
+## G2d: a explosão cai no ponto mirado depois do aviso e fere todos dentro do raio, só eles.
+func test_blast_hits_everyone_in_the_area_after_the_warning() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var player := session.get_player_entity(1) as Character
+	var blast := AbilityDatabase.shared().get_ability(BLAST)
+	session.get_ability_book(1).learn(blast)
+	var aim := Vector2(80, 0)
+	var center := player.position + Iso.ground_to_screen(aim)
+	var monsters := _monsters(game)
+	var inside := monsters[0]
+	var also_inside := monsters[1]
+	var outside := monsters[2]
+	_place(inside, center + Iso.ground_to_screen(Vector2(0, 8)))
+	_place(also_inside, center + Iso.ground_to_screen(Vector2(-10, -6)))
+	_place(outside, center + Iso.ground_to_screen(Vector2(blast.area_radius + 30.0, 0)))
+	await physics_frames(2)
+	(game.abilities as AbilitySync).request_cast(1, 0, aim)
+	await physics_frames(roundi((blast.cast_time + blast.area_delay * 0.5) * 60.0))
+	var blasts := _area_blasts(game)
+	check(blasts.size() == 1 and blasts[0].position.distance_to(center) <= 1.0,
+		"aviso no chão no ponto mirado")
+	check(inside.health.current == inside.health.max_health, "durante o aviso: ninguém levou")
+	await physics_frames(roundi(blast.area_delay * 0.5 * 60.0) + 4)
+	check(inside.health.max_health - inside.health.current == blast.damage
+		and also_inside.health.max_health - also_inside.health.current == blast.damage,
+		"impacto: os dois de dentro levaram o dano da explosão")
+	check(outside.health.current == outside.health.max_health, "o de fora não levou")
+	await physics_frames(30)
+	check(_area_blasts(game).is_empty(), "a onda sumiu e o aviso saiu da região")
+
+
+## Mirar além do alcance: a explosão cai no limite dele, na mesma direção.
+func test_blast_lands_at_max_range_when_aimed_too_far() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var player := session.get_player_entity(1) as Character
+	var blast := AbilityDatabase.shared().get_ability(BLAST)
+	session.get_ability_book(1).learn(blast)
+	(game.abilities as AbilitySync).request_cast(1, 0, Vector2(0, -5000))
+	await physics_frames(roundi(blast.cast_time * 60.0) + 2)
+	var blasts := _area_blasts(game)
+	var expected := player.position + Iso.ground_to_screen(Vector2(0, -blast.max_range))
+	check(blasts.size() == 1 and blasts[0].position.distance_to(expected) <= 4.0,
+		"caiu no alcance máximo")
+
+
+func _place(monster: Monster, at: Vector2) -> void:
+	monster.position = at
+	monster.reset_physics_interpolation()
+
+
+func _area_blasts(game: Node) -> Array[Node]:
+	return (game.region as Region).ground_effects.get_children().filter(func(n: Node) -> bool:
+		return n is AreaBlast and not n.is_queued_for_deletion())
+
+
+func _tome_for(ability_id: StringName) -> ConsumableData:
+	var merchant := load("res://data/npcs/merchant.tres") as NpcData
+	for entry in ItemDatabase.load_all().entries():
+		var tome := entry as ConsumableData
+		if tome and tome.teaches_ability and tome.teaches_ability.id == ability_id \
+				and merchant.sells(tome.id):
+			return tome
 	return null
+
+
+func _monsters(game: Node) -> Array[Monster]:
+	var found: Array[Monster] = []
+	for node in (game.region as Region).entities.get_children():
+		if node is Monster:
+			found.append(node)
+	return found
