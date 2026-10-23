@@ -7,15 +7,21 @@ extends RefCounted
 ## Tentativas de achar um ponto antes de desistir e usar a origem.
 const SPOT_ATTEMPTS := 16
 
+## Uma consulta só, reaproveitada (como em `ActorQuery`): criar a forma a cada pergunta
+## registrava uma forma nova no servidor de física, e um drop grande faz centenas delas
+## (teste de carga H2). Seguro porque as perguntas rodam uma de cada vez, na linha principal.
+static var _shared_query: PhysicsShapeQueryParameters2D
+
 
 ## A pegada (círculo no chão = elipse 2:1 na tela) em `at` está livre? `mask` inclui
 ## `ACTORS` quando também não pode haver personagens ali (ex.: colocar uma estrutura).
 static func is_walkable(space: PhysicsDirectSpaceState2D, at: Vector2, radius: float,
 		mask: int = PhysicsLayers.WORLD) -> bool:
-	var shape := CircleShape2D.new()
-	shape.radius = radius
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = shape
+	if _shared_query == null:
+		_shared_query = PhysicsShapeQueryParameters2D.new()
+		_shared_query.shape = CircleShape2D.new()
+	var query := _shared_query
+	(query.shape as CircleShape2D).radius = radius
 	query.transform = Transform2D(0.0, Vector2(1.0, 1.0 / Iso.Y_SCALE), 0.0, at)
 	query.collision_mask = mask
 	return space.intersect_shape(query, 1).is_empty()

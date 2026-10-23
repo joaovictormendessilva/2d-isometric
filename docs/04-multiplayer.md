@@ -26,7 +26,8 @@ entidades remotas desde o início), para não quebrar quando formos para o onlin
 - Número de jogadores é parâmetro explícito (`player_count`) das fórmulas de escala.
 - Fórmulas de vida/dano/quantidade de inimigos/recompensas ficam em `data/` (nada de
   multiplicadores soltos no código).
-- Drops: padrão **pessoal** (cada jogador vê e coleta os seus), salvo itens explicitamente
+- Drops: padrão **pessoal** (cada jogador vê e coleta os seus; o host só envia o drop ao computador
+  do dono, H2), salvo itens explicitamente
   marcados como compartilhados. Regra final por tipo de item: a decidir.
 - Inventário, progressão, equipamentos, habilidades, vida e dano: por jogador.
 

@@ -7,9 +7,11 @@ extends SceneTree
 ## Rodar (com janela; `--fixed-fps 60` = 1 passo de física por quadro, tempo exato):
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
-##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast  (padrão: attack)
+##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop
+##                      (padrão: attack)
 ##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
+##                      drop: a criatura à frente morre; os itens saltam e balançam no chão
 ##   --frames=<n>       quadros na folha (padrão 16)
 ##   --every=<n>        passos de física entre quadros (padrão 2 = 30 quadros/s)
 ##   --crop=<L>x<A>     recorte em volta do jogador, em pixels do jogo (padrão 96x72;
@@ -92,13 +94,16 @@ func _run() -> void:
 ## (uma viagem o recria).
 func _prepare(game: Node, character: Character, scenario: String) -> Character:
 	match scenario:
-		"attack":
+		"attack", "drop":
 			var monster := _nearest_monster(game, character)
 			if monster:
 				monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
 				monster.position = character.position + Iso.ground_to_screen(
 					ATTACK_DIRECTION * TARGET_DISTANCE)
 				monster.reset_physics_interpolation()
+				if scenario == "drop":
+					monster.health.apply_damage(DamageInfo.create(monster.health.current,
+						ATTACK_DIRECTION, 0, 0, character.player_id))
 		"gather":
 			var node := _nearest_resource_node(game, character)
 			if node:

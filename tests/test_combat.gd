@@ -68,7 +68,8 @@ func test_monster_drops_are_personal_and_collectable() -> void:
 	check(is_instance_valid(drop_of_1), "drop alheio não é coletado")
 	if is_instance_valid(drop_of_2):  # pode já ter vindo pelo ímã, se pousou perto
 		second_player.position = drop_of_2.position
-	await physics_frames(5)
+	# Teletransporte: o item pode estar esperando o dono "chegar" (até MAX_IDLE_TIME).
+	await physics_frames(roundi(Pickup.MAX_IDLE_TIME * 60) + 5)
 	check(not is_instance_valid(drop_of_2), "o dono coleta o próprio drop")
 	check(session.get_inventory(2).count(&"gel") > 0, "gosma foi para o inventário do jogador 2")
 	check(session.get_inventory(1).count(&"gel") == 0, "inventário do jogador 1 não mudou")

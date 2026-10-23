@@ -147,11 +147,14 @@ func test_client_collects_own_personal_drop() -> void:
 	monster.reset_physics_interpolation()
 	await physics_frames(15)
 	monster.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, client_id))
-	var drops_arrived := await wait_until(func() -> bool: return pickups(client).size() >= 2, 60)
-	check(drops_arrived, "drops chegaram ao cliente")
+	var drops_arrived := await wait_until(func() -> bool: return pickups(client).size() >= 1, 60)
+	check(drops_arrived, "drop chegou ao cliente")
+	check(pickups(host).size() == 2, "o host tem os dois drops (um por jogador)")
+	await physics_frames(10)
 	var own: Array = pickups(client).filter(func(p: Pickup) -> bool: return p.visible)
-	check(own.size() == 1 and (own[0] as Pickup).owner_player_id == client_id,
-		"cliente vê só o próprio drop")
+	check(pickups(client).size() == 1 and own.size() == 1
+		and (own[0] as Pickup).owner_player_id == client_id,
+		"cliente recebe só o próprio drop (recebeu %d)" % pickups(client).size())
 	if own.size() != 1:
 		return
 	client_player.position = (own[0] as Pickup).position  # passo curto: dentro do limite de velocidade

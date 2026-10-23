@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ (carga de projéteis) |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -321,7 +321,20 @@ João antes da próxima:
   desenho por projétil (os 3 círculos eram polígonos, que não se agrupam). Corrigido: imagem do
   projétil pintada uma vez por habilidade e consulta física reaproveitada na busca de alvos (vale
   também para golpes). 1000 projéteis: 13,0 → 5,5 ms; mesmo visual. Fecha o risco 3 da Etapa D+.
-- H2 – Itens no chão: 200 / 500 drops (desenho, coleta, rede).
+- **H2 – Itens no chão** ✅ (validado pelo João, 2026-10-23, inclusive no coop; branch
+  `stage-h/drop-load-test`): `tests/benchmark_drops.gd`, 200 / 500 gosmas no chão (parados,
+  inventário cheio, coleta contínua, queda num quadro só) e o tráfego com host + cliente.
+  Achados: cada item conferia o inventário do dono a cada quadro e mexia no balanço todo quadro
+  (~13 µs por item); e o host enviava os drops pessoais também a quem não era dono (~250 B cada,
+  ficavam escondidos lá). Corrigido: item longe do dono "dorme" (teto 0,25 s), inventário só
+  com o dono ao alcance, balanço só muda o nó quando troca de pixel, e o drop só vai ao
+  computador do dono (também melhora a privacidade: um cliente não sabe mais o que o outro
+  ganhou). 500 itens: 6,5 → 3,2 ms; mesmo visual. Captura: cenário `drop` em `capture_frames.gd`.
+  Teste do João no coop (2026-10-23), corrigido: às vezes o item pousava e não balançava para um
+  dos jogadores (o balanço econômico guardava alturas quebradas, que caíam no mesmo pixel com a
+  câmera em meio pixel; agora anda de pixel inteiro). E, uma vez, a tecla da Explosão arcana
+  ficou mostrando "1" depois de a recarga acabar (comparação aproximada achava 0,000005 igual a
+  0; antigo, desde a G2b). 197 testes.
 - H3 – Coop com 4 jogadores na mesma região: custo do host e tráfego (hoje medido com 2).
 - H4 – Riscos da arquitetura de rede antes da Etapa I: revisar as pendências da ADR-013 e as
   limitações conhecidas (ex.: host não confere paredes no movimento) e decidir o que resolver já.
