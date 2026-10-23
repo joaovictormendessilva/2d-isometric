@@ -80,5 +80,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Receitas de NPC (F3c) | ✅ | ✅ automático (host confere distância, receita ensinada e moedas; receita chega ao cliente; pedidos forjados recusados; fabricar confere o livro do host) | ⬜ |
 | Mini boss: salto e fase 2 do Rei Slime (F4) | ✅ | ✅ automático (host simula o chefe e aplica o dano; o cliente recebe o salto com o ponto de queda e mostra o aviso; filhotes chegam ao cliente; filhote forjado recusado) | ⬜ |
 | Buffs e debuffs (G1) | ✅ | ✅ automático (host aplica e cobra os ticks; lista de efeitos chega ao cliente, que anda mais rápido com rapidez; veneno não atordoa o dono). Poção de rapidez e veneno do bote passam pelos mesmos caminhos já validados (uso de consumível e dano decididos no host) | ⬜ |
+| Habilidades (G2a) | ✅ | ✅ automático (cliente aprende pelo tomo via host; lança na hora e o projétil do host fere; recarga chega ao cliente; lançamento e troca de espaço forjados recusados) | ⬜ |
 | Desconexão/reconexão | — | ✅ automático (desconexão de host e cliente; quem volta com o mesmo perfil recebe o próprio personagem; mesmo perfil duas vezes é recusado) | ⬜ |
 | Salvamento | ✅ automático (personagem, bancada, pontos de coleta; arquivo adulterado ignorado) | ✅ automático (progresso do amigo guardado no save do host) | ⬜ |

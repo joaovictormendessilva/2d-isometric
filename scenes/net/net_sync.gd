@@ -62,6 +62,8 @@ func _ready() -> void:
 		_body.attacker.attack_started.connect(_on_attack_started.unbind(1))
 	if _body.slammer:
 		_body.slammer.slam_started.connect(_on_slam_started.unbind(1))
+	if _body.caster:
+		_body.caster.cast_started.connect(_on_cast_started)
 	if _body.health:
 		_body.health.damaged.connect(_on_damaged)
 		_body.health.changed.connect(_on_health_changed)
@@ -241,6 +243,21 @@ func _on_slam_started(landing: Vector2) -> void:
 func _slam_played(landing: Vector2) -> void:
 	if _body.slammer and NetRules.is_valid_vector(landing) and _body.is_alive():
 		_body.slammer.play_remote(landing, INTERPOLATION_DELAY)
+
+
+## Host → os outros clientes: lançamento decidido (ver AbilitySync). O dono não recebe: ele já
+## mostrou o lançamento na hora (previsão).
+func _on_cast_started(ability: AbilityData, direction: Vector2) -> void:
+	if is_online() and multiplayer.is_server():
+		_send_to_clients(&"_cast_played", [ability.id, direction], false)
+
+
+@rpc("authority", "call_remote", "reliable")
+func _cast_played(ability_id: StringName, direction: Vector2) -> void:
+	var ability := AbilityDatabase.shared().get_ability(ability_id)
+	direction = NetRules.clean_direction(direction)
+	if ability and direction != Vector2.ZERO:
+		_body.play_remote_cast(ability, direction)
 
 
 # --- Coleta ------------------------------------------------------------------------------

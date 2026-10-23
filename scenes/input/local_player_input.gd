@@ -6,6 +6,7 @@ extends Node
 ## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main) ou, sem NPC,
 ## coletar o ponto de coleta mais próximo.
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
+## Habilidades (1–4 / RB, B, direcional): lança a do espaço, com a mesma mira do ataque.
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
 ## mouse se ele foi o último dispositivo usado; senão, na direção em que o personagem olha.
 ## No coop, o personagem local age na hora e o NetSync pede ao host (ADR-012).
@@ -18,11 +19,15 @@ signal talk_requested(npc: Npc)
 const MOUSE_CAPTURE_GROUP := &"mouse_capture"
 ## Movimento mínimo do analógico para considerar o controle como dispositivo ativo.
 const JOYPAD_ACTIVITY := 0.5
+## Ação de entrada de cada espaço de habilidade (project.godot).
+const ABILITY_ACTIONS: Array[StringName] = [&"ability_1", &"ability_2", &"ability_3", &"ability_4"]
 
 var player_id := 0
 var target: Character
 ## Diz qual NPC está ao alcance do jogador (sem ela, a interação só coleta).
 var player_state: PlayerStateSync
+## Lança as habilidades das teclas 1–4 (sem ela, as teclas não fazem nada).
+var abilities: AbilitySync
 
 var _aim_with_mouse := false
 ## O clique de mouse atual começou com o ponteiro livre? (Um clique que começou na interface
@@ -59,6 +64,10 @@ func _physics_process(_delta: float) -> void:
 			target.request_gather()
 	if Input.is_action_just_pressed(&"use_potion") and player_state:
 		player_state.request_quick_heal()
+	if abilities:
+		for index in AbilityBook.SLOTS:
+			if Input.is_action_just_pressed(ABILITY_ACTIONS[index]):
+				abilities.request_cast(player_id, index, _aim_direction())
 	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
 		target.request_attack(_aim_direction())

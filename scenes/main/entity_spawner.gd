@@ -51,6 +51,8 @@ var local_player_id := 0
 var damage_numbers: DamageNumbers
 var items: ItemDatabase
 var player_state: PlayerStateSync
+## Host: envia ao dono o livro de habilidades de cada jogador que chega.
+var abilities: AbilitySync
 ## Tipos de estrutura (`data/structures/`), para montar as que o host cria.
 var structures: DataCatalog
 ## Kit de testes dado a cada jogador NOVO (só em compilações de desenvolvimento; ver main).
@@ -271,6 +273,8 @@ func _instantiate_player(data: Dictionary) -> Character:
 	if multiplayer.is_server():
 		character.died.connect(_on_player_died)
 		player_state.track_player(character.player_id)
+		if abilities:
+			abilities.track_player(character.player_id)
 	return character
 
 

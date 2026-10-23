@@ -234,9 +234,11 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
   são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
   (sem mana, como no V Rising).
-  - G2a: núcleo e o **Projétil arcano** (primeira habilidade): dados em `data/abilities/`, livro
-    de habilidades por jogador, lançar decidido pelo host com recarga, projétil que acerta o
-    primeiro inimigo no caminho; aprender lendo um tomo (item do mercador); coop e save.
+  - G2a 🟡 implementado: núcleo e o **Projétil arcano** (primeira habilidade): dados em
+    `data/abilities/`, livro de habilidades por jogador, lançar decidido pelo host com recarga
+    (2,5 s), projétil violeta que acerta o primeiro inimigo no caminho (14 de dano, alcance 170);
+    aprender lendo o "Tomo: Projétil arcano" (mercador, 50 moedas; vai para a tecla 1); coop
+    (o dono vê na hora, o host decide) e save. Ainda sem barra no HUD (G2b). 169 testes.
   - G2b: barra de habilidades no HUD (ícone, tecla, recarga) e trocar habilidades de espaço.
   - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
     combate").

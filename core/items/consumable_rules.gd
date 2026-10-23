@@ -5,17 +5,20 @@ extends RefCounted
 ## A vida entra como números (atual e máxima): quem aplica a cura e os efeitos do item usado é quem
 ## chama (Health.heal, StatusEffects.apply).
 
-enum Check { OK, NOT_USABLE, NO_POTION, DEAD, FULL_HEALTH, COOLING_DOWN }
+enum Check { OK, NOT_USABLE, NO_POTION, DEAD, FULL_HEALTH, COOLING_DOWN, ALREADY_KNOWN }
 
 
-## Usar o item do espaço `index` com a vida `current`/`maximum`.
+## Usar o item do espaço `index` com a vida `current`/`maximum`. `abilities`: livro de quem usa
+## (tomos; sem ele, tomo nenhum se usa).
 static func check_use(inventory: Inventory, index: int, items: ItemDatabase, current: int,
-		maximum: int, cooldowns: Cooldowns, now: float) -> Check:
+		maximum: int, cooldowns: Cooldowns, now: float, abilities: AbilityBook = null) -> Check:
 	var item := _consumable_at(inventory, index, items)
-	if item == null:
+	if item == null or (item.teaches_ability and abilities == null):
 		return Check.NOT_USABLE
 	if current <= 0:
 		return Check.DEAD
+	if item.teaches_ability and abilities.knows(item.teaches_ability.id):
+		return Check.ALREADY_KNOWN  # não gasta o tomo
 	if item.heal > 0 and item.effects.is_empty() and current >= maximum:
 		return Check.FULL_HEALTH  # não desperdiça a poção (com efeitos, ainda serve)
 	if not cooldowns.is_ready(item.cooldown_group, now):
@@ -23,11 +26,11 @@ static func check_use(inventory: Inventory, index: int, items: ItemDatabase, cur
 	return Check.OK
 
 
-## Gasta uma unidade do espaço e começa a espera. Retorna o item usado (null = recusado): a cura
-## e os efeitos dele.
+## Gasta uma unidade do espaço e começa a espera. Retorna o item usado (null = recusado): a cura,
+## os efeitos e a habilidade que ele ensina.
 static func use(inventory: Inventory, index: int, items: ItemDatabase, current: int,
-		maximum: int, cooldowns: Cooldowns, now: float) -> ConsumableData:
-	if check_use(inventory, index, items, current, maximum, cooldowns, now) != Check.OK:
+		maximum: int, cooldowns: Cooldowns, now: float, abilities: AbilityBook = null) -> ConsumableData:
+	if check_use(inventory, index, items, current, maximum, cooldowns, now, abilities) != Check.OK:
 		return null
 	var item := _consumable_at(inventory, index, items)
 	inventory.set_slot(index, item.id, inventory.slot_amount(index) - 1)

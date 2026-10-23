@@ -7,7 +7,8 @@ extends SceneTree
 ## Rodar (com janela; `--fixed-fps 60` = 1 passo de física por quadro, tempo exato):
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
-##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss  (padrão: attack)
+##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast  (padrão: attack)
+##                      cast: aprende o projétil arcano e o lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
 ##   --frames=<n>       quadros na folha (padrão 16)
 ##   --every=<n>        passos de física entre quadros (padrão 2 = 30 quadros/s)
@@ -26,6 +27,11 @@ const WALK_DIRECTION := Vector2(1, 0.5)
 const TARGET_DISTANCE := 22.0
 ## Onde o jogador fica no cenário do chefe (chão): a meia distância, para ele saltar.
 const BOSS_DISTANCE := Vector2(100, 0)
+## Cenário "cast": habilidade aprendida e posta na tecla 1, e a distância (chão) do alvo.
+const CAST_ABILITY := &"arcane_bolt"
+const CAST_DISTANCE := 70.0
+
+var _abilities: AbilitySync
 
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
@@ -97,6 +103,16 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 				character.reset_physics_interpolation()
 		"inventory":
 			(game.get_node("UI/InventoryPanel") as InventoryPanel).set_open(true)
+		"cast":
+			_abilities = game.abilities
+			(game.session as GameSession).get_ability_book(game.local_player_id()).learn(
+				AbilityDatabase.shared().get_ability(CAST_ABILITY))
+			var target := _nearest_monster(game, character)
+			if target:
+				target.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+				target.position = character.position + Iso.ground_to_screen(
+					ATTACK_DIRECTION * CAST_DISTANCE)
+				target.reset_physics_interpolation()
 		"boss":
 			game._travel(game.local_player_id(), &"forest", &"to_meadow")
 			await physics_frame
@@ -118,6 +134,8 @@ func _act(character: Character, scenario: String) -> void:
 			character.request_attack(Iso.screen_to_ground(ATTACK_DIRECTION))
 		"gather":
 			character.request_gather()
+		"cast":
+			_abilities.request_cast(character.player_id, 0, Iso.screen_to_ground(ATTACK_DIRECTION))
 
 
 func _screen_position(character: Character) -> Vector2:

@@ -172,7 +172,7 @@ func check_use(player_id: int, index: int) -> ConsumableRules.Check:
 		return ConsumableRules.check_quick_heal(inventory, items, health.current,
 			health.max_health, cooldowns, NetRules.now())
 	return ConsumableRules.check_use(inventory, index, items, health.current, health.max_health,
-		cooldowns, NetRules.now())
+		cooldowns, NetRules.now(), session.get_ability_book(player_id))
 
 
 ## Lugares de fabricação ao alcance do jogador: a mão e as estações perto dos pés dele.
@@ -373,14 +373,17 @@ func _use_slot(player_id: int, index: int) -> void:
 	if character == null:
 		return
 	var health := character.health
+	var book := session.get_ability_book(player_id)
 	var used := ConsumableRules.use(session.get_inventory(player_id), index, items, health.current,
-		health.max_health, session.get_cooldowns(player_id), NetRules.now())
+		health.max_health, session.get_cooldowns(player_id), NetRules.now(), book)
 	if used == null:
 		return
 	if used.heal > 0:
 		health.heal(used.heal)
 	for effect in used.effects:
 		character.status_effects.apply(effect, player_id)
+	if used.teaches_ability:
+		book.learn(used.teaches_ability)
 
 
 @rpc("any_peer", "call_remote", "reliable")

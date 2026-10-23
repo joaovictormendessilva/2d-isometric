@@ -676,3 +676,33 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   próprio (`tonic`).
 - **Consequências**: novas fontes de efeito (G1c: golpe que envenena, poção de buff; G2:
   habilidades; G3: auras) só chamam `StatusEffects.apply`.
+
+## ADR-026 — Habilidades aprendidas e equipadas
+
+- **Status**: Hipótese (G2a implementada; aguardando a G2b para validação do João)
+- **Direção do João (2026-10-23)**: habilidades **aprendidas e equipadas** (livre para montar
+  builds, estilo Terraria); mago e arqueiro são escolhas de equipamento e habilidade, não classe
+  fixa. Lançar no estilo Albion/V Rising (tecla, mira no cursor).
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Habilidade = dado** (`AbilityData` em `data/abilities/`): recarga, preparação (anda mais
+    devagar; apanhar não interrompe), dano, recuo, velocidade, alcance, raio, efeitos no alvo
+    (os de ADR-025), cores. Hoje só projéteis; em área depois, no mesmo formato.
+  - **Sem mana**: só recarga, como no V Rising (decisão técnica reversível).
+  - **4 espaços**, teclas **1–4** (controle: RB, B, direcional ↑ e →); mira = a do ataque (mouse
+    ou direção do olhar).
+  - **Livro por jogador** (`AbilityBook` na sessão, como a carteira): aprendidas, espaços e
+    recargas; vai no save. Aprender põe na primeira tecla livre.
+  - **Aprender lendo um tomo** (`ConsumableData.teaches_ability`): quem já conhece não gasta.
+    Primeiro tomo, "Projétil arcano", no mercador (50 moedas).
+  - **Projétil** (`Projectile`): voa no plano do chão e para no primeiro inimigo; não é entidade
+    (nada dele passa pela rede). Em todo computador ele voa e some ao tocar; só o do host fere.
+  - **Pendência**: projéteis ainda atravessam árvores e pedras.
+- **Rede e segurança** (ADR-013): `AbilitySync` (base `HostRequests`, extraída do
+  `PlayerStateSync`). O dono confere antes de pedir, mostra o lançamento na hora (previsão) e
+  pede ao host com espaço e direção; o host confere livro, recarga, vida e direção (NaN/zero
+  recusados) com o estado DELE e lança; o NetSync avisa os outros clientes (o id que chega é
+  conferido no catálogo local). RPCs novas que o cliente chama: pedir lançamento, trocar espaço e
+  pedir o livro — todas só mexem no livro de quem pediu. O host manda ao dono o livro inteiro a
+  cada mudança e as recargas. Previsão recusada pelo host = só um projétil sem efeito no dono.
+- **Consequências**: novas habilidades = um `.tres` + nome na tabela de textos + tomo (ou outra
+  fonte). A G2c (ameaça) usa o dano à distância que agora existe.
