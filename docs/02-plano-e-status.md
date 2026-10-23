@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ (carga de projéteis) |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -308,6 +308,24 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     picos de 7,5 ms com 60 auras (o anel era pintado pixel a pixel em cada personagem). Corrigido:
     cada quadro do anel é pintado uma vez e dividido por todos com a mesma aura; mesmo visual,
     p99 1,5 ms. 194 testes.
+
+## Etapa H — incrementos
+
+Divisão proposta (2026-10-23), a partir dos testes de estresse ainda abertos em
+`docs/03-desempenho.md` e das limitações de `docs/04-multiplayer.md`; cada parte validada pelo
+João antes da próxima:
+
+- **H1 – Carga de projéteis** ✅ (validado pelo João, 2026-10-23: projétil acerta, segue o mouse e mata; branch
+  `stage-h/projectile-load-test`): `tests/benchmark_projectiles.gd`, 200 / 500 / 1000 Projéteis
+  arcanos no ar, sem e com alvos, em cada nível de qualidade. Achado: ~13 µs e 3 chamadas de
+  desenho por projétil (os 3 círculos eram polígonos, que não se agrupam). Corrigido: imagem do
+  projétil pintada uma vez por habilidade e consulta física reaproveitada na busca de alvos (vale
+  também para golpes). 1000 projéteis: 13,0 → 5,5 ms; mesmo visual. Fecha o risco 3 da Etapa D+.
+- H2 – Itens no chão: 200 / 500 drops (desenho, coleta, rede).
+- H3 – Coop com 4 jogadores na mesma região: custo do host e tráfego (hoje medido com 2).
+- H4 – Riscos da arquitetura de rede antes da Etapa I: revisar as pendências da ADR-013 e as
+  limitações conhecidas (ex.: host não confere paredes no movimento) e decidir o que resolver já.
+- Em aberto: medir num computador fraco de verdade (o alvo "modesto" ainda é hipótese).
 
 ## Funcionalidades
 

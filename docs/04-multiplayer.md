@@ -46,8 +46,9 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 1. ✅ Duas instâncias conectadas: movimento replicado e suave (validado pelo João; teste mede o passo
    por quadro).
 2. ✅ Dano aplicado só pelo host, refletido no cliente (nos dois sentidos).
-3. ⬜ Projéteis: ainda não existem; o desenho previsto é o mesmo dos ataques (o dono pede,
-   o host decide o acerto e cria/remove o projétil pelo Replicator).
+3. ✅ Projéteis (G2a, ADR-026; carga medida na H1): o dono pede o lançamento, o host confere e
+   avisa os outros; cada computador voa o próprio projétil (nada dele trafega depois do aviso) e
+   só no host o toque causa dano. Mais simples que o previsto (sem criar/remover pelo Replicator).
 4. ✅ Desconexão do cliente sem travar o host, e do host sem travar o cliente.
 
 ## Limitações conhecidas
