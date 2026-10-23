@@ -5,7 +5,7 @@ extends Node2D
 ## pisca, avermelha e some junto com ele. O tamanho do corpo vem do sprite "Body" irmão.
 ## Bolhas no corpo acompanham o ator; faíscas nos pés ficam para trás (rastro de rapidez).
 
-## Teto por efeito, qualquer que seja o dado (níveis de qualidade: Etapa G3).
+## Teto por efeito, qualquer que seja o dado; o nível de qualidade corta daí (ADR-028).
 const MAX_PARTICLES := 8
 const LIFETIME := 1.0
 ## Lado das partículas em pixels (quadradinhos sem textura; 2 px lê na escala do jogo).
@@ -31,12 +31,21 @@ func _ready() -> void:
 	get_parent().move_child.call_deferred(self, -1)
 	if body.status_effects:
 		body.status_effects.effects.changed.connect(_sync)
+		VfxQuality.shared().changed.connect(_rebuild)
 		_sync()
 
 
 ## Quantos emissores há agora (testes).
 func emitter_count() -> int:
 	return _emitters.size()
+
+
+## Outro nível de qualidade: refaz os emissores com a nova quantidade.
+func _rebuild() -> void:
+	for particles: CPUParticles2D in _emitters.values():
+		particles.queue_free()
+	_emitters.clear()
+	_sync()
 
 
 func _sync() -> void:
@@ -50,12 +59,17 @@ func _sync() -> void:
 			_emitters.erase(id)
 	for id in active:
 		if not _emitters.has(id):
-			_emitters[id] = _create(active[id])
+			var particles := _create(active[id])
+			if particles:
+				_emitters[id] = particles
 
 
+## Nulo se o teto de partículas do computador já foi alcançado (o efeito fica sem partículas).
 func _create(effect: StatusEffectData) -> CPUParticles2D:
 	var particles := CPUParticles2D.new()
-	particles.amount = clampi(effect.vfx_amount, 1, MAX_PARTICLES)
+	if not VfxQuality.shared().claim(particles, mini(effect.vfx_amount, MAX_PARTICLES)):
+		particles.free()
+		return null
 	particles.lifetime = LIFETIME
 	particles.randomness = 0.5
 	particles.local_coords = not effect.vfx_at_feet

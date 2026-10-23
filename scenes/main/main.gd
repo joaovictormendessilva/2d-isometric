@@ -15,6 +15,7 @@ extends Node
 ##   --effect=<id>                aplica esse efeito (data/effects/) no jogador antes da captura.
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
+##   --quality=<low|medium|high>  qualidade dos efeitos só nesta execução (ADR-028).
 
 const REGIONS_DIR := "res://data/regions/"
 const START_REGION := &"meadow"
@@ -74,6 +75,7 @@ var _ability_bar := AbilityBar.new()
 
 func _ready() -> void:
 	Texts.apply_command_line(OS.get_cmdline_user_args())
+	VfxQuality.shared().apply_command_line(OS.get_cmdline_user_args())
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	network.start()

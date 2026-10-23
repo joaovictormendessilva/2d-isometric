@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="VfxQualityLevels" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scenes/effects/vfx_quality_levels.gd" id="1_levels"]
+[ext_resource type="Script" path="res://scenes/effects/vfx_quality_level.gd" id="2_level"]
+
+[sub_resource type="Resource" id="Low"]
+script = ExtResource("2_level")
+id = &"low"
+particle_scale = 0.4
+particle_budget = 150
+
+[sub_resource type="Resource" id="Medium"]
+script = ExtResource("2_level")
+id = &"medium"
+particle_scale = 0.7
+particle_budget = 400
+
+[sub_resource type="Resource" id="High"]
+script = ExtResource("2_level")
+id = &"high"
+particle_scale = 1.0
+particle_budget = 800
+
+[resource]
+script = ExtResource("1_levels")
+levels = Array[ExtResource("2_level")]([SubResource("Low"), SubResource("Medium"), SubResource("High")])
+default_level = 2

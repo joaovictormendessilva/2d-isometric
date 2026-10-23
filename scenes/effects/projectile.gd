@@ -33,8 +33,10 @@ func setup(ability: AbilityData, caster: Character, direction: Vector2) -> void:
 
 func _ready() -> void:
 	var trail := CPUParticles2D.new()
+	if not VfxQuality.shared().claim(trail, TRAIL_PARTICLES):
+		trail.free()  # teto de partículas alcançado: o projétil voa sem rastro
+		return
 	trail.position = Vector2(0, -HEIGHT)
-	trail.amount = TRAIL_PARTICLES
 	trail.lifetime = TRAIL_LIFETIME
 	trail.local_coords = false
 	trail.gravity = Vector2.ZERO

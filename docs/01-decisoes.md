@@ -748,3 +748,24 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   chega aos clientes como antes.
 - **Consequências**: classes à distância precisam se mexer (o chefe vem e salta neles). Futuro:
   ameaça extra por cura/provocação e "fúria" que esquece a ameaça com o tempo, se o João quiser.
+
+## ADR-028 — Níveis de qualidade dos efeitos e teto de partículas
+
+- **Status**: Hipótese (G3a, 2026-10-23; aguarda validação do João)
+- **Contexto**: a visão pede efeitos marcantes com níveis de qualidade e limite de partículas
+  (`docs/03-desempenho.md`); as auras da G3 vão somar muitas partículas na tela.
+- **Decisões** (técnicas, valores em `data/vfx/quality.tres`):
+  - Três níveis: **baixo** (40% das partículas, teto 150), **médio** (70%, teto 400) e **alto**
+    (100%, teto 800). Padrão: alto (até existir menu de opções e medição em hardware modesto).
+  - Serviço `VfxQuality` (só apresentação, um por execução): todo emissor de partículas passa por
+    `claim`, que corta a quantidade pelo nível e pelo que sobra do teto do computador. Teto cheio:
+    o efeito aparece sem partículas (o resto do efeito continua). Conta só emissores na árvore.
+  - Trocar de nível refaz as partículas dos efeitos que duram (veneno, rapidez); faíscas e rastros
+    curtos pegam o nível novo no próximo uso.
+  - A escolha fica nas preferências locais (`UserSettings`, seção `graphics`). Por enquanto troca
+    com **F4 com o painel F3 aberto** (provisório); `--quality=low|medium|high` vale só para a
+    execução (capturas e testes de desempenho).
+- **Rede e segurança**: nada passa pela rede; cada computador escolhe a própria qualidade.
+- **Consequências**: as auras (G3b) usam o mesmo `claim`. Pendente: menu de opções para o jogador
+  (com textos traduzíveis); o host com várias regiões conta também as partículas das regiões que
+  não está mostrando (aceitável; revisar se pesar).
