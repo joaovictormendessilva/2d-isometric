@@ -42,6 +42,16 @@ func start_game(save_path: String = "") -> Node:
 	return game
 
 
+## Avisos flutuantes do jogador local (`PlayerFeedback`) na fila ou já mostrados.
+func feedback_texts(game: Node) -> Array:
+	var feedback := game.get_node("PlayerFeedback") as PlayerFeedback
+	var texts: Array = feedback._queue.map(func(message: Array) -> String: return message[0])
+	for label: Label in (game.get_node("WorldText/DamageNumbers") as DamageNumbers)._pool:
+		if not label.text.is_empty():
+			texts.append(label.text)
+	return texts
+
+
 ## Jogador avulso, já com o equipamento inicial vestido (como o spawner faz no jogo).
 func spawn_character(at: Vector2) -> Character:
 	var character: Character = PLAYER_SCENE.instantiate()

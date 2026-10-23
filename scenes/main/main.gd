@@ -107,6 +107,9 @@ func _ready() -> void:
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
 		_spawner.starter_kit = load(STARTER_KIT)
 	_spawner.local_player_spawned.connect(_on_local_player_spawned)
+	# Avisos só depois de o estado do jogador chegar: o que veio do save ou do host não é novidade.
+	_spawner.local_player_prepared.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
+	abilities.full_state_received.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():

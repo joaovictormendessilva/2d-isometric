@@ -193,11 +193,7 @@ func test_no_new_look_notice_for_what_the_player_already_had() -> void:
 ## Avisos de aparência nova na fila ou já mostrados.
 func _look_notices(game: Node) -> int:
 	var prefix := Texts.format(&"FEEDBACK_LOOK_COLLECTED", [""])
-	var feedback := game.get_node("PlayerFeedback") as PlayerFeedback
-	var texts: Array = feedback._queue.map(func(message: Array) -> String: return message[0])
-	for label: Label in (game.get_node("WorldText/DamageNumbers") as DamageNumbers)._pool:
-		texts.append(label.text)
-	return texts.filter(func(text: String) -> bool: return text.begins_with(prefix)).size()
+	return feedback_texts(game).filter(func(text: String) -> bool: return text.begins_with(prefix)).size()
 
 
 ## Tela: botão direito num espaço lista a própria, as colecionadas do tipo e esconder; escolher

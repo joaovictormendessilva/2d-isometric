@@ -397,6 +397,13 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   dentro da árvore. Os testes terminam sem nenhum aviso.
 - Corrigido (2026-10-23): `render_checks.gd` reprovava desde a G3c2: o aviso falso "Nova
   aparência: Espada" num mundo novo cobria o texto de teste.
+- Corrigido (2026-10-23, achado do João; branch `stage-g/aura-load-test`): ao abrir o jogo
+  apareciam "Nova habilidade: X", "Minerador nível N!" e o nome de efeitos ativos (ex.:
+  "Rapidez"). É a mesma causa do aviso falso de aparência: os avisos anotavam o que o jogador
+  tinha no instante em que o personagem aparecia, e o save (ou o estado vindo do host) chegava
+  logo depois. Agora os avisos do jogador local ficam em silêncio até o estado chegar (host:
+  save aplicado; cliente: última resposta do estado completo, protocolo 14). Teste: reabrir o
+  mundo e voltar como amigo não avisa nada; habilidade nova de verdade avisa. 195 testes.
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 

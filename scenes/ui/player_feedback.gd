@@ -32,6 +32,9 @@ var _numbers: DamageNumbers
 var _levels: Dictionary[StringName, int] = {}
 ## Efeitos já anunciados: renovar um efeito ativo não repete o aviso.
 var _known_effects: Dictionary[StringName, bool] = {}
+## Desligado até o estado do jogador chegar (`start_announcing`): até lá, os acompanhamentos só
+## anotam o que ele já tem (habilidades, níveis, efeitos), sem avisar.
+var _announcing := false
 var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
 var _last_refusal := ""
@@ -133,7 +136,15 @@ func _on_gather_refused(node: ResourceNode, reason: GatheringRules.Check) -> voi
 	_show_refusal(GatheringTexts.refusal(node.data, reason))
 
 
+## O estado do jogador local chegou (save no host, estado completo vindo do host no cliente): daqui
+## em diante, o que mudar é novidade.
+func start_announcing() -> void:
+	_announcing = true
+
+
 func _show(text: String, color: Color) -> void:
+	if not _announcing:
+		return
 	if _queue.size() >= MAX_QUEUED:
 		_queue.pop_front()  # avisos velhos perdem a vez
 	_queue.append([text, color])

@@ -150,6 +150,50 @@ func test_game_comes_back_as_it_was() -> void:
 	check(placed.size() == 1 and placed[0].position == spot, "bancada continua no lugar")
 
 
+## Reabrir o mundo (ou entrar no de outro) não anuncia o que o jogador já tinha: nada de
+## "Habilidade aprendida", "Nível 3" ou "Veneno" ao carregar (achado do João, 2026-10-23).
+func test_loading_announces_nothing_the_player_already_had() -> void:
+	_clear_saves()
+	var game := start_game(SAVE_PATH)
+	_give_progress(game.session, 1)
+	check((game.saves as SaveService).save_now() == OK, "grava")
+	game.free()
+
+	game = start_game(SAVE_PATH)
+	calm_monsters(game)
+	await physics_frames(10)
+	check((game.session as GameSession).get_ability_book(1).knows(&"arcane_bolt"), "habilidade volta")
+	check(feedback_texts(game).is_empty(), "host reabrindo: nenhum aviso (%s)" % [feedback_texts(game)])
+	game.free()
+
+	var host := start_network_game("Host", Network.Role.HOST, PORT, SAVE_PATH)
+	calm_monsters(host)
+	var client := await _join("Client")
+	var client_id: int = client.local_player_id()
+	_give_progress(host.session, client_id)
+	client.get_parent().free()
+	await wait_until(func() -> bool: return (host.session as GameSession).get_player_count() == 1)
+	client = await _join("Client2")
+	check(await wait_until(func() -> bool:
+			return (client.session as GameSession).get_ability_book(client.local_player_id()) \
+				.knows(&"arcane_bolt")), "o amigo recebe a habilidade de volta")
+	await physics_frames(30)
+	check(feedback_texts(client).is_empty(), "amigo voltando: nenhum aviso (%s)" % [feedback_texts(client)])
+
+	var book := (host.session as GameSession).get_ability_book(client.local_player_id())
+	book.learn(AbilityDatabase.shared().get_ability(&"arcane_blast"))
+	check(await wait_until(func() -> bool: return feedback_texts(client).size() == 1),
+		"habilidade nova de verdade avisa")
+
+
+## Habilidade, experiência para passar de nível e um efeito ativo.
+func _give_progress(session: GameSession, player_id: int) -> void:
+	session.get_ability_book(player_id).learn(AbilityDatabase.shared().get_ability(&"arcane_bolt"))
+	session.get_skills(player_id).add_xp(&"mining", 500)
+	var character := session.get_player_entity(player_id) as Character
+	character.status_effects.apply(EffectDatabase.shared().get_effect(&"swiftness"), player_id)
+
+
 func test_new_world_starts_fresh() -> void:
 	_clear_saves()
 	var game := start_game(SAVE_PATH)

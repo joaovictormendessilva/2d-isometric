@@ -12,6 +12,9 @@ extends HostRequests
 
 ## O jogador local tentou lançar e não dá (recarga, tecla vazia...): só o aviso, nada foi pedido.
 signal cast_refused(reason: AbilityRules.Check)
+## Cliente: chegou a resposta ao `request_full_state`. É a última do estado do jogador local (o
+## pedido sai depois do PlayerStateSync e as mensagens confiáveis chegam na ordem em que saíram).
+signal full_state_received
 
 var session: GameSession
 
@@ -46,7 +49,7 @@ func _full_state_requested() -> void:
 	var player_id := multiplayer.get_remote_sender_id()
 	var book := session.get_ability_book(player_id) if multiplayer.is_server() else null
 	if book:
-		_send(player_id, &"_book", [book.snapshot()])
+		_send(player_id, &"_full_book", [book.snapshot()])
 
 
 ## Jogador local apertou a tecla do espaço `index`, mirando em `aim` (até o ponto mirado, no chão).
@@ -109,6 +112,13 @@ func _book(state: Dictionary) -> void:
 	var book := session.get_ability_book(multiplayer.get_unique_id())
 	if book:
 		book.replicate(state, AbilityDatabase.shared())
+
+
+## O mesmo livro, em resposta ao `request_full_state`.
+@rpc("authority", "call_remote", "reliable")
+func _full_book(state: Dictionary) -> void:
+	_book(state)
+	full_state_received.emit()
 
 
 @rpc("authority", "call_remote", "reliable")

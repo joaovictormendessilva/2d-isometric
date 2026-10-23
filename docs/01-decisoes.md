@@ -841,6 +841,12 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     equipamento inicial ou save aplicados; cliente: primeira coleção oficial do host). Antes
     disso nada avisa nem é enviado; depois, a coleção oficial que chega também avisa o que
     trouxer de novo (o host pode mandá-la antes do próprio item).
+  - **Avisos ao carregar** (2026-10-23, vale para todos os avisos do jogador local):
+    `PlayerFeedback` fica em silêncio até `start_announcing` (host: `local_player_prepared` do
+    spawner, com o save aplicado; cliente: `AbilitySync.full_state_received`, a resposta
+    `_full_book` ao pedido de estado completo, que é o último a sair e chega por último porque
+    as mensagens confiáveis chegam na ordem de envio). Até lá, só anota habilidades, níveis e
+    efeitos que o jogador já tem. Protocolo 14 (mensagem nova).
   - **Save**: `appearances` (ids) e `looks` (um por espaço) no registro do personagem. A
     coleção volta antes do inventário, então saves anteriores colecionam o que o personagem
     já tem.

@@ -11,6 +11,8 @@ extends Node
 ## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes e IA das criaturas.
 
 signal local_player_spawned(character: Character)
+## Host: o jogador local chegou ao mundo com o save (ou o equipamento inicial) já aplicado.
+signal local_player_prepared
 
 enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION }
 
@@ -291,6 +293,8 @@ func _prepare_player(character: Character) -> void:
 		if starter_kit:
 			starter_kit.give_to(session.get_inventory(character.player_id))
 	session.get_appearances(character.player_id).announces = true
+	if character.player_id == local_player_id:
+		local_player_prepared.emit()
 
 
 ## Tamanho do inventário = base do jogador + espaços das mochilas vestidas, somados direto do
