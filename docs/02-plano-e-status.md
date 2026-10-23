@@ -242,9 +242,21 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   - G2b 🟡 implementado: barra de habilidades embaixo no meio da tela (4 quadrados com ícone, a
     tecla embaixo e a recarga escurecendo o ícone com os segundos); dica com dano e recarga;
     botão direito numa tecla escolhe qual habilidade aprendida vai nela (ou esvazia). Pendente:
-    trocar de tecla só com teclado/controle. 170 testes. Aguardando validação do João (G2a+G2b).
+    trocar de tecla só com teclado/controle. 170 testes.
+  - Teste do João (2026-10-23), corrigido: o projétil saía para onde o personagem olhava, não
+    para o mouse (apertar qualquer tecla trocava a mira para "olhar"; agora só o controle troca);
+    a transparência da criatura voltando para casa sumia se um flash de dano ou um golpe
+    interrompido viesse logo depois (agora todo efeito curto volta à cor do estado). 172 testes.
+  - **Mira no controle**: adiada (João, 2026-10-23). Hoje o controle mira para onde o personagem
+    olha. Proposta para depois: analógico direito mira (estilo twin-stick) e, sem ele, leve
+    ajuda de mira no inimigo mais próximo à frente. Mexe só na entrada (`LocalPlayerInput`): o
+    lançamento já recebe uma direção pronta.
   - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
-    combate").
+    combate"). Achado do João: atacada de fora do raio de agressão, a criatura nem reage; e,
+    perseguindo, desiste assim que o jogador sai desse raio (volta andando, sem ficar imune),
+    bem antes da coleira. Escopo: quem fere vira alvo de qualquer distância; perseguição com
+    raio maior que o de agressão (só desiste na coleira); e criaturas sem alvo passeiam pela
+    própria área (pedido do João), com o raio de passeio nos dados de cada criatura.
   - G2d (a decidir com o João): segunda habilidade, em área com aviso no chão.
 - **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.

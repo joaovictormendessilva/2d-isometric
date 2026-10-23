@@ -41,7 +41,7 @@ func _ready() -> void:
 	if _body.slammer:  # salto: avermelha durante o aviso, volta ao saltar
 		_body.slammer.slam_started.connect(func(_l: Vector2, attack: SlamAttackData) -> void:
 			_telegraphing = true
-			_tween_modulate(Color.WHITE, TELEGRAPH_COLOR, attack.windup))
+			_tween_modulate(_rest_color(false), _rest_color(), attack.windup))
 		_body.slammer.slam_launched.connect(_on_attack_struck)
 		_body.slammer.slam_finished.connect(_on_attack_struck)
 	_body.died.connect(_on_died.unbind(1))
@@ -54,27 +54,27 @@ func _process(_delta: float) -> void:
 
 
 func _on_damaged() -> void:
-	_tween_modulate(FLASH_COLOR, TELEGRAPH_COLOR if _telegraphing else Color.WHITE, FLASH_TIME)
+	_tween_modulate(FLASH_COLOR, _rest_color(), FLASH_TIME)
 
 
 func _on_healed() -> void:
-	_tween_modulate(HEAL_COLOR, Color.WHITE, HEAL_GLOW_TIME)
+	_tween_modulate(HEAL_COLOR, _rest_color(), HEAL_GLOW_TIME)
 
 
-func _on_immunity_changed(immune: bool) -> void:
-	_tween_modulate(visual.modulate, IMMUNE_MODULATE if immune else Color.WHITE, IMMUNE_FADE_TIME)
+func _on_immunity_changed(_immune: bool) -> void:
+	_tween_modulate(visual.modulate, _rest_color(), IMMUNE_FADE_TIME)
 
 
 func _on_attack_started(_direction: Vector2, attack: MeleeAttackData) -> void:
 	if attack.windup >= TELEGRAPH_MIN_WINDUP:
 		_telegraphing = true
-		_tween_modulate(Color.WHITE, TELEGRAPH_COLOR, attack.windup)
+		_tween_modulate(_rest_color(false), _rest_color(), attack.windup)
 
 
 func _on_attack_struck() -> void:
 	_telegraphing = false
-	if visual.modulate != Color.WHITE:
-		_tween_modulate(visual.modulate, Color.WHITE, FLASH_TIME)
+	if visual.modulate != _rest_color():
+		_tween_modulate(visual.modulate, _rest_color(), FLASH_TIME)
 
 
 func _on_died() -> void:
@@ -84,6 +84,15 @@ func _on_died() -> void:
 
 func _on_revived() -> void:
 	_tween_modulate(Color.WHITE, Color.WHITE, 0.0)
+
+
+## Cor de repouso do estado atual: todo efeito curto (flash, cura, fim do aviso) volta para ela.
+## Sem isso, um flash ou um golpe interrompido logo depois de ficar imune apagava a transparência.
+func _rest_color(telegraphing := _telegraphing) -> Color:
+	var color := TELEGRAPH_COLOR if telegraphing else Color.WHITE
+	if _body.health and _body.health.is_immune():
+		color.a = IMMUNE_MODULATE.a
+	return color
 
 
 func _tween_modulate(from: Color, to: Color, duration: float) -> void:

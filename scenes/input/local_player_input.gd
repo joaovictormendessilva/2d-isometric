@@ -8,7 +8,9 @@ extends Node
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
 ## Habilidades (1–4 / RB, B, direcional): lança a do espaço, com a mesma mira do ataque.
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
-## mouse se ele foi o último dispositivo usado; senão, na direção em que o personagem olha.
+## mouse se o último dispositivo de mira foi o mouse; com o controle, na direção em que o
+## personagem olha. Teclas não mudam a mira: teclado e mouse se usam juntos (andar com WASD e
+## apertar 1 continua mirando no ponteiro).
 ## No coop, o personagem local age na hora e o NetSync pede ao host (ADR-012).
 
 ## Interagiu com um NPC ao alcance (quem abre a loja é o Main).
@@ -43,7 +45,7 @@ func _ready() -> void:
 func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton or event is InputEventMouseMotion:
 		_aim_with_mouse = true
-	elif event is InputEventKey or event is InputEventJoypadButton:
+	elif event is InputEventJoypadButton:
 		_aim_with_mouse = false
 	elif event is InputEventJoypadMotion and absf((event as InputEventJoypadMotion).axis_value) > JOYPAD_ACTIVITY:
 		_aim_with_mouse = false
