@@ -772,7 +772,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-029 — Auras (anel de runas, luz no chão e faíscas)
 
-- **Status**: Hipótese (G3b, 2026-10-23; aguarda validação do João)
+- **Status**: Aceita (G3b validada pelo João em 2026-10-23: acompanha o personagem, some ao tirar a coroa)
 - **Direção do João (2026-10-23)**: a primeira aura vem da **Coroa do Rei Slime** (recompensa
   visível de quem venceu o chefe).
 - **Decisões** (técnicas, ajustáveis em `data/auras/`):
@@ -795,3 +795,17 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   com muitas auras na G3d.
 - **Consequências**: qualquer item ganha aura apontando para um arquivo. O sprite da coroa na
   cabeça do personagem ainda não existe (só o ícone); fica para a arte de equipamentos.
+- **Diretrizes do João para os próximos efeitos (2026-10-23)**:
+  - O anel de runas **não é o padrão de todas as auras**: é o primeiro tipo e o nível "simples".
+    Haverá itens sem aura, com aura simples e com muito efeito. Temas diferentes (sombrio com
+    caveirinhas e mãos de esqueleto saindo do chão, angelical, etc.) serão definidos junto com as
+    habilidades.
+  - Os efeitos **podem sair do pixel quadrado**: a ideia é fantasia (formas, brilho e movimento
+    mais livres), desde que leiam bem na tela e não briguem com a arte (referência Hero Siege).
+  - **Efeitos são seletivos e difíceis de conseguir**: precisam despertar vontade de conquistar.
+    Isso vale para o balanceamento de drops e receitas, não para o código.
+  - **Transmog** entra nos cosméticos (G3c): usar a aparência de um item com os atributos de outro,
+    para o item bonito do começo não ficar preso ao baú.
+  - Consequência técnica: a `AuraData` vira uma lista de camadas de tipos diferentes (anel,
+    sprites animados saindo do chão, partículas com forma), em vez de crescer com campos de um
+    tipo só. Fazer quando o primeiro efeito de outro tipo for pedido.
