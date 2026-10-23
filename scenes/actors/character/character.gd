@@ -4,7 +4,7 @@ extends CharacterBody2D
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
 ## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, SlamAttacker, Gatherer,
-## StatusEffects, NetSync ("Net").
+## StatusEffects, AbilityCaster, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
@@ -40,6 +40,7 @@ var attacker: MeleeAttacker
 var slammer: SlamAttacker
 var gatherer: Gatherer
 var status_effects: StatusEffects
+var caster: AbilityCaster
 var net: NetSync
 
 var _footprint: Footprint
@@ -57,6 +58,7 @@ func _enter_tree() -> void:
 	slammer = get_node_or_null("SlamAttacker")
 	gatherer = get_node_or_null("Gatherer")
 	status_effects = get_node_or_null("StatusEffects")
+	caster = get_node_or_null("AbilityCaster")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 
@@ -74,6 +76,8 @@ func _ready() -> void:
 		attacker.attack = _weapon_attack if _weapon_attack else stats.unarmed_attack
 	if attacker and gatherer:
 		attacker.attack_started.connect(gatherer.stop.unbind(2))  # atacar larga a coleta
+	if caster and gatherer:
+		caster.cast_started.connect(gatherer.stop.unbind(2))  # lançar também
 
 
 func is_alive() -> bool:
@@ -133,15 +137,37 @@ func set_move_intent(direction: Vector2) -> void:
 	_move_intent = direction.limit_length(1.0)
 
 
+## Livre para agir: vivo, sem atordoamento e sem outro ataque, salto ou lançamento em andamento.
+func can_act() -> bool:
+	return is_alive() and _stun_left == 0.0 and not (attacker and attacker.is_attacking()) \
+		and not (slammer and slammer.is_slamming()) and not (caster and caster.is_casting())
+
+
 ## Pede um ataque na direção dada (plano do chão). Retorna se o ataque começou.
 func request_attack(direction: Vector2) -> bool:
 	if attacker == null or not is_alive() or _stun_left > 0.0 \
-			or (slammer and slammer.is_slamming()):
+			or (slammer and slammer.is_slamming()) or (caster and caster.is_casting()):
 		return false
 	if not attacker.try_attack(direction):
 		return false
 	facing = direction.normalized()
 	return true
+
+
+## Lança a habilidade na direção dada (plano do chão). Quem confere livro e recarga é o
+## AbilitySync; aqui, só se o ator está livre. Retorna se começou.
+func request_cast(ability: AbilityData, direction: Vector2) -> bool:
+	if caster == null or not can_act() or not caster.try_cast(ability, direction):
+		return false
+	facing = direction.normalized()
+	return true
+
+
+## Lançamento decidido em outro computador (host ou dono que previu): como `play_remote_attack`,
+## ignora o atordoamento, que pode diferir por milissegundos entre computadores.
+func play_remote_cast(ability: AbilityData, direction: Vector2) -> void:
+	if caster and is_alive() and caster.try_cast(ability, direction):
+		facing = direction.normalized()
 
 
 ## Pede um salto com queda em `landing` (tela; ver SlamAttacker). Retorna se começou.
@@ -223,13 +249,16 @@ func _physics_process(delta: float) -> void:
 		speed *= attacker.move_multiplier()
 	if slammer:
 		speed *= slammer.move_multiplier()
+	if caster:
+		speed *= caster.move_multiplier()
 	var rate := stats.acceleration if intent != Vector2.ZERO else stats.friction
 	ground_velocity = ground_velocity.move_toward(intent * speed, rate * delta)
 	velocity = Iso.ground_to_screen(ground_velocity)
 	move_and_slide()
 	# Depois de deslizar numa colisão, a velocidade real pode ter mudado.
 	ground_velocity = Iso.screen_to_ground(velocity)
-	if intent != Vector2.ZERO and not (attacker and attacker.is_attacking()):
+	if intent != Vector2.ZERO and not (attacker and attacker.is_attacking()) \
+			and not (caster and caster.is_casting()):
 		facing = intent.normalized()
 
 
@@ -253,4 +282,6 @@ func _on_died() -> void:
 		slammer.stop()
 	if gatherer:
 		gatherer.stop()
+	if caster:
+		caster.stop()
 	died.emit(self)

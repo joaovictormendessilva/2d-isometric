@@ -50,9 +50,12 @@ var _local_ui_ready := false
 var _traveling: Dictionary[int, bool] = {}
 ## Barra do chefe no alto da tela (criada aqui: só existe para o jogador local).
 var _boss_bar := BossBar.new()
+## Teclas de habilidade embaixo no meio da tela (só do jogador local).
+var _ability_bar := AbilityBar.new()
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
+@onready var abilities: AbilitySync = $Abilities
 @onready var saves: SaveService = $Saves
 @onready var worlds: RegionWorlds = $Regions
 @onready var _camera: GameCamera = $Camera
@@ -89,7 +92,10 @@ func _ready() -> void:
 	player_state.skills = skills
 	player_state.recipes = recipes
 	player_state.spawner = _spawner
+	abilities.session = session
+	_spawner.abilities = abilities
 	_local_input.player_state = player_state
+	_local_input.abilities = abilities
 	_interaction_prompt.player_state = player_state
 	if use_debug_starter_kit and OS.is_debug_build() \
 			and ProjectSettings.get_setting("game/debug/starter_kit", false):
@@ -240,6 +246,8 @@ func _on_local_player_spawned(character: Character) -> void:
 		return
 	_local_ui_ready = true
 	$UI.add_child(_boss_bar)
+	$UI.add_child(_ability_bar)
+	_ability_bar.setup(session.get_ability_book(local_player_id()), abilities)
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()),
@@ -247,11 +255,14 @@ func _on_local_player_spawned(character: Character) -> void:
 	_player_feedback.setup(inventory, wallet, session.get_recipe_book(local_player_id()), recipes,
 		progress, items, skills, _damage_numbers)
 	player_state.use_refused.connect(_player_feedback.show_use_refusal)
+	abilities.cast_refused.connect(_player_feedback.show_cast_refusal)
+	_player_feedback.watch_abilities(session.get_ability_book(local_player_id()))
 	_player_feedback.watch_effects(session.get_effects(local_player_id()))
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	_setup_shop(inventory, wallet)
 	player_state.request_full_state()
+	abilities.request_full_state()
 
 
 ## Loja dos NPCs: a tecla de interagir perto de um abre; o inventário abre e fecha junto (vender

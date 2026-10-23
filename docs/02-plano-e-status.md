@@ -230,9 +230,34 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
     Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
-- **G2 – Primeira habilidade mágica** ⬜: tecla de habilidade, mira no cursor, aviso no chão,
-  efeito mágico (estilo Albion/V Rising). Primeiro ataque à distância; com ele, o chefe passa a
-  perseguir quem o ataca de longe (ver "Direção de combate").
+- **G2 – Primeira habilidade mágica** 🟡 (branch `stage-g/first-ability`, ADR-026): habilidades
+  **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
+  são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
+  (sem mana, como no V Rising).
+  - G2a 🟡 implementado: núcleo e o **Projétil arcano** (primeira habilidade): dados em
+    `data/abilities/`, livro de habilidades por jogador, lançar decidido pelo host com recarga
+    (2,5 s), projétil violeta que acerta o primeiro inimigo no caminho (14 de dano, alcance 170);
+    aprender lendo o "Tomo: Projétil arcano" (mercador, 50 moedas; vai para a tecla 1); coop
+    (o dono vê na hora, o host decide) e save. Ainda sem barra no HUD (G2b). 169 testes.
+  - G2b 🟡 implementado: barra de habilidades embaixo no meio da tela (4 quadrados com ícone, a
+    tecla embaixo e a recarga escurecendo o ícone com os segundos); dica com dano e recarga;
+    botão direito numa tecla escolhe qual habilidade aprendida vai nela (ou esvazia). Pendente:
+    trocar de tecla só com teclado/controle. 170 testes.
+  - Teste do João (2026-10-23), corrigido: o projétil saía para onde o personagem olhava, não
+    para o mouse (apertar qualquer tecla trocava a mira para "olhar"; agora só o controle troca);
+    a transparência da criatura voltando para casa sumia se um flash de dano ou um golpe
+    interrompido viesse logo depois (agora todo efeito curto volta à cor do estado). 172 testes.
+  - **Mira no controle**: adiada (João, 2026-10-23). Hoje o controle mira para onde o personagem
+    olha. Proposta para depois: analógico direito mira (estilo twin-stick) e, sem ele, leve
+    ajuda de mira no inimigo mais próximo à frente. Mexe só na entrada (`LocalPlayerInput`): o
+    lançamento já recebe uma direção pronta.
+  - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
+    combate"). Achado do João: atacada de fora do raio de agressão, a criatura nem reage; e,
+    perseguindo, desiste assim que o jogador sai desse raio (volta andando, sem ficar imune),
+    bem antes da coleira. Escopo: quem fere vira alvo de qualquer distância; perseguição com
+    raio maior que o de agressão (só desiste na coleira); e criaturas sem alvo passeiam pela
+    própria área (pedido do João), com o raio de passeio nos dados de cada criatura.
+  - G2d (a decidir com o João): segunda habilidade, em área com aviso no chão.
 - **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
 
@@ -286,6 +311,10 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   6 s; sem atordoar). Poção de rapidez no mercador (25 moedas): botão direito → Usar, +25% de
   velocidade por 30 s. Os efeitos aparecem acima da vida com os segundos (borda verde = bom,
   vermelha = ruim) e como partículas no personagem.
+- Habilidades (G2): compre o "Tomo: Projétil arcano" no mercador (50 moedas, ou de graça no de
+  testes), botão direito → Usar: a habilidade vai para a tecla 1. Aperte 1 para lançar na direção
+  do mouse (recarga de 2,5 s, mostrada na barra embaixo no meio). Botão direito numa tecla da
+  barra muda a habilidade de tecla.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

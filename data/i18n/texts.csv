@@ -90,6 +90,15 @@ COMBAT_HEALED,+%d,+%d
 USE_FULL_HEALTH,Vida cheia,Health is full
 USE_COOLING_DOWN,Poção ainda não está pronta,Potion not ready yet
 USE_NO_POTION,Sem poções,No potions
+USE_ALREADY_KNOWN,Você já conhece esta habilidade,You already know this ability
+CAST_EMPTY_SLOT,Nenhuma habilidade nesta tecla,No ability on this key
+CAST_COOLING_DOWN,Habilidade recarregando,Ability recharging
+ABILITY_ARCANE_BOLT,Projétil arcano,Arcane bolt
+FEEDBACK_ABILITY_LEARNED,Nova habilidade: %s,New ability: %s
+ABILITY_MENU_CLEAR,Esvaziar,Clear
+STAT_ABILITY_COOLDOWN,Recarga %s s,Cooldown %s s
+ITEM_TOME_ARCANE_BOLT,Tomo: Projétil arcano,Tome: Arcane bolt
+STAT_TEACHES_ABILITY,Ensina a habilidade %s,Teaches the %s ability
 HUD_POTION_KEY,[%s],[%s]
 CRAFT_NOT_LEARNED,Aprenda esta receita com um NPC,Learn this recipe from an NPC
 SHOP_RECIPES,Receitas,Recipes

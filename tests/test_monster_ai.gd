@@ -116,3 +116,17 @@ func test_holding_attack_does_not_stun_lock_slime() -> void:
 	check(not slime.is_alive(), "o jogador venceu o duelo")
 	check(player.health.current < player.health.max_health,
 		"o slime acertou ao menos um bote (vida %d)" % player.health.current)
+
+
+## Voltando para casa (imune), a criatura fica semitransparente mesmo que um flash de dano ou o
+## fim de um golpe aconteça logo depois (antes, o efeito curto devolvia a cor opaca).
+func test_immune_creature_stays_translucent_after_flash() -> void:
+	var slime := spawn_slime(Vector2.ZERO)
+	var visual: CanvasItem = slime.get_node("Visual")
+	slime.request_attack(Vector2.RIGHT)
+	await physics_frames(2)
+	slime.health.set_immune(true)
+	slime.attacker.attack_finished.emit()  # golpe interrompido logo depois de ficar imune
+	await physics_frames(roundi(ActorFeedback.IMMUNE_FADE_TIME * 60.0) + 4)
+	check(is_equal_approx(visual.modulate.a, ActorFeedback.IMMUNE_MODULATE.a),
+		"continua semitransparente (a=%.2f)" % visual.modulate.a)

@@ -17,6 +17,11 @@ const USE_REFUSALS := {
 	ConsumableRules.Check.FULL_HEALTH: &"USE_FULL_HEALTH",
 	ConsumableRules.Check.COOLING_DOWN: &"USE_COOLING_DOWN",
 	ConsumableRules.Check.NO_POTION: &"USE_NO_POTION",
+	ConsumableRules.Check.ALREADY_KNOWN: &"USE_ALREADY_KNOWN",
+}
+const CAST_REFUSALS := {
+	AbilityRules.Check.EMPTY_SLOT: &"CAST_EMPTY_SLOT",
+	AbilityRules.Check.COOLING_DOWN: &"CAST_COOLING_DOWN",
 }
 
 var _character: Character
@@ -28,6 +33,8 @@ var _levels: Dictionary[StringName, int] = {}
 var _known_effects: Dictionary[StringName, bool] = {}
 var _queue: Array[Array] = []  # [texto, cor]
 var _wait := 0.0
+var _last_refusal := ""
+var _last_refusal_time := -INF
 
 
 ## Uma vez: o que é do jogador (itens e moedas ganhos, receitas, experiência).
@@ -47,6 +54,19 @@ func setup(inventory: Inventory, wallet: Wallet, book: RecipeBook, recipes: Reci
 	for skill: GatheringSkillData in skills.entries():
 		_levels[skill.id] = progress.level(skill)
 	progress.changed.connect(_on_xp_changed.bind(progress).unbind(1))
+
+
+## Uma vez: habilidade nova aprendida vira aviso (com a tecla, se já foi para um espaço).
+func watch_abilities(book: AbilityBook) -> void:
+	var known: Dictionary[StringName, bool] = {}
+	for ability in book.learned():
+		known[ability.id] = true
+	book.changed.connect(func() -> void:
+		for ability in book.learned():
+			if not known.has(ability.id):
+				known[ability.id] = true
+				_show(Texts.format(&"FEEDBACK_ABILITY_LEARNED", [ability.get_display_name()]),
+					LEVEL_COLOR))
 
 
 ## Uma vez: efeitos novos no jogador viram aviso (debuff em vermelho, buff em verde).
@@ -91,17 +111,36 @@ func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
 func show_use_refusal(reason: ConsumableRules.Check) -> void:
 	var key: StringName = USE_REFUSALS.get(reason, &"")
 	if not key.is_empty():
-		_show(Texts.get_text(key), REFUSED_COLOR)
+		_show_refusal(Texts.get_text(key))
+
+
+## Recusa ao lançar → aviso (ocupado atacando ou atordoado: sem aviso, é o normal do combate).
+func show_cast_refusal(reason: AbilityRules.Check) -> void:
+	var key: StringName = CAST_REFUSALS.get(reason, &"")
+	if not key.is_empty():
+		_show_refusal(Texts.get_text(key))
 
 
 func _on_gather_refused(node: ResourceNode, reason: GatheringRules.Check) -> void:
-	_show(GatheringTexts.refusal(node.data, reason), REFUSED_COLOR)
+	_show_refusal(GatheringTexts.refusal(node.data, reason))
 
 
 func _show(text: String, color: Color) -> void:
 	if _queue.size() >= MAX_QUEUED:
 		_queue.pop_front()  # avisos velhos perdem a vez
 	_queue.append([text, color])
+
+
+## Recusas ("Habilidade recarregando"...): apertar de novo não empilha o mesmo aviso enquanto ele
+## está na fila ou ainda na tela.
+func _show_refusal(text: String) -> void:
+	var now := Time.get_ticks_msec() / 1000.0
+	if _queue.any(func(message: Array) -> bool: return message[0] == text) \
+			or (text == _last_refusal and now - _last_refusal_time < MESSAGE_TIME):
+		return
+	_last_refusal = text
+	_last_refusal_time = now
+	_show(text, REFUSED_COLOR)
 
 
 func _process(delta: float) -> void:

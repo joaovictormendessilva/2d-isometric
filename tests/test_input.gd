@@ -77,3 +77,20 @@ func _motion_event(at: Vector2, relative: Vector2) -> InputEventMouseMotion:
 	event.relative = relative
 	event.button_mask = MOUSE_BUTTON_MASK_LEFT
 	return event
+
+
+## Teclado e mouse se usam juntos: apertar uma tecla (andar, habilidade 1) continua mirando no
+## ponteiro. Só o controle volta a mirar para onde o personagem olha.
+func test_keys_keep_mouse_aim() -> void:
+	var input := LocalPlayerInput.new()
+	input._input(_motion_event(CLICK_AT, Vector2.ONE))
+	var key := InputEventKey.new()
+	key.keycode = KEY_1
+	key.pressed = true
+	input._input(key)
+	check(input._aim_with_mouse, "depois de uma tecla, ainda mira no mouse")
+	var pad := InputEventJoypadButton.new()
+	pad.pressed = true
+	input._input(pad)
+	check(not input._aim_with_mouse, "com o controle, mira para onde olha")
+	input.free()

@@ -171,6 +171,9 @@ const ICON_PALETTE := {
 	"b": Color("a8e8f8"),  # rapidez (luz)
 	"B": Color("4a9ad8"),  # rapidez
 	"N": Color("2e4a8a"),  # rapidez (sombra, puxa para o roxo)
+	"a": Color("e0c8ff"),  # arcano (luz)
+	"A": Color("9a6cff"),  # arcano
+	"Z": Color("4a2a9a"),  # arcano (sombra)
 }
 const LOG := [
 	"........",
@@ -325,6 +328,27 @@ const SWIFT_ARROWS := [
 	"oo..oo..",
 	"........",
 ]
+## Habilidade (G2): faísca arcana em losango; tomo = livro de capa arcana com as páginas embaixo.
+const ARCANE_SPARK := [
+	"...oo...",
+	"..oaAo..",
+	".oaAAZo.",
+	"oaAAAAZo",
+	"oAAAAZZo",
+	".oAAZZo.",
+	"..oZZo..",
+	"...oo...",
+]
+const TOME := [
+	"........",
+	".oooooo.",
+	"oaAAAAZo",
+	"oAAaAAZo",
+	"oAAAAAZo",
+	"oZZZZZZo",
+	"orrrrrro",
+	".oooooo.",
+]
 ## Ícone da coroa fabricada com o núcleo: ouro com uma gema de gosma no meio.
 const CROWN_ICON := [
 	"........",
@@ -367,6 +391,8 @@ const ICONS := {
 	"king_slime_crown": [CROWN_ICON, {}],
 	"effect_poison": [POISON_DROP, {}],
 	"effect_swiftness": [SWIFT_ARROWS, {}],
+	"arcane_bolt": [ARCANE_SPARK, {}],
+	"tome_arcane_bolt": [TOME, {}],
 }
 
 

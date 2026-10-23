@@ -1,5 +1,5 @@
 class_name PlayerStateSync
-extends Node
+extends HostRequests
 ## Estado de cada jogador que só o host decide: inventário (com a mão), equipamento,
 ## experiência de coleta e moedas (ADR-012). Host: envia ao dono cada espaço do inventário que
 ## mudou, a mão, cada ganho (para os avisos), a experiência e as moedas; e o equipamento de cada
@@ -172,7 +172,7 @@ func check_use(player_id: int, index: int) -> ConsumableRules.Check:
 		return ConsumableRules.check_quick_heal(inventory, items, health.current,
 			health.max_health, cooldowns, NetRules.now())
 	return ConsumableRules.check_use(inventory, index, items, health.current, health.max_health,
-		cooldowns, NetRules.now())
+		cooldowns, NetRules.now(), session.get_ability_book(player_id))
 
 
 ## Lugares de fabricação ao alcance do jogador: a mão e as estações perto dos pés dele.
@@ -209,18 +209,6 @@ func _in_reach(group: StringName, player_id: int) -> Array[Node2D]:
 	return found
 
 
-func _request(method: StringName, args: Array) -> void:
-	if multiplayer.is_server():
-		callv(method, args)  # host (ou offline): aplica direto
-	else:
-		callv(&"rpc_id", [1, method] + args)
-
-
-func _send(player_id: int, method: StringName, args: Array) -> void:
-	if player_id in multiplayer.get_peers():
-		callv(&"rpc_id", [player_id, method] + args)
-
-
 func _send_slot(index: int, player_id: int, inventory: Inventory) -> void:
 	_send(player_id, &"_slot", [index, inventory.slot_item(index), inventory.slot_amount(index)])
 
@@ -248,11 +236,6 @@ func _requester_inventory() -> Inventory:
 	if not multiplayer.is_server():
 		return null
 	return session.get_inventory(_requester())
-
-
-func _requester() -> int:
-	var sender := multiplayer.get_remote_sender_id()
-	return sender if sender != 0 else multiplayer.get_unique_id()
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -390,14 +373,17 @@ func _use_slot(player_id: int, index: int) -> void:
 	if character == null:
 		return
 	var health := character.health
+	var book := session.get_ability_book(player_id)
 	var used := ConsumableRules.use(session.get_inventory(player_id), index, items, health.current,
-		health.max_health, session.get_cooldowns(player_id), NetRules.now())
+		health.max_health, session.get_cooldowns(player_id), NetRules.now(), book)
 	if used == null:
 		return
 	if used.heal > 0:
 		health.heal(used.heal)
 	for effect in used.effects:
 		character.status_effects.apply(effect, player_id)
+	if used.teaches_ability:
+		book.learn(used.teaches_ability)
 
 
 @rpc("any_peer", "call_remote", "reliable")

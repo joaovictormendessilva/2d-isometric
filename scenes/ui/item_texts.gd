@@ -28,6 +28,9 @@ static func describe(item: ItemData) -> String:
 	if consumable:
 		if consumable.heal > 0:
 			lines.append(Texts.format(&"STAT_HEAL", [consumable.heal]))
+		if consumable.teaches_ability:
+			lines.append(Texts.format(&"STAT_TEACHES_ABILITY",
+				[consumable.teaches_ability.get_display_name()]))
 		for effect in consumable.effects:
 			lines.append(Texts.format(&"STAT_EFFECT", [effect.get_display_name(),
 				roundi(effect.duration)]))
