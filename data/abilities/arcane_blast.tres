@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/abilities/ability_data.gd" id="1_ability"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_arcane_blast.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_ability")
+id = &"arcane_blast"
+icon = ExtResource("2_icon")
+shape = 1
+cooldown = 6.0
+cast_time = 0.25
+cast_move_multiplier = 0.5
+damage = 20
+knockback = 120.0
+max_range = 140.0
+area_radius = 26.0
+area_delay = 0.6
+vfx_color = Color(0.88, 0.8, 1, 1)
+vfx_glow_color = Color(0.6, 0.42, 1, 1)

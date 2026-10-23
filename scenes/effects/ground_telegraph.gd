@@ -1,8 +1,9 @@
 class_name GroundTelegraph
 extends Node2D
-## Aviso no chão de um ataque em área (salto do chefe, F4): contorno do círculo atingido (elipse
-## 2:1 na tela) e o miolo enchendo até o impacto, para o jogador ler "sai daí". No impacto, uma
-## onda clara se abre e some. Só apresentação: vive na camada `Region.ground_effects`.
+## Aviso no chão de um ataque em área (salto do chefe, F4; habilidades em área, G2d): contorno do
+## círculo atingido (elipse 2:1 na tela) e o miolo enchendo até o impacto, para o jogador ler
+## "sai daí". No impacto, uma onda clara se abre e some. Só apresentação: vive na camada
+## `Region.ground_effects`. Vermelho = perigo para o jogador; as habilidades dele usam a cor delas.
 
 ## Vermelho de perigo, igual em todo aviso de ataque (mesmo significado de UiStyle.DANGER). Forte
 ## de propósito: a luz ambiente de regiões escuras (floresta) multiplica estas cores.
@@ -19,12 +20,17 @@ const MIN_FILL_RADIUS := 2.0
 var _radius := 0.0
 var _progress := 0.0
 var _wave := -1.0  # < 0: ainda avisando; 0..1: onda do impacto
+var _outline_color := OUTLINE_COLOR
+var _fill_color := FILL_COLOR
 
 
 ## `radius` no plano do chão (px).
-func setup(at: Vector2, radius: float) -> void:
+func setup(at: Vector2, radius: float, outline_color := OUTLINE_COLOR,
+		fill_color := FILL_COLOR) -> void:
 	position = at.round()
 	_radius = radius
+	_outline_color = outline_color
+	_fill_color = fill_color
 
 
 ## Quanto do aviso já passou (0 a 1): o miolo enche junto.
@@ -54,8 +60,8 @@ func _draw() -> void:
 		_ring(_radius * lerpf(1.0, WAVE_GROWTH, _wave), color)
 		return
 	if _radius * _progress >= MIN_FILL_RADIUS:
-		draw_colored_polygon(_ellipse(_radius * _progress, false), FILL_COLOR)
-	_ring(_radius, OUTLINE_COLOR)
+		draw_colored_polygon(_ellipse(_radius * _progress, false), _fill_color)
+	_ring(_radius, _outline_color)
 
 
 func _ring(radius: float, color: Color) -> void:

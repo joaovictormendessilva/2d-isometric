@@ -7,7 +7,7 @@ extends RefCounted
 ## Identifica o jogo e a versão do protocolo no aperto de mão. Mudou o formato de alguma
 ## mensagem? Aumente a versão: computadores com versões diferentes não se conectam.
 const PROTOCOL_ID := "2d-isometric"
-const PROTOCOL_VERSION := 11
+const PROTOCOL_VERSION := 12
 const DEFAULT_PORT := 24680
 ## Coop de até 4 jogadores: o host e mais 3.
 const MAX_CLIENTS := 3
@@ -25,9 +25,15 @@ static func is_valid_vector(value: Vector2) -> bool:
 
 ## Direção recebida pela rede, normalizada; ZERO se inválida.
 static func clean_direction(value: Vector2) -> Vector2:
+	return clean_aim(value).normalized()
+
+
+## Mira recebida pela rede (direção E distância até o ponto mirado, no chão); ZERO se inválida.
+## Quem usa a distância a limita ao próprio alcance (ver AbilityData.area_offset).
+static func clean_aim(value: Vector2) -> Vector2:
 	if not value.is_finite() or value.is_zero_approx() or value.length() > MAX_COORDINATE:
 		return Vector2.ZERO
-	return value.normalized()
+	return value
 
 
 ## Conectado de fato (host ou cliente)? Offline o jogo usa o OfflineMultiplayerPeer.

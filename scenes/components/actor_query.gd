@@ -1,7 +1,7 @@
 class_name ActorQuery
 extends RefCounted
 ## Quem um ataque atinge: personagens vivos de outra facção perto de um ponto, medindo no plano
-## do chão. Usado pelo golpe (MeleeAttacker) e pelo impacto do salto (SlamAttacker).
+## do chão. Usado pelo golpe (MeleeAttacker) e pelos golpes em área (AreaStrike: salto e habilidades).
 
 ## Maior raio de pegada esperado num alvo; amplia a busca física inicial.
 const MAX_TARGET_RADIUS := 16.0

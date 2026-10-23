@@ -349,6 +349,28 @@ const TOME := [
 	"orrrrrro",
 	".oooooo.",
 ]
+## Explosão arcana (G2d): anel de energia com o miolo claro (lê como "área"); o tomo dela traz o
+## anel na capa, para não confundir com o do projétil.
+const ARCANE_RING := [
+	"..oooo..",
+	".oaAAZo.",
+	"oaAooZZo",
+	"oAoaaoZo",
+	"oAoaaoZo",
+	"oZZooZZo",
+	".oZZZZo.",
+	"..oooo..",
+]
+const RING_TOME := [
+	"........",
+	".oooooo.",
+	"oAaaaaZo",
+	"oAaZZaZo",
+	"oAaaaaZo",
+	"oZZZZZZo",
+	"orrrrrro",
+	".oooooo.",
+]
 ## Ícone da coroa fabricada com o núcleo: ouro com uma gema de gosma no meio.
 const CROWN_ICON := [
 	"........",
@@ -393,6 +415,8 @@ const ICONS := {
 	"effect_swiftness": [SWIFT_ARROWS, {}],
 	"arcane_bolt": [ARCANE_SPARK, {}],
 	"tome_arcane_bolt": [TOME, {}],
+	"arcane_blast": [ARCANE_RING, {}],
+	"tome_arcane_blast": [RING_TOME, {}],
 }
 
 

@@ -84,6 +84,7 @@ slam = SubResource("Resource_slam")
 is_boss = true
 aggro_radius = 150.0
 leash_radius = 240.0
+wander_radius = 24.0
 phase_two_health = 0.5
 phase_two_slam = SubResource("Resource_slam_enraged")
 minion_scene = ExtResource("8_minion")

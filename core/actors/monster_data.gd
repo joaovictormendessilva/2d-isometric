@@ -13,8 +13,11 @@ extends Resource
 @export_group("Comportamento (px no chão)")
 ## Distância em que percebe um jogador.
 @export var aggro_radius: float = 110.0
-## Distância máxima de casa antes de desistir e voltar.
+## Distância máxima de casa antes de desistir e voltar. Perseguindo, só desiste aqui (sair do
+## raio de agressão não basta).
 @export var leash_radius: float = 220.0
+## Sem alvo, passeia por pontos a até esta distância de casa; 0 = fica parado.
+@export var wander_radius: float = 0.0
 @export_group("Fase 2 (chefes)")
 ## Fração da vida em que o chefe se enfurece (fase 2); 0 = sem fase 2. Volta à fase 1 se curar.
 @export_range(0.0, 1.0) var phase_two_health: float = 0.0

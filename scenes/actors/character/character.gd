@@ -154,20 +154,21 @@ func request_attack(direction: Vector2) -> bool:
 	return true
 
 
-## Lança a habilidade na direção dada (plano do chão). Quem confere livro e recarga é o
-## AbilitySync; aqui, só se o ator está livre. Retorna se começou.
-func request_cast(ability: AbilityData, direction: Vector2) -> bool:
-	if caster == null or not can_act() or not caster.try_cast(ability, direction):
+## Lança a habilidade mirando em `aim` (até o ponto mirado, no plano do chão; ver
+## AbilityCaster). Quem confere livro e recarga é o AbilitySync; aqui, só se o ator está livre.
+## Retorna se começou.
+func request_cast(ability: AbilityData, aim: Vector2) -> bool:
+	if caster == null or not can_act() or not caster.try_cast(ability, aim):
 		return false
-	facing = direction.normalized()
+	facing = aim.normalized()
 	return true
 
 
 ## Lançamento decidido em outro computador (host ou dono que previu): como `play_remote_attack`,
 ## ignora o atordoamento, que pode diferir por milissegundos entre computadores.
-func play_remote_cast(ability: AbilityData, direction: Vector2) -> void:
-	if caster and is_alive() and caster.try_cast(ability, direction):
-		facing = direction.normalized()
+func play_remote_cast(ability: AbilityData, aim: Vector2) -> void:
+	if caster and is_alive() and caster.try_cast(ability, aim):
+		facing = aim.normalized()
 
 
 ## Pede um salto com queda em `landing` (tela; ver SlamAttacker). Retorna se começou.
@@ -205,8 +206,13 @@ func play_remote_attack(direction: Vector2, tolerance: float) -> void:
 
 ## Host: um ataque deste ator acertou `target` (dano já aplicado): aplica os efeitos do golpe.
 func apply_hit_effects(target: Character) -> void:
+	apply_effects(target, on_hit_effects)
+
+
+## Host: um golpe deste ator (golpe, salto ou habilidade) acertou `target`: aplica `effects`.
+func apply_effects(target: Character, effects: Array[StatusEffectData]) -> void:
 	if target.status_effects:
-		for effect in on_hit_effects:
+		for effect in effects:
 			target.status_effects.apply(effect, player_id)
 
 

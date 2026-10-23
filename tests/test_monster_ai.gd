@@ -18,7 +18,8 @@ func test_slime_ignores_distant_player() -> void:
 	register_player(session, player, 1)
 	var slime := spawn_slime(Vector2(300, 0), session)
 	await physics_frames(120)
-	check(slime.position.distance_to(Vector2(300, 0)) < 2.0, "slime ficou em casa")
+	check(Iso.ground_distance(slime.position, Vector2(300, 0))
+		<= slime.data.wander_radius + MonsterBrain.HOME_TOLERANCE, "slime ficou perto de casa")
 	check(player.health.current == player.health.max_health, "jogador intacto")
 
 

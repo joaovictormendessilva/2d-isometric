@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 (primeira habilidade) em andamento |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 (auras e cosméticos) a seguir |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -230,16 +230,17 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
     Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
-- **G2 – Primeira habilidade mágica** 🟡 (branch `stage-g/first-ability`, ADR-026): habilidades
+- **G2 – Primeira habilidade mágica** ✅ (na `main`; branches `stage-g/first-ability` e
+  `stage-g/arcane-blast`; ADR-026, ADR-027): habilidades
   **aprendidas e equipadas** (escolha do João, 2026-10-23: livre para montar builds; mago e arqueiro
   são escolhas, não classe fixa). 4 espaços nas teclas 1–4, mira no cursor, só tempo de recarga
   (sem mana, como no V Rising).
-  - G2a 🟡 implementado: núcleo e o **Projétil arcano** (primeira habilidade): dados em
+  - G2a ✅ (validado pelo João, 2026-10-23): núcleo e o **Projétil arcano** (primeira habilidade): dados em
     `data/abilities/`, livro de habilidades por jogador, lançar decidido pelo host com recarga
     (2,5 s), projétil violeta que acerta o primeiro inimigo no caminho (14 de dano, alcance 170);
     aprender lendo o "Tomo: Projétil arcano" (mercador, 50 moedas; vai para a tecla 1); coop
     (o dono vê na hora, o host decide) e save. Ainda sem barra no HUD (G2b). 169 testes.
-  - G2b 🟡 implementado: barra de habilidades embaixo no meio da tela (4 quadrados com ícone, a
+  - G2b ✅ (validado pelo João, 2026-10-23): barra de habilidades embaixo no meio da tela (4 quadrados com ícone, a
     tecla embaixo e a recarga escurecendo o ícone com os segundos); dica com dano e recarga;
     botão direito numa tecla escolhe qual habilidade aprendida vai nela (ou esvazia). Pendente:
     trocar de tecla só com teclado/controle. 170 testes.
@@ -251,13 +252,22 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     olha. Proposta para depois: analógico direito mira (estilo twin-stick) e, sem ele, leve
     ajuda de mira no inimigo mais próximo à frente. Mexe só na entrada (`LocalPlayerInput`): o
     lançamento já recebe uma direção pronta.
-  - G2c: criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
+  - G2c ✅ (validado pelo João, 2026-10-23; ADR-027): criaturas e chefes perseguem quem os fere de longe (ameaça por dano; ver "Direção de
     combate"). Achado do João: atacada de fora do raio de agressão, a criatura nem reage; e,
     perseguindo, desiste assim que o jogador sai desse raio (volta andando, sem ficar imune),
     bem antes da coleira. Escopo: quem fere vira alvo de qualquer distância; perseguição com
     raio maior que o de agressão (só desiste na coleira); e criaturas sem alvo passeiam pela
-    própria área (pedido do João), com o raio de passeio nos dados de cada criatura.
-  - G2d (a decidir com o João): segunda habilidade, em área com aviso no chão.
+    própria área (pedido do João), com o raio de passeio nos dados de cada criatura (slimes 40,
+    Rei Slime 24). Feito com tabela de ameaça: quem fere mais é perseguido (troca de alvo com 10%
+    de vantagem). 177 testes.
+  - G2d ✅ (escolha do João: **Explosão arcana**; validado pelo João, 2026-10-23):
+    segunda habilidade, a primeira **em área**. Aperta a tecla → preparação curta (0,25 s) → um
+    círculo violeta aparece no chão no ponto do mouse (até 140 de distância) e o miolo enche por
+    0,6 s → explode e fere todos os inimigos dentro (20 de dano, raio 26, empurra para fora),
+    com onda clara e faíscas. Recarga 6 s. "Tomo: Explosão arcana" no mercador (80 moedas). A
+    mira passou a levar a distância (não só a direção); no controle, sem mira própria ainda, a
+    área cai 80 à frente. O aviso no chão é o mesmo do salto do Rei Slime, na cor da habilidade
+    (vermelho continua sendo só "perigo para você"). 179 testes.
 - **G3 – Auras e cosméticos** ⬜: brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
 
@@ -315,6 +325,9 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   testes), botão direito → Usar: a habilidade vai para a tecla 1. Aperte 1 para lançar na direção
   do mouse (recarga de 2,5 s, mostrada na barra embaixo no meio). Botão direito numa tecla da
   barra muda a habilidade de tecla.
+- Explosão arcana (G2d): "Tomo: Explosão arcana" no mercador (80 moedas). Na tecla, mire com o
+  mouse onde quer a explosão: aparece um círculo violeta no chão e, 0,6 s depois, ela fere
+  todos os inimigos dentro (recarga 6 s).
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 
@@ -372,7 +385,17 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   ir atrás dele, obrigando a correr, usar dash etc. Técnica prevista: ameaça por dano recebido
   (quem causa dano vira alvo, mesmo fora do raio de visão) e habilidades de aproximação do chefe
   (salto/investida já existem). Entra junto com armas e habilidades à distância.
+  Ameaça por dano feita na G2c (ADR-027).
 - **Dificuldade** (João, 2026-10-23): o nível atual (slimes com investida, Rei Slime) é o desejado.
+- **Magia x corpo a corpo** (achado do João no teste da G2d, 2026-10-23): o Rei Slime morre fácil
+  com magia à distância; com a espada é preciso se reposicionar o tempo todo e o risco de apanhar
+  é bem maior. Hoje o dano por segundo da espada é maior que o das magias (projétil 14 a cada
+  2,5 s; explosão 20 a cada 6 s), mas à distância quase não se apanha, e quem usa magia não perde
+  nada em troca (mesma defesa, espada junto). Fica para o balanceamento, com mais conteúdo.
+  Alavancas previstas: custo de build para quem usa magia (equipamento de mago com menos
+  defesa, arma mágica em vez da espada); chefes com mais pressão em quem ataca de longe
+  (investida/salto até o alvo da ameaça, ataques à distância); recompensa para o corpo a corpo
+  (janelas de punição depois dos ataques do chefe, golpes mais fortes, roubo de vida).
 
 ## Textos e idiomas
 

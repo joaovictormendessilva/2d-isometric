@@ -8,7 +8,7 @@ extends SceneTree
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
 ##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast  (padrão: attack)
-##                      cast: aprende o projétil arcano e o lança num slime à frente
+##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
 ##   --frames=<n>       quadros na folha (padrão 16)
 ##   --every=<n>        passos de física entre quadros (padrão 2 = 30 quadros/s)
@@ -18,6 +18,7 @@ extends SceneTree
 ##   --columns=<n>      quadros por linha (padrão 8)
 ##   --warmup=<n>       passos antes de começar (padrão 30)
 ##   --effects=<ids>    efeitos (data/effects/, separados por vírgula) aplicados no jogador
+##   --ability=<id>     habilidade do cenário cast (data/abilities/; padrão arcane_bolt)
 
 const MAIN_SCENE := "res://scenes/main/main.tscn"
 const SEPARATOR := Color(0.9, 0.2, 0.9)  # magenta: nunca confunde com a arte
@@ -27,15 +28,14 @@ const WALK_DIRECTION := Vector2(1, 0.5)
 const TARGET_DISTANCE := 22.0
 ## Onde o jogador fica no cenário do chefe (chão): a meia distância, para ele saltar.
 const BOSS_DISTANCE := Vector2(100, 0)
-## Cenário "cast": habilidade aprendida e posta na tecla 1, e a distância (chão) do alvo.
-const CAST_ABILITY := &"arcane_bolt"
+## Cenário "cast": distância (chão) do alvo, onde a habilidade mira (a área cai nele).
 const CAST_DISTANCE := 70.0
 
 var _abilities: AbilitySync
 
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
-	"columns": "8", "warmup": "30", "out": "", "effects": "",
+	"columns": "8", "warmup": "30", "out": "", "effects": "", "ability": "arcane_bolt",
 }
 
 
@@ -106,7 +106,7 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 		"cast":
 			_abilities = game.abilities
 			(game.session as GameSession).get_ability_book(game.local_player_id()).learn(
-				AbilityDatabase.shared().get_ability(CAST_ABILITY))
+				AbilityDatabase.shared().get_ability(StringName(_options["ability"])))
 			var target := _nearest_monster(game, character)
 			if target:
 				target.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
@@ -135,7 +135,7 @@ func _act(character: Character, scenario: String) -> void:
 		"gather":
 			character.request_gather()
 		"cast":
-			_abilities.request_cast(character.player_id, 0, Iso.screen_to_ground(ATTACK_DIRECTION))
+			_abilities.request_cast(character.player_id, 0, ATTACK_DIRECTION * CAST_DISTANCE)
 
 
 func _screen_position(character: Character) -> Vector2:

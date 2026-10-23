@@ -23,6 +23,8 @@ const MOUSE_CAPTURE_GROUP := &"mouse_capture"
 const JOYPAD_ACTIVITY := 0.5
 ## Ação de entrada de cada espaço de habilidade (project.godot).
 const ABILITY_ACTIONS: Array[StringName] = [&"ability_1", &"ability_2", &"ability_3", &"ability_4"]
+## Controle (ainda sem mira própria; ver plano): o ponto mirado fica esta distância (chão) à frente.
+const GAMEPAD_AIM_DISTANCE := 80.0
 
 var player_id := 0
 var target: Character
@@ -69,10 +71,10 @@ func _physics_process(_delta: float) -> void:
 	if abilities:
 		for index in AbilityBook.SLOTS:
 			if Input.is_action_just_pressed(ABILITY_ACTIONS[index]):
-				abilities.request_cast(player_id, index, _aim_direction())
+				abilities.request_cast(player_id, index, _aim())
 	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
 	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
-		target.request_attack(_aim_direction())
+		target.request_attack(_aim())
 
 
 ## Ponteiro sobre a interface, ou a interface usando o mouse (arrastando janela, item na mão).
@@ -83,12 +85,14 @@ func _mouse_is_busy() -> bool:
 		func(node: Node) -> bool: return node.captures_mouse())
 
 
-func _aim_direction() -> Vector2:
+## Caminho até o ponto mirado no plano do chão (direção e distância): o golpe e o projétil usam
+## só a direção; a habilidade em área cai no ponto (até o alcance dela).
+func _aim() -> Vector2:
 	if _aim_with_mouse:
 		var to_mouse := Iso.screen_to_ground(_mouse_in_world() - target.global_position)
 		if not to_mouse.is_zero_approx():
 			return to_mouse
-	return target.facing
+	return target.facing.normalized() * GAMEPAD_AIM_DISTANCE
 
 
 ## Ponteiro em coordenadas do mundo, pela janela (o personagem mora no mundo da região, que
