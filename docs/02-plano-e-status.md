@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa) |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c 🟡 transmog) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -282,12 +282,20 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     (metade de trás atrás do corpo, metade da frente na frente), luz translúcida no chão
     pulsando e faíscas douradas subindo. Aparece para todos no coop. Capturas: `--equip=<ids>`
     (tela e folha de quadros). 185 testes.
-  - G3c ⬜: cosméticos (aparência separada dos atributos) e **transmog** (pedido do João,
+  - G3c 🟡 implementada, aguarda validação do João (branch `stage-g/transmog`, ADR-030):
+    cosméticos (aparência separada dos atributos) e **transmog** (pedido do João,
     2026-10-23: a aparência de um item com os atributos de outro). Diretrizes de efeitos em ADR-029.
     Escolha do João (2026-10-23): **coleção permanente**, conseguir o item uma vez libera a
     aparência para sempre, mesmo vendendo ou destruindo o item.
     A **aura vai junto com a aparência** (João, 2026-10-23): quem colecionou a coroa exibe a aura
-    dela com qualquer capacete.
+    dela com qualquer capacete. E a aparência **vale sozinha**, sem nada vestido no espaço, e dá
+    para esconder um espaço (João, 2026-10-23).
+    - G3c1: núcleo (coleção por jogador, aparência por espaço, aura do que aparece), rede
+      (protocolo 13, host confere com a coleção dele) e save (saves antigos colecionam o que o
+      personagem tem).
+    - G3c2: botão direito num espaço de equipamento → menu de aparências; selo no canto do
+      espaço; dica com a aparência; aviso "Nova aparência: X". Captura: `--look=<ids>`.
+      Pendente: escolher só com teclado/controle. 192 testes.
   - G3d ⬜: teste de carga com 10 / 30 / 60 auras (`docs/03-desempenho.md`).
 
 ## Funcionalidades
@@ -371,6 +379,9 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
   personagem é recriado a cada viagem). Agora o tamanho vem direto do equipamento vestido.
 - Corrigido (`fix/death-cancels-attack`): criatura que morria no meio da preparação ainda dava
   o bote ("fantasma", sem acertar). Agora a morte encerra qualquer ataque.
+- Testes que abrem o jogo inteiro terminam com avisos de objetos não liberados ("leaked at
+  exit") na saída da Godot. Antigo (igual antes e depois da G3c; não reprova teste); investigar
+  quando sobrar tempo (suspeita: avisos e menus criados fora da árvore).
 - O recuo da espada empurra o slime um pouco para fora do alcance (ele resiste 40%): é
   preciso avançar a cada golpe. Intencional (dá ritmo); ajustável em `data/`.
 

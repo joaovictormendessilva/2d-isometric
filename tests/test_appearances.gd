@@ -165,3 +165,42 @@ func test_client_chooses_look_through_host() -> void:
 		"host e cliente veem a aura da coroa")
 	var host_seen := client_session.get_equipment(host.local_player_id())
 	check(host_seen.look(head) == Equipment.OWN_LOOK, "a aparência do host não mudou")
+
+
+## Tela: botão direito num espaço lista a própria, as colecionadas do tipo e esconder; escolher
+## pede ao host e o espaço ganha o selo; aviso de aparência nova.
+func test_look_menu_in_the_equipment_column() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var equipment := session.get_equipment(1)
+	var head := equipment.index_of_type(EquipmentData.Slot.HEAD)
+	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
+	panel.set_open(true)
+	var column := panel.find_children("*", "EquipmentColumn", true, false)[0] as EquipmentColumn
+	var slot := panel.find_children("*", "EquipmentSlot", true, false)[head] as EquipmentSlot
+	check(column.look_choices(head).map(func(choice: Array) -> StringName: return choice[1])
+		== [Equipment.HIDDEN_LOOK], "sem coleção: só esconder")
+
+	var feedback := game.get_node("PlayerFeedback") as PlayerFeedback
+	var queued_before: int = feedback._queue.size()
+	session.get_inventory(1).add(CROWN, 1)
+	check(feedback._queue.size() > queued_before, "aviso de aparência nova")
+	session.get_inventory(1).add(HELMET, 1)
+	var ids: Array = column.look_choices(head).map(func(choice: Array) -> StringName:
+		return choice[1])
+	check(ids == [HELMET, CROWN, Equipment.HIDDEN_LOOK], "capacete, coroa e esconder (%s)" % [ids])
+	check(column.look_choices(equipment.index_of_type(EquipmentData.Slot.CHEST)).size() == 1,
+		"no peito, a coroa não aparece")
+
+	var badge := slot.get_child(slot.get_child_count() - 1) as Control
+	check(not badge.visible, "aparência própria: sem selo")
+	column._open_look_menu(head)
+	var menu := panel._look_menu
+	check(menu.visible and menu.choice_count() == 3, "o menu abre com 3 escolhas")
+	(menu._column.get_child(1) as Button).pressed.emit()  # a coroa
+	check(not menu.visible and equipment.look(head) == CROWN, "escolheu a coroa")
+	check(badge.visible and slot.tooltip_text.contains(
+		Texts.format(&"EQUIP_LOOK_SHOWN", [equipment.data_of(CROWN).get_display_name()])),
+		"selo e dica mostram a coroa")
+	check(column.look_choices(head)[0][1] == Equipment.OWN_LOOK, "agora dá para voltar à própria")

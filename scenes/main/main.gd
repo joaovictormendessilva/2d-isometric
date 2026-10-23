@@ -18,6 +18,8 @@ extends Node
 ##   --quality=<low|medium|high>  qualidade dos efeitos só nesta execução (ADR-028).
 ##   --equip=<ids>                veste esses itens (data/items/, separados por vírgula) antes da
 ##                                captura.
+##   --look=<ids>                 coleciona esses equipamentos e os mostra como aparência
+##                                (transmog) no primeiro espaço do tipo de cada um.
 
 const REGIONS_DIR := "res://data/regions/"
 const START_REGION := &"meadow"
@@ -262,6 +264,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	abilities.cast_refused.connect(_player_feedback.show_cast_refusal)
 	_player_feedback.watch_abilities(session.get_ability_book(local_player_id()))
 	_player_feedback.watch_effects(session.get_effects(local_player_id()))
+	_player_feedback.watch_appearances(session.get_appearances(local_player_id()), items)
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	_setup_shop(inventory, wallet)
@@ -303,9 +306,12 @@ func _handle_command_line() -> void:
 	var shop_npc := &""
 	var effects: Array[StatusEffectData] = []
 	var equip := ""
+	var looks := ""
 	for arg in OS.get_cmdline_user_args():
 		if arg.begins_with("--equip="):
 			equip = arg.trim_prefix("--equip=")
+		elif arg.begins_with("--look="):
+			looks = arg.trim_prefix("--look=")
 		elif arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
@@ -323,6 +329,7 @@ func _handle_command_line() -> void:
 	if screenshot_path.is_empty():
 		return
 	dev_equip(local_player_id(), equip)
+	_dev_look(local_player_id(), looks)
 	for i in SCREENSHOT_FRAMES:
 		await get_tree().physics_frame
 		var character := session.get_player_entity(local_player_id()) as Character
@@ -351,6 +358,20 @@ func dev_equip(player_id: int, ids: String) -> void:
 		var item := equipment.data_of(StringName(id))
 		if item == null or not EquipmentRules.give_equipped(equipment, item):
 			push_warning("[main] --equip: %s não é equipamento ou não coube" % id)
+
+
+## Capturas: coleciona cada equipamento de `ids` e o mostra no primeiro espaço do tipo dele.
+func _dev_look(player_id: int, ids: String) -> void:
+	var equipment := session.get_equipment(player_id)
+	var collection := session.get_appearances(player_id)
+	for id in ids.split(",", false):
+		var item := equipment.data_of(StringName(id))
+		if item == null:
+			push_warning("[main] --look: %s não é equipamento" % id)
+			continue
+		collection.collect(item.id)
+		EquipmentRules.set_look(equipment, collection, equipment.index_of_type(item.get_slot()),
+			item.id)
 
 
 ## Captura de tela da loja: põe o jogador ao lado do primeiro NPC da região e abre a loja.

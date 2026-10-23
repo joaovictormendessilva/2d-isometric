@@ -57,6 +57,9 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 - O host valida velocidade, não paredes: um cliente adulterado poderia atravessar árvores.
 - Vida das criaturas não é recalculada quando alguém entra no meio da luta.
 - Identidade por segredo do perfil (ADR-019) trafega sem criptografia na LAN (ver ADR-013).
+- Aparências (G3c, ADR-030): a escolhida em cada espaço vai a todos com o equipamento; a coleção
+  só ao dono. O cliente confere as aparências dos outros só pelo tipo do espaço (a coleção deles
+  não chega); o host confere cada pedido com a coleção oficial.
 - Tráfego ~0,9 KB/s por entidade por cliente: muitas criaturas online pedem agrupamento.
 - Regiões no coop (F2c): o host simula toda região com jogador (até uma por jogador); cada
   cliente só recebe a própria. Trocar de região recria o personagem (o anterior fica 1 s parado

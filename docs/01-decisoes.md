@@ -809,3 +809,39 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - Consequência técnica: a `AuraData` vira uma lista de camadas de tipos diferentes (anel,
     sprites animados saindo do chão, partículas com forma), em vez de crescer com campos de um
     tipo só. Fazer quando o primeiro efeito de outro tipo for pedido.
+
+## ADR-030 — Cosméticos e transmog: coleção permanente de aparências
+
+- **Status**: Hipótese (G3c implementada em 2026-10-23; aguarda validação do João)
+- **Direção do João (2026-10-23)**: transmog = aparência de um item com os atributos de outro;
+  **coleção permanente** (conseguir o item uma vez libera a aparência para sempre, mesmo
+  vendendo ou destruindo); a **aura vai junto com a aparência**; a aparência **vale sozinha**,
+  sem item vestido no espaço (estilo Terraria/Grand Fantasia), e um espaço pode ser escondido.
+- **Decisões** (técnicas):
+  - **Coleção** (`AppearanceCollection`, uma por jogador na `GameSession`): todo
+    `EquipmentData` que entra no inventário, na mão ou no corpo é colecionado
+    (`AppearanceCollection.watch`). Sem item especial de "desbloqueio" e sem custo.
+  - **Aparência por espaço** no `Equipment` (não por tipo: os 2 acessórios têm a sua):
+    `OWN_LOOK` (o item vestido), `HIDDEN_LOOK` (nada) ou o id de um equipamento colecionado
+    **do mesmo tipo de espaço**. `Equipment.shown` / `shown_items` dizem o que aparece.
+    Atributos e golpe continuam vindo de `equipped()`; auras (e, um dia, sprites), de `shown`.
+    A mesma aura não se repete (ex.: duas aparências iguais nos acessórios).
+  - **Regra** em `EquipmentRules.set_look` (só o host aplica); `is_valid_look` confere o que
+    é possível sem conhecer a coleção (usado para aparências de outros jogadores).
+  - **Tela**: botão direito num espaço de equipamento → menu (mostrar o item vestido, as
+    aparências colecionadas do tipo, esconder); selo 10×10 no canto do espaço com a aparência
+    escolhida (ou um traço, se escondida); a dica diz a aparência. Aviso "Nova aparência: X".
+  - **Save**: `appearances` (ids) e `looks` (um por espaço) no registro do personagem. A
+    coleção volta antes do inventário, então saves anteriores colecionam o que o personagem
+    já tem.
+- **Rede e segurança (ADR-013)**: protocolo 13. As aparências escolhidas vão a todos junto
+  com o equipamento (`_equipment`), tudo ou nada: cada uma é a própria, escondida ou um
+  equipamento conhecido do tipo do espaço. A coleção vai só ao dono (`_collection`), conferida
+  contra o catálogo local e limitada a 1024 ids. O pedido `_set_look_requested` só mexe no
+  equipamento de quem pediu e é conferido com a coleção **do host** (aparência não colecionada
+  é recusada). Nada de recursos pela rede: só ids procurados no catálogo.
+- **Consequências**: o personagem ainda não desenha capacete, armadura nem arma vestidos (só a
+  aura muda); quando houver sprites de equipamento, eles saem de `shown`, sem mudar a regra.
+  Itens puramente cosméticos (sem atributos) já cabem: são equipamentos com bônus vazios.
+  Pendente: escolher a aparência só com teclado/controle (como a troca de tecla das
+  habilidades).
