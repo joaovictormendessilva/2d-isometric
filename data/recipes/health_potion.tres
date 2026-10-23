@@ -6,7 +6,6 @@
 [resource]
 script = ExtResource("1_recipe")
 id = &"health_potion"
-station = 1
 must_learn = true
 ingredients = Dictionary[StringName, int]({
 &"gel": 3

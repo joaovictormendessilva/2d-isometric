@@ -556,7 +556,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-023 — Receitas aprendidas com NPCs
 
-- **Status**: Hipótese (F3c, aguardando validação do João)
+- **Status**: Aceita (F3c validada pelo João, 2026-10-22)
 - **Direção do João (2026-10-22)**: **aprender e levar** — o NPC vende a receita; aprendida uma
   vez, fica com o personagem e se fabrica longe dele (na bancada ou na mão, conforme a receita).
 - **Decisões** (técnicas, ajustáveis em `data/`):
@@ -568,7 +568,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     (`check_learn`/`learn`, tudo ou nada): ensinada por ele, ainda não sabida, moedas que bastem.
     Teste garante que toda receita a aprender é ensinada por alguém e que comprar ingredientes,
     fabricar e vender nunca dá lucro (fabricar com o que foi coletado pode render: é trabalho).
-  - **Primeira receita**: poção de vida = 3 gosmas na bancada; o mercador ensina por 40 moedas
+  - **Primeira receita**: poção de vida = 3 gosmas, na mão (em qualquer lugar; pedido do João na
+    validação); o mercador ensina por 40 moedas
     (a poção custa 15 na loja e é vendida por 4; 3 gosmas valem 6).
   - **Rede**: o cliente pede "aprender receita X"; o host usa o NPC que ELE sabe estar perto e o
     preço dos dados dele. O dono recebe cada receita aprendida (marcada "nova" só quando acabou

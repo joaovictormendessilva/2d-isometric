@@ -144,10 +144,6 @@ func test_client_learns_through_host() -> void:
 	check(learned == [[&"health_potion", true]], "o cliente recebeu o aviso de receita nova")
 	var on_host := host_session.get_inventory(client_id)
 	on_host.add(&"gel", 3)
-	var bench: PlaceableData = (host.items as ItemDatabase).get_item(&"workbench")
-	(host.player_state as PlayerStateSync).spawner.spawn_structure(Region.of(host_session.get_player_entity(client_id)),
-		bench.structure, free_spot_near(host_session.get_player_entity(client_id), bench.structure))
-	await physics_frames(10)
 	state.request_craft(&"health_potion")
 	check(await wait_until(func() -> bool:
 		return client_session.get_inventory(client_id).count(&"health_potion") == 1, 30),
