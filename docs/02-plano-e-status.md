@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c ✅ transmog; G3d ⬜ carga de auras) |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c ✅ transmog; G3d 🟡 carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -303,7 +303,11 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     - Futuro (pedido do João, 2026-10-23): com muitos itens por tipo, trocar a lista por uma
       **tela de aparências com a grade de imagens** liberadas daquele tipo. Fica para quando a
       interface definitiva (menus, inventário, bolsa, HUD) for desenhada, na referência Hero Siege.
-  - G3d ⬜: teste de carga com 10 / 30 / 60 auras (`docs/03-desempenho.md`).
+  - G3d 🟡 implementada, aguarda validação do João (branch `stage-g/aura-load-test`): teste de
+    carga com 10 / 30 / 60 auras (`tests/benchmark_auras.gd`, `docs/03-desempenho.md`). Achado:
+    picos de 7,5 ms com 60 auras (o anel era pintado pixel a pixel em cada personagem). Corrigido:
+    cada quadro do anel é pintado uma vez e dividido por todos com a mesma aura; mesmo visual,
+    p99 1,5 ms. 194 testes.
 
 ## Funcionalidades
 

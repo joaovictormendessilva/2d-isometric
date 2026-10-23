@@ -15,6 +15,18 @@ func test_crown_has_an_aura() -> void:
 	check(aura.sparkle_amount <= VfxQuality.shared().level().particle_budget, "cabe no teto")
 
 
+## Desempenho (G3d): o anel é pintado uma vez por passo e dividido por todos com a mesma aura.
+func test_actors_with_the_same_aura_share_one_image() -> void:
+	var aura := (ItemDatabase.load_all().get_item(&"king_slime_crown") as EquipmentData).aura
+	var back := AuraRingImage.shared(aura, AuraRing.Half.BACK)
+	check(back == AuraRingImage.shared(aura, AuraRing.Half.BACK), "mesma aura, mesma imagem")
+	check(back != AuraRingImage.shared(aura, AuraRing.Half.FRONT), "cada metade tem a sua")
+	back.show_step(0)
+	var image := back.image
+	check(image.get_pixelv(back.offset + Vector2i(0, -1)).a > 0.0, "a luz do chão aparece atrás")
+	check(image.get_used_rect().size.x > aura.radius, "o anel foi pintado")
+
+
 func test_wearing_shows_and_removing_hides() -> void:
 	var game := start_game()
 	calm_monsters(game)

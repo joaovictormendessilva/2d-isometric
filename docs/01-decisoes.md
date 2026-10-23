@@ -791,8 +791,13 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Rede e segurança**: nada novo. O equipamento de cada jogador já chega a todos (o host envia,
   o cliente confere cada id no catálogo local); a aura sai dos dados locais desse item.
 - **Desempenho**: sem aura, nada roda por quadro (200 slimes: 3,8 ms, igual às medições
-  anteriores). Com aura: 2 desenhos simples a cada passo do giro + 6 partículas. Teste de carga
-  com muitas auras na G3d.
+  anteriores). Com aura: 2 desenhos simples a cada passo do giro + 6 partículas.
+  **Teste de carga (G3d, 2026-10-23)**: pintar o anel pixel a pixel em cada ator dava picos de
+  ~7,5 ms com 60 auras (todos os anéis redesenhavam no mesmo quadro, 12 vezes por segundo). Agora
+  cada (aura, metade) tem uma imagem compartilhada (`AuraRingImage`), pintada uma vez por passo;
+  cada anel só desenha a textura, atualizada no lugar. Mesmo visual. 60 auras: +0,45 ms de média,
+  p99 1,5 ms. Medido com `tests/benchmark_auras.gd` (`docs/03-desempenho.md`). Consequência: auras
+  futuras de outro tipo devem seguir a mesma ideia (pintar uma vez, dividir entre atores).
 - **Consequências**: qualquer item ganha aura apontando para um arquivo. O sprite da coroa na
   cabeça do personagem ainda não existe (só o ícone); fica para a arte de equipamentos.
 - **Diretrizes do João para os próximos efeitos (2026-10-23)**:

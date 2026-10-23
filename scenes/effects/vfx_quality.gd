@@ -37,6 +37,10 @@ func level_index() -> int:
 	return _index
 
 
+func level_count() -> int:
+	return _levels.levels.size()
+
+
 ## Troca o nível. `remember`: grava nas preferências (falso para escolhas só desta execução).
 func set_level(index: int, remember := true) -> void:
 	index = _clamped(index)
@@ -49,7 +53,7 @@ func set_level(index: int, remember := true) -> void:
 
 ## Próximo nível, voltando ao mais leve depois do mais caprichado (tecla do painel de debug).
 func cycle() -> void:
-	set_level((_index + 1) % _levels.levels.size())
+	set_level((_index + 1) % level_count())
 
 
 func apply_command_line(args: PackedStringArray) -> void:
