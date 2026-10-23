@@ -15,6 +15,17 @@ extends Resource
 @export var aggro_radius: float = 110.0
 ## Distância máxima de casa antes de desistir e voltar.
 @export var leash_radius: float = 220.0
+@export_group("Fase 2 (chefes)")
+## Fração da vida em que o chefe se enfurece (fase 2); 0 = sem fase 2. Volta à fase 1 se curar.
+@export_range(0.0, 1.0) var phase_two_health: float = 0.0
+## Salto da fase 2 (mais rápido). Sem ele, o mesmo da fase 1.
+@export var phase_two_slam: SlamAttackData
+## Fase 2: filhotes que surgem em volta de cada queda. Não deixam drops e somem quando o chefe
+## morre ou desiste (volta para casa).
+@export var minion_scene: PackedScene
+@export var minions_per_slam: int = 2
+## Máximo de filhotes vivos ao mesmo tempo.
+@export var max_minions: int = 4
 @export_group("Recompensas")
 @export var drops: Array[DropEntry] = []
 

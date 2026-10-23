@@ -120,6 +120,90 @@ func test_client_sees_the_slam() -> void:
 	check((client.region as Region).ground_effects.get_child_count() > 0, "aviso no chão do cliente")
 
 
+## Metade da vida: o chefe se enfurece (salto mais rápido, barra laranja); curado, volta ao normal.
+func test_boss_enrages_at_half_health() -> void:
+	var game := await _game_at_the_boss()
+	var boss := _boss(game)
+	boss.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+	var bar: BossBar = game.find_children("*", "BossBar", true, false)[0]
+	check(boss.phase == 1 and boss.slammer.attack == boss.data.slam, "começa na fase 1")
+	_hurt(boss, boss.health.max_health / 2)
+	await physics_frames(1)
+	check(boss.phase == 2 and boss.slammer.attack == boss.data.phase_two_slam,
+		"metade da vida: fase 2, salto da fúria")
+	check(boss.data.phase_two_slam.windup < boss.data.slam.windup, "o salto da fúria é mais rápido")
+	check(bar._fill.color == UiStyle.ENRAGED, "a barra fica laranja")
+	boss.health.restore_full()
+	check(boss.phase == 1 and boss.slammer.attack == boss.data.slam, "curado (voltou para casa): fase 1")
+
+
+## Na fase 2, cada queda solta filhotes (no máximo 4 vivos); eles somem quando o chefe morre.
+func test_enraged_slam_spawns_minions_that_vanish_with_the_boss() -> void:
+	var game := await _game_at_the_boss()
+	var boss := _boss(game)
+	var spawner := game._spawner as EntitySpawner
+	_hurt(boss, boss.health.max_health / 2)
+	var before := _monsters(game)
+	check(await wait_until(func() -> bool: return _monsters(game) > before, 240),
+		"a queda soltou filhotes")
+	await physics_frames(1)
+	check(_monsters(game) == before + boss.data.minions_per_slam,
+		"%d filhotes" % (_monsters(game) - before))
+	boss.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+	for i in 3:
+		spawner._on_boss_landed(boss, game.region, boss.position)
+	check(_monsters(game) == before + boss.data.max_minions, "no máximo %d vivos" % boss.data.max_minions)
+	var drops_before := pickups(game).size()
+	var minion: Monster = spawner._minions[boss.entity_id][0]
+	_hurt(minion, minion.health.max_health)
+	await physics_frames(2)
+	check(pickups(game).size() == drops_before, "filhote não deixa drops")
+	_hurt(boss, boss.health.max_health)
+	check(await wait_until(func() -> bool: return _monsters(game) == before - 1, 120),
+		"o chefe morreu e os filhotes sumiram")
+
+
+## Coop: os filhotes chegam ao cliente; dados de filhote forjados (chefe que não existe ou que
+## não tem filhotes) são recusados.
+func test_client_gets_minions_and_refuses_forged_ones() -> void:
+	var host := start_network_game("Host", Network.Role.HOST, PORT + 1)
+	var client := start_network_game("Client", Network.Role.CLIENT, PORT + 1)
+	check(await wait_until(func() -> bool:
+		return (client.session as GameSession).get_player_entity(client.local_player_id()) != null),
+		"cliente conectou")
+	host._travel(client.local_player_id(), &"forest", &"to_meadow")
+	host._travel(1, &"forest", &"to_meadow")
+	check(await wait_until(func() -> bool:
+		return client.region and client.region.region_id == &"forest" and _boss(client) != null),
+		"o cliente está na floresta")
+	calm_monsters(host)
+	var boss := _boss(host)
+	_hurt(boss, boss.health.max_health / 2)
+	var before := _monsters(client)
+	(host._spawner as EntitySpawner)._on_boss_landed(boss, host.region, boss.position)
+	check(await wait_until(func() -> bool:
+		return _monsters(client) == before + boss.data.minions_per_slam, 60), "filhotes no cliente")
+	var spawner := client._spawner as EntitySpawner
+	var region := client.region as Region
+	var slime := first_monster(client)
+	for forged: Dictionary in [
+			{"summoner": 999999}, {"summoner": slime.entity_id}, {"summoner": _boss(client).entity_id,
+			"position": Vector2(INF, 0)}]:
+		var data := {"kind": EntitySpawner.Kind.MINION, "entity_id": 777777,
+			"summoner": _boss(client).entity_id, "position": Vector2(10, 10), "health_multiplier": 1.0}
+		data.merge(forged, true)
+		check(spawner._valid_kind(data, region) == -1, "filhote forjado recusado (%s)" % [forged])
+
+
+func _hurt(target: Character, amount: int) -> void:
+	target.health.apply_damage(DamageInfo.create(amount, Vector2.RIGHT, 0.0, 0, 1))
+
+
+func _monsters(game: Node) -> int:
+	return (game.region as Region).entities.get_children().filter(func(n: Node) -> bool:
+		return n is Monster and n.is_alive() and not n.is_queued_for_deletion()).size()
+
+
 ## Jogo offline na floresta, com o jogador a meia distância do chefe e as outras criaturas paradas.
 func _game_at_the_boss() -> Node:
 	var game := start_game()

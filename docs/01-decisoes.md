@@ -585,7 +585,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-024 — Mini boss: Rei Slime e o salto com aviso no chão
 
-- **Status**: Hipótese (F4a, aguardando validação do João)
+- **Status**: Hipótese (F4a + F4b, aguardando validação do João)
 - **Direção do João (2026-10-22)**: o primeiro mini boss é o **Rei Slime** (slime gigante), numa
   clareira da floresta; fase 2 se divide em slimes pequenos e salta mais rápido (F4b).
 - **Decisões** (técnicas, ajustáveis em `data/`):
@@ -609,5 +609,18 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **Rede**: só o host simula o chefe e aplica o dano; ele avisa os clientes do salto (ponto de
     queda, conferido) e eles o mostram com o mesmo atraso de desenho da posição.
     Protocolo de rede: versão 9.
+  - **Fase 2** (F4b, `MonsterData.phase_two_*`): abaixo de metade da vida o chefe se enfurece:
+    salto mais rápido (aviso 0,6 s, espera 2 s), aviso "Rei Slime se enfurece!" e barra laranja;
+    curado (voltou para casa), volta à fase 1. A fase vem da vida, que todo computador conhece.
+    Cada queda na fase 2 solta 2 filhotes (slimes comuns, no máximo 4 vivos), sem drops (não vira
+    fazenda de gosma) e sem renascer; somem se o chefe morre ou desiste. Rede: tipo de criação
+    "filhote" ligado ao chefe que o invocou (o cliente confere que esse chefe existe ali e tem
+    filhotes; nada de cena vinda da rede). Protocolo de rede: versão 10.
+  - **Bote dos slimes vira investida** (relato do João na F4a): o flash de dano apagava o
+    vermelho do aviso (o bote parecia sair do nada) e o dano só valia no instante do golpe, para
+    quem estava colado (correr anulava o bote). Agora o flash volta ao vermelho, o avanço é mais
+    longo e acerta quem tocar (`lunge_hit_time`, uma vez cada) e a criatura começa de mais longe
+    (`engage_distance`). Vale para todos os slimes. Desempenho: uma consulta de física por bote
+    (candidatos), depois só distância.
 - **Consequências**: novos chefes ou criaturas que saltam = dados + cena com `SlamAttacker`. A F4b
   (fases) e a F5 (o núcleo libera algo) usam esta base.

@@ -22,11 +22,16 @@ static func hostiles_near(attacker: Character, center: Vector2, inner_radius: fl
 	var targets: Array[Character] = []
 	for hit in attacker.get_world_2d().direct_space_state.intersect_shape(query, MAX_TARGETS):
 		var target := hit.collider as Character
-		if target == null or target == attacker or target.faction == attacker.faction \
-				or not target.is_alive():
-			continue
-		var gap := Iso.ground_distance(target.global_position, center) \
-			- target.footprint_radius() - inner_radius
-		if gap <= reach:
+		if target != null and is_hit(attacker, target, center, inner_radius, reach):
 			targets.append(target)
 	return targets
+
+
+## O mesmo filtro sem física, para quem já tem os candidatos (investida: ver MeleeAttacker).
+static func is_hit(attacker: Character, target: Character, center: Vector2, inner_radius: float,
+		reach: float) -> bool:
+	if not is_instance_valid(target) or target == attacker or target.faction == attacker.faction \
+			or not target.is_alive():
+		return false
+	return Iso.ground_distance(target.global_position, center) - target.footprint_radius() \
+		- inner_radius <= reach

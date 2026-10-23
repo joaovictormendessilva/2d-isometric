@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 ✅ (moedas, poção, receitas de NPC); F4a (Rei Slime) aguardando validação |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 ✅ (moedas, poção, receitas de NPC); F4 (Rei Slime, 2 fases) aguardando validação |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -193,7 +193,12 @@ Ordem proposta (cada um com validação do João antes do próximo):
   F4a 🟡 implementado: clareira no leste da floresta; o chefe salta em quem está a meia distância
   (círculo vermelho no chão enche até a queda; sair dele evita o dano), golpeia quem está perto,
   barra de vida no alto da tela, Núcleo do Rei Slime ao morrer, renasce em 5 min. No coop o host
-  decide e os clientes veem o salto. 138 testes. Aguardando validação do João.
+  decide e os clientes veem o salto. 138 testes.
+  Correção do teste do João (todos os slimes): o bote virou investida que acerta no avanço e
+  começa de mais longe; apanhando, o aviso vermelho não some mais.
+  F4b 🟡 implementado: na metade da vida o Rei Slime se enfurece (salta mais rápido, barra
+  laranja, aviso na tela) e cada queda solta 2 slimes (no máximo 4, sem drops; somem com ele).
+  143 testes. Aguardando validação do João (F4a e F4b juntas).
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
 ## Funcionalidades
@@ -233,6 +238,7 @@ Ordem proposta (cada um com validação do João antes do próximo):
   qualquer lugar). Antes de aprender ela fica apagada com o motivo na dica. Fica salvo.
 - Rei Slime (F4a): na floresta, siga para o leste até a clareira. Ele salta em quem está a meia
   distância: saia do círculo vermelho antes de ele cair e bata nele enquanto se recupera.
+  Na metade da vida ele se enfurece: salta mais rápido e solta slimes a cada queda.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

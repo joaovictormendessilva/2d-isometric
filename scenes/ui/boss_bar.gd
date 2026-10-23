@@ -2,7 +2,8 @@ class_name BossBar
 extends VBoxContainer
 ## Barra de vida do chefe (F4) para o jogador LOCAL: nome e vida no alto da tela, enquanto ele
 ## estiver perto de um chefe vivo na mesma região. Some quando se afasta ou o chefe morre. Só
-## lê estado (a vida vem do host como a de qualquer criatura).
+## lê estado (a vida vem do host como a de qualquer criatura). Enfurecido (fase 2), a barra fica
+## laranja.
 
 ## Distância (chão) do jogador ao chefe para mostrar a barra: um pouco além da coleira dele.
 const SHOW_RANGE := 280.0
@@ -49,6 +50,7 @@ func _process(_delta: float) -> void:
 			_name.text = boss.data.get_display_name()
 	visible = _boss != null
 	if _boss:
+		_fill.color = UiStyle.ENRAGED if _boss.phase == 2 else UiStyle.HEALTH
 		var health := _boss.health
 		_fill.size.x = roundf(BAR_SIZE.x * health.current / maxf(health.max_health, 1))
 

@@ -22,6 +22,7 @@ var _elapsed := 0.0
 var _cooldown_left := 0.0
 var _from := Vector2.ZERO
 var _landing := Vector2.ZERO
+var _next_attack: SlamAttackData
 
 @onready var _body: Character = get_parent()
 
@@ -92,11 +93,18 @@ func play_remote(landing_point: Vector2, delay: float) -> void:
 		_elapsed = -delay
 
 
+## Troca o salto (fase do chefe). No meio de um salto, vale a partir do próximo.
+func set_attack(value: SlamAttackData) -> void:
+	if is_slamming():
+		_next_attack = value
+	else:
+		attack = value
+
+
 ## Encerra o salto (ex.: ao morrer). Sem impacto.
 func stop() -> void:
 	if is_slamming():
-		_phase = Phase.READY
-		slam_finished.emit()
+		_finish()
 
 
 func _physics_process(delta: float) -> void:
@@ -119,8 +127,15 @@ func _advance(delta: float) -> void:
 			_elapsed -= attack.air_time
 			_land()
 	if _phase == Phase.RECOVERY and _elapsed >= attack.recovery:
-		_phase = Phase.READY
-		slam_finished.emit()
+		_finish()
+
+
+func _finish() -> void:
+	_phase = Phase.READY
+	if _next_attack:
+		attack = _next_attack
+		_next_attack = null
+	slam_finished.emit()
 
 
 func _land() -> void:

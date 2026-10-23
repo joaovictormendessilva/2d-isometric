@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MonsterData" load_steps=11 format=3]
+[gd_resource type="Resource" script_class="MonsterData" load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://core/actors/monster_data.gd" id="1_monster"]
 [ext_resource type="Script" path="res://core/actors/actor_stats.gd" id="2_stats"]
@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://data/items/gel.tres" id="5_gel"]
 [ext_resource type="Script" path="res://core/combat/slam_attack_data.gd" id="6_slam"]
 [ext_resource type="Resource" path="res://data/items/king_slime_core.tres" id="7_core"]
+[ext_resource type="PackedScene" path="res://scenes/actors/monsters/slime.tscn" id="8_minion"]
 
 [sub_resource type="Resource" id="Resource_stats"]
 script = ExtResource("2_stats")
@@ -47,6 +48,19 @@ recovery = 1.2
 cooldown = 3.5
 height = 36.0
 
+[sub_resource type="Resource" id="Resource_slam_enraged"]
+script = ExtResource("6_slam")
+damage = 25
+radius = 34.0
+knockback = 240.0
+min_distance = 50.0
+max_distance = 190.0
+windup = 0.6
+air_time = 0.5
+recovery = 0.8
+cooldown = 2.0
+height = 40.0
+
 [sub_resource type="Resource" id="Resource_drop_core"]
 script = ExtResource("4_drop")
 item = ExtResource("7_core")
@@ -70,4 +84,9 @@ slam = SubResource("Resource_slam")
 is_boss = true
 aggro_radius = 150.0
 leash_radius = 240.0
+phase_two_health = 0.5
+phase_two_slam = SubResource("Resource_slam_enraged")
+minion_scene = ExtResource("8_minion")
+minions_per_slam = 2
+max_minions = 4
 drops = Array[ExtResource("4_drop")]([SubResource("Resource_drop_core"), SubResource("Resource_drop_gel")])

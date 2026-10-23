@@ -18,9 +18,11 @@ var _phase := Phase.READY
 var _time_left := 0.0
 var _direction := Vector2.DOWN
 var _next_attack: MeleeAttackData
-## Investida: tempo que o avanço ainda acerta, e quem já foi acertado neste ataque.
+## Investida: tempo que o avanço ainda acerta, quem pode ser acertado (uma consulta de física no
+## golpe, larga o bastante para o avanço; depois, só distância) e quem já foi acertado.
 var _hit_left := 0.0
-var _hit: Dictionary[Character, bool] = {}
+var _candidates: Array = []  # sem tipo: um alvo pode ser liberado no meio (saiu da partida)
+var _hit: Dictionary = {}
 
 @onready var _body: Character = get_parent()
 
@@ -82,16 +84,18 @@ func _strike() -> void:
 	_body.add_ground_impulse(_direction * attack.lunge)
 	_hit.clear()
 	_hit_left = attack.lunge_hit_time
+	if multiplayer.is_server():  # só o host aplica dano
+		_candidates = ActorQuery.hostiles_near(_body, _body.global_position,
+			_body.footprint_radius(), attack.reach + attack.lunge * attack.lunge_hit_time)
 	_hit_targets()
 	attack_struck.emit(_direction, attack)
 
 
-## Só o host aplica dano; cada alvo uma vez por ataque.
+## Candidatos agora ao alcance e dentro do arco; cada alvo uma vez por ataque.
 func _hit_targets() -> void:
-	if not multiplayer.is_server():
-		return
-	for target in _find_targets():
-		if not _hit.has(target):
+	for target: Variant in _candidates:
+		if is_instance_valid(target) and not _hit.has(target) and ActorQuery.is_hit(_body, target, _body.global_position,
+				_body.footprint_radius(), attack.reach) and _in_arc(target):
 			_hit[target] = true
 			target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
 				attack.knockback, _body.entity_id, _body.player_id))
@@ -109,15 +113,11 @@ func _finish() -> void:
 	_phase = Phase.READY
 	_hit_left = 0.0
 	_hit.clear()
+	_candidates.clear()
 	if _next_attack:
 		attack = _next_attack
 		_next_attack = null
 	attack_finished.emit()
-
-
-func _find_targets() -> Array[Character]:
-	return ActorQuery.hostiles_near(_body, _body.global_position, _body.footprint_radius(),
-		attack.reach).filter(_in_arc)
 
 
 func _in_arc(target: Character) -> bool:
