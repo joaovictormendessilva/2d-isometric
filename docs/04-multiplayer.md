@@ -77,5 +77,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Equipamento | ✅ | ✅ automático (host decide; equipamento de cada jogador enviado a todos como lista inteira; cliente pede o de quem aparece, 1 resposta por pedido) | ⬜ |
 | Moedas e loja (F3) | ✅ | ✅ automático (host confere NPC ao alcance, preço dos dados, índices e teto da carteira; moedas só ao dono) | ⬜ |
 | Poção de vida (F3b) | ✅ | ✅ automático (host escolhe a poção, confere índice, vida e espera; cura e espera chegam ao cliente; pedidos forjados recusados) | ⬜ |
+| Receitas de NPC (F3c) | ✅ | ✅ automático (host confere distância, receita ensinada e moedas; receita chega ao cliente; pedidos forjados recusados; fabricar confere o livro do host) | ⬜ |
 | Desconexão/reconexão | — | ✅ automático (desconexão de host e cliente; quem volta com o mesmo perfil recebe o próprio personagem; mesmo perfil duas vezes é recusado) | ⬜ |
 | Salvamento | ✅ automático (personagem, bancada, pontos de coleta; arquivo adulterado ignorado) | ✅ automático (progresso do amigo guardado no save do host) | ⬜ |

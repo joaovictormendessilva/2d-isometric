@@ -5,9 +5,9 @@ extends Node
 ## mudou, a mão, cada ganho (para os avisos), a experiência e as moedas; e o equipamento de cada
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
-## estrutura, vestir e tirar equipamento, comprar e vender com um NPC, usar um item como a poção);
-## o host confere e aplica. Esperas (poções) começadas no host também vão ao dono.
-## Offline, os pedidos são aplicados na hora.
+## estrutura, vestir e tirar equipamento, comprar, vender e aprender receitas com um NPC, usar um
+## item como a poção); o host confere e aplica. Esperas (poções) começadas no host e receitas
+## aprendidas também vão ao dono. Offline, os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -60,6 +60,9 @@ func track_player(player_id: int) -> void:
 	wallet.earned.connect(func(amount: int) -> void: _send(player_id, &"_earned", [amount]))
 	session.get_cooldowns(player_id).started.connect(func(group: StringName, seconds: float) -> void:
 		_send(player_id, &"_cooldown", [group, seconds]))
+	session.get_recipe_book(player_id).learned.connect(
+		func(recipe_id: StringName, is_new: bool) -> void:
+			_send(player_id, &"_recipe_learned", [recipe_id, is_new]))
 
 
 ## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
@@ -130,6 +133,11 @@ func request_buy(item_id: StringName) -> void:
 ## Jogador local quer vender `amount` da pilha do espaço `index` ao NPC perto dele.
 func request_sell(index: int, amount: int) -> void:
 	_request(&"_sell_requested", [index, amount])
+
+
+## Jogador local quer aprender a receita `recipe_id` com o NPC perto dele.
+func request_learn(recipe_id: StringName) -> void:
+	_request(&"_learn_requested", [recipe_id])
 
 
 ## Jogador local quer usar o item do espaço `index` (menu "Usar"). Se já se sabe que não dá,
@@ -315,7 +323,8 @@ func _craft_requested(recipe_id: StringName) -> void:
 	var recipe := recipes.get_recipe(recipe_id) if recipes else null  # id desconhecido: nada
 	if inventory and recipe:
 		# Confere de novo lugar, ingredientes e espaço: o pedido pode ser velho ou forjado.
-		CraftingRules.craft(recipe, inventory, stations_of(_requester()))
+		CraftingRules.craft(recipe, inventory, stations_of(_requester()),
+			session.get_recipe_book(_requester()))
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -349,6 +358,17 @@ func _sell_requested(index: int, amount: int) -> void:
 	var npc := npc_near(_requester()) if inventory else null
 	if npc:  # confere índice, quantidade, item que o NPC compra e teto da carteira
 		TradeRules.sell(npc.data, inventory, index, amount, session.get_wallet(_requester()), items)
+
+
+## Como na compra: NPC e preço são os que o host conhece; id de receita desconhecido não faz nada.
+@rpc("any_peer", "call_remote", "reliable")
+func _learn_requested(recipe_id: StringName) -> void:
+	var player_id := _requester()
+	var npc := npc_near(player_id) if _requester_inventory() else null
+	var recipe := recipes.get_recipe(recipe_id) if recipes else null
+	if npc and recipe:  # confere receita ensinada, ainda não sabida e moedas
+		TradeRules.learn(npc.data, recipe, session.get_recipe_book(player_id),
+			session.get_wallet(player_id))
 
 
 @rpc("any_peer", "call_remote", "reliable")
@@ -389,6 +409,8 @@ func _full_state_requested() -> void:
 	for skill in skills.entries():
 		_send(player_id, &"_skill_xp", [skill.id, progress.xp(skill.id)])
 	_send(player_id, &"_coins", [session.get_wallet(player_id).coins()])
+	for recipe_id in session.get_recipe_book(player_id).all_learned():
+		_send(player_id, &"_recipe_learned", [recipe_id, false])
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -441,6 +463,15 @@ func _cooldown(group: StringName, seconds: float) -> void:
 	if cooldowns and is_finite(seconds) and seconds > 0.0 and seconds <= Cooldowns.MAX_SECONDS \
 			and items.has_cooldown_group(group):
 		cooldowns.start(group, seconds, NetRules.now())
+
+
+## Receita que o host diz que o jogador local aprendeu: só uma receita conhecida que se aprende.
+@rpc("authority", "call_remote", "reliable")
+func _recipe_learned(recipe_id: StringName, is_new: bool) -> void:
+	var book := session.get_recipe_book(multiplayer.get_unique_id())
+	var recipe := recipes.get_recipe(recipe_id) if recipes else null
+	if book and recipe:
+		book.replicate(recipe, is_new)  # receita que não se aprende: nada muda
 
 
 ## Host: alguém pediu o equipamento de um jogador (público no coop). Uma resposta por pedido.

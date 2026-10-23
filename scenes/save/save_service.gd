@@ -26,6 +26,7 @@ var _loaded: Array[Region] = []
 var _network: Network
 var _items: ItemDatabase
 var _skills: DataCatalog
+var _recipes: RecipeDatabase
 var _structures: DataCatalog
 
 
@@ -33,7 +34,8 @@ var _structures: DataCatalog
 ## volta na mesma partida), sem ler nem gravar arquivo. Depois, `region_loaded` para cada região
 ## carregada (antes de os jogadores chegarem nela).
 func setup(path: String, session: GameSession, spawner: EntitySpawner, network: Network,
-		items: ItemDatabase, skills: DataCatalog, structures: DataCatalog) -> void:
+		items: ItemDatabase, skills: DataCatalog, recipes: RecipeDatabase,
+		structures: DataCatalog) -> void:
 	if not multiplayer.is_server():
 		return
 	_session = session
@@ -41,6 +43,7 @@ func setup(path: String, session: GameSession, spawner: EntitySpawner, network: 
 	_network = network
 	_items = items
 	_skills = skills
+	_recipes = recipes
 	_structures = structures
 	network.player_left.connect(_on_player_left)
 	_save = WorldSave.load_file(path) if not path.is_empty() else WorldSave.new()
@@ -95,7 +98,8 @@ func restore_player(character: Character) -> bool:
 	var player_id := character.player_id
 	var health := CharacterRecord.restore(record, _session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
-		_session.get_wallet(player_id), _skills, _items)
+		_session.get_wallet(player_id), _session.get_recipe_book(player_id), _skills, _items,
+		_recipes)
 	if health > 0:
 		character.health.set_current(health)
 	return true
@@ -130,7 +134,8 @@ func _remember(player_id: int) -> void:
 	var health := character.health
 	var record := CharacterRecord.capture(_session.get_inventory(player_id),
 		_session.get_equipment(player_id), _session.get_skills(player_id),
-		_session.get_wallet(player_id), health.max_health if health.is_dead() else health.current)
+		_session.get_wallet(player_id), _session.get_recipe_book(player_id),
+		health.max_health if health.is_dead() else health.current)
 	var region := Region.of(character)
 	if region:
 		record["region"] = String(region.region_id)

@@ -75,7 +75,8 @@ func _ready() -> void:
 	if multiplayer.is_server():
 		if _is_screenshot_run():
 			save_path = ""
-		saves.setup(save_path, session, _spawner, network, items, skills, _spawner.structures)
+		saves.setup(save_path, session, _spawner, network, items, skills, recipes,
+			_spawner.structures)
 	_spawner.setup(session, local_player_id(), _damage_numbers, items, player_state)
 	player_state.session = session
 	player_state.items = items
@@ -232,7 +233,8 @@ func _on_local_player_spawned(character: Character) -> void:
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()))
-	_player_feedback.setup(inventory, wallet, progress, items, skills, _damage_numbers)
+	_player_feedback.setup(inventory, wallet, session.get_recipe_book(local_player_id()), recipes,
+		progress, items, skills, _damage_numbers)
 	player_state.use_refused.connect(_player_feedback.show_use_refusal)
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())

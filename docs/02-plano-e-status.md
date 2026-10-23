@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a ✅; F3b ✅; F3c (receitas de NPC) a seguir |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3a ✅; F3b ✅; F3c (receitas de NPC) aguardando validação |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -183,6 +183,10 @@ Ordem proposta (cada um com validação do João antes do próximo):
   vendida pelo mercador; tecla Q (LB) bebe, ou "Usar" no menu do inventário; poção e espera no
   HUD; "+40" e brilho verdes; no coop o host decide. 127 testes. Validado pelo João
   (2026-10-22).
+  F3c 🟡 implementado (branch `stage-f/npc-recipes`, ADR-023): receitas que se aprendem com NPC
+  (escolha do João: aprender e levar). O mercador ensina a poção de vida (40 moedas); depois ela
+  se fabrica na bancada com 3 gosmas. Fica no save e no coop o host decide. 133 testes.
+  Aguardando validação do João.
 - **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
@@ -218,6 +222,9 @@ Ordem proposta (cada um com validação do João antes do próximo):
   poções); também pelo botão direito no inventário → "Usar". O quadrado ao lado da vida mostra
   quantas há e os segundos de espera. Vida cheia não gasta poção. Compre no mercador (15 moedas);
   o kit de testes já traz 5. Valores em `data/items/health_potion.tres`.
+- Receitas de NPC (F3c): na loja do mercador, seção "Receitas": clique em "Receita: Poção de vida"
+  (40 moedas) para aprender. Depois a poção aparece acesa na coluna Fabricar, perto de uma
+  bancada (3 gosmas). Antes de aprender ela fica apagada com o motivo na dica. Fica salvo.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

@@ -25,12 +25,13 @@ func test_character_round_trip() -> void:
 	inventory.set_held(&"stone", 3)
 	progress.add_xp(&"woodcutting", 120)
 	(source[3] as Wallet).add(345)
-	var record := CharacterRecord.capture(inventory, equipment, progress, source[3], 37)
+	(source[4] as RecipeBook).learn(RecipeDatabase.load_all().get_recipe(&"health_potion"))
+	var record := CharacterRecord.capture(inventory, equipment, progress, source[3], source[4], 37)
 	record = JSON.parse_string(JSON.stringify(record))  # como no arquivo: números viram float
 
 	var loaded := _character(items)
 	var health := CharacterRecord.restore(record, loaded[0], loaded[1], loaded[2], loaded[3],
-		skills, items)
+		loaded[4], skills, items, RecipeDatabase.load_all())
 	inventory = loaded[0]
 	equipment = loaded[1]
 	check(health == 37, "vida volta (%d)" % health)
@@ -43,6 +44,8 @@ func test_character_round_trip() -> void:
 	check(inventory.held_item() == &"stone" and inventory.held_amount() == 3, "mão volta")
 	check((loaded[2] as SkillProgress).xp(&"woodcutting") == 120, "experiência volta")
 	check((loaded[3] as Wallet).coins() == 345, "moedas voltam")
+	check(Array((loaded[4] as RecipeBook).all_learned()) == [&"health_potion"],
+		"receita aprendida volta")
 
 
 func test_bad_character_data_is_ignored() -> void:
@@ -55,13 +58,14 @@ func test_bad_character_data_is_ignored() -> void:
 		"equipment": ["wooden_shield", "sword", "", "", "", "", "magnet_ring", "magnet_ring"],
 		"skills": {"inexistente": 50, "mining": "muito", "woodcutting": -5},
 		"coins": -20,
+		"recipes": ["nao_existe", "stone_axe", 7, "health_potion"],
 		"health": 1e300,
 	}
 	var loaded := _character(items)
 	var inventory: Inventory = loaded[0]
 	var equipment: Equipment = loaded[1]
 	var health := CharacterRecord.restore(record, inventory, equipment, loaded[2], loaded[3],
-		skills, items)
+		loaded[4], skills, items, RecipeDatabase.load_all())
 	check(health == 0, "vida absurda vira vida cheia")
 	check(inventory.get_counts() == {&"stone": 3} and inventory.slot_item(5) == &"stone",
 		"só a pilha válida entra (%s)" % inventory.get_counts())
@@ -71,8 +75,10 @@ func test_bad_character_data_is_ignored() -> void:
 	check(equipment.equipped().size() == 1, "anel repetido é recusado")
 	check((loaded[2] as SkillProgress).all_xp().is_empty(), "experiência inválida é ignorada")
 	check((loaded[3] as Wallet).coins() == 0, "moedas negativas viram zero")
-	check(CharacterRecord.restore("lixo", inventory, equipment, loaded[2], loaded[3], skills,
-		items) == 0,
+	check(Array((loaded[4] as RecipeBook).all_learned()) == [&"health_potion"],
+		"só a receita que existe e se aprende entra")
+	check(CharacterRecord.restore("lixo", inventory, equipment, loaded[2], loaded[3], loaded[4],
+		skills, items, RecipeDatabase.load_all()) == 0,
 		"registro que não é dicionário não faz nada")
 
 
@@ -207,7 +213,7 @@ func _character(items: ItemDatabase) -> Array:
 	equipment.slot_changed.connect(func(_index: int) -> void:
 		inventory.resize(Inventory.DEFAULT_SLOTS
 			+ StatBonuses.total((worn.get_ref() as Equipment).equipped()).inventory_slots))
-	return [inventory, equipment, SkillProgress.new(), Wallet.new()]
+	return [inventory, equipment, SkillProgress.new(), Wallet.new(), RecipeBook.new()]
 
 
 func _join(instance_name: String) -> Node:

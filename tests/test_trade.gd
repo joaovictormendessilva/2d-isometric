@@ -108,7 +108,7 @@ func test_merchant_in_the_meadow_trades_only_up_close() -> void:
 	var player_id: int = game.local_player_id()
 	var state: PlayerStateSync = game.player_state
 	var character := session.get_player_entity(player_id) as Character
-	var merchant := _merchant_node(game)
+	var merchant := merchant_node(game)
 	check(merchant != null and merchant.data.id == &"merchant", "há um mercador na campina")
 	if merchant == null:
 		return
@@ -158,7 +158,7 @@ func test_client_trades_through_host() -> void:
 	await physics_frames(10)
 	check(on_host.count(&"gel") == 5 and host_wallet.coins() == 50, "longe, o host recusa")
 
-	var merchant := _merchant_node(client)
+	var merchant := merchant_node(client)
 	var character := (client.session as GameSession).get_player_entity(client_id) as Character
 	await glide_to(character, merchant.position + Iso.ground_to_screen(Vector2(-20, 0)))
 	await physics_frames(10)  # a posição chega ao host
@@ -193,7 +193,7 @@ func test_shop_window_buys_sells_and_closes_when_far() -> void:
 	var wallet := session.get_wallet(player_id)
 	var shop: ShopPanel = game.get_node("UI/ShopPanel")
 	var panel: InventoryPanel = game.get_node("UI/InventoryPanel")
-	var merchant := _merchant_node(game)
+	var merchant := merchant_node(game)
 	character.position = merchant.position + Iso.ground_to_screen(Vector2(-20, 0))
 	character.reset_physics_interpolation()
 	shop.talk_to(merchant)
@@ -230,10 +230,3 @@ func test_shop_window_buys_sells_and_closes_when_far() -> void:
 
 func _merchant() -> NpcData:
 	return DataCatalog.new(NPCS_DIR).get_entry(&"merchant") as NpcData
-
-
-func _merchant_node(game: Node) -> Npc:
-	for node in (game.region as Region).entities.get_children():
-		if node is Npc:
-			return node
-	return null

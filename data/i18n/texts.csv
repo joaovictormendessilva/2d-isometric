@@ -88,3 +88,11 @@ USE_FULL_HEALTH,Vida cheia,Health is full
 USE_COOLING_DOWN,Poção ainda não está pronta,Potion not ready yet
 USE_NO_POTION,Sem poções,No potions
 HUD_POTION_KEY,[%s],[%s]
+CRAFT_NOT_LEARNED,Aprenda esta receita com um NPC,Learn this recipe from an NPC
+SHOP_RECIPES,Receitas,Recipes
+SHOP_RECIPE_NAME,Receita: %s,Recipe: %s
+SHOP_RECIPE_KNOWN,Já aprendida,Already learned
+SHOP_RECIPE_AT_HAND,Fabrique em qualquer lugar: %s,Craft anywhere: %s
+SHOP_RECIPE_AT_WORKBENCH,Fabrique na bancada: %s,Craft at a workbench: %s
+RECIPE_INGREDIENT,%d %s,%d %s
+FEEDBACK_RECIPE_LEARNED,Receita aprendida: %s,Recipe learned: %s

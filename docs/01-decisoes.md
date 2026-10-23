@@ -553,3 +553,31 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: comida, antídotos e buffs (Etapa G) entram como novos campos ou subclasses de
   `ConsumableData`, usando o mesmo pedido e as mesmas esperas. A F3c pode ensinar a fabricar a
   poção (ex.: com gosma) num NPC.
+
+## ADR-023 — Receitas aprendidas com NPCs
+
+- **Status**: Hipótese (F3c, aguardando validação do João)
+- **Direção do João (2026-10-22)**: **aprender e levar** — o NPC vende a receita; aprendida uma
+  vez, fica com o personagem e se fabrica longe dele (na bancada ou na mão, conforme a receita).
+- **Decisões** (técnicas, ajustáveis em `data/`):
+  - **Receita a aprender** = `RecipeData.must_learn`. As outras todo mundo sabe, como antes. O
+    lugar "NPC" das receitas (`Station.NPC`, nunca usado) saiu: o NPC ensina, não fabrica.
+  - **Livro de receitas** (`RecipeBook`, por jogador na `GameSession`): só o host altera; vai no
+    save do personagem (`recipes`, só ids de receitas que existem e se aprendem).
+  - **Quem ensina**: `NpcData.recipe_offers` (receita → preço). Regras puras em `TradeRules`
+    (`check_learn`/`learn`, tudo ou nada): ensinada por ele, ainda não sabida, moedas que bastem.
+    Teste garante que toda receita a aprender é ensinada por alguém e que comprar ingredientes,
+    fabricar e vender nunca dá lucro (fabricar com o que foi coletado pode render: é trabalho).
+  - **Primeira receita**: poção de vida = 3 gosmas na bancada; o mercador ensina por 40 moedas
+    (a poção custa 15 na loja e é vendida por 4; 3 gosmas valem 6).
+  - **Rede**: o cliente pede "aprender receita X"; o host usa o NPC que ELE sabe estar perto e o
+    preço dos dados dele. O dono recebe cada receita aprendida (marcada "nova" só quando acabou
+    de aprender, para o aviso não repetir ao entrar). Fabricar confere o livro do host.
+    Protocolo de rede: versão 8.
+  - **Interface**: a loja ganha a seção "Receitas" ("Receita: Poção de vida" + preço; dica com
+    onde e com o quê se fabrica). Aprendida, a linha fica apagada com "Já aprendida". Na lista
+    de fabricação, receitas a aprender aparecem apagadas com "Aprenda esta receita com um NPC"
+    (não esconder o que o jogador vai poder usar). Aviso verde "Receita aprendida: ...".
+- **Consequências**: a F5 (chefe libera receita) pode dar uma receita pelo mesmo livro
+  (`learn` no host), sem NPC. Novas receitas de NPC = arquivo em `data/recipes/` com
+  `must_learn` + preço no `recipe_offers` do NPC.

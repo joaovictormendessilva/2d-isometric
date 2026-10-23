@@ -1,9 +1,10 @@
 class_name CraftingList
 extends VBoxContainer
-## Coluna "Fabricar" do inventário: receitas da mão e da bancada (as de NPC ficam com os
-## NPCs). As de bancada aparecem sempre, apagadas longe de uma, para o jogador saber que
-## existem. Atualiza quando o inventário muda ou quando o jogador chega perto de / se afasta de
-## uma estação; clicar numa receita pede ao host para fabricar (PlayerStateSync).
+## Coluna "Fabricar" do inventário: receitas da mão e da bancada. As de bancada aparecem sempre,
+## apagadas longe de uma, e as que se aprendem com um NPC também, apagadas até aprender, para o
+## jogador saber que existem. Atualiza quando o inventário muda, quando aprende uma receita ou
+## quando chega perto de / se afasta de uma estação; clicar numa receita pede ao host para
+## fabricar (PlayerStateSync).
 ## Recolhível (pedido do João): clicar no título mostra/esconde as receitas; a escolha fica
 ## guardada neste computador (UserSettings).
 
@@ -22,6 +23,7 @@ const CLOSED_MARK := "[+]"
 const HOVER_COLOR := UiStyle.ACCENT
 
 var _inventory: Inventory
+var _book: RecipeBook
 var _player_state: PlayerStateSync
 var _player_id := 0
 var _title := Label.new()
@@ -36,6 +38,7 @@ var _refresh_queued := false
 func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateSync,
 		player_id: int) -> void:
 	_inventory = inventory
+	_book = player_state.session.get_recipe_book(player_id)
 	_player_state = player_state
 	_player_id = player_id
 	add_theme_constant_override(&"separation", ROW_GAP)
@@ -58,6 +61,7 @@ func setup(inventory: Inventory, items: ItemDatabase, player_state: PlayerStateS
 		_list.add_child(row)
 		_rows.append(row)
 	inventory.slot_changed.connect(_queue_refresh.unbind(1))
+	_book.learned.connect(_queue_refresh.unbind(2))
 	_apply_open(UserSettings.get_value(SETTINGS_SECTION, SETTINGS_KEY, true))
 
 
@@ -104,4 +108,4 @@ func _refresh() -> void:
 	_refresh_queued = false
 	_stations = _player_state.stations_of(_player_id)
 	for row in _rows:
-		row.refresh(_inventory, _stations)
+		row.refresh(_inventory, _stations, _book)
