@@ -36,7 +36,7 @@ Todas as metas abaixo são **hipóteses a validar**, não promessas.
 | Cena de teste | Parâmetros | Status |
 |---|---|---|
 | Muitos inimigos | 50 / 100 / 200 perseguindo | ✅ 2026-10-21 (ver Resultados) |
-| Muitos projéteis | 200 / 500 / 1000 | ⬜ |
+| Muitos projéteis | 200 / 500 / 1000 | ✅ 2026-10-23 (ver Resultados) |
 | Partículas e auras | 10 / 30 / 60 auras ativas | ✅ 2026-10-23 (ver Resultados) |
 | Itens no chão | 200 / 500 | ⬜ |
 | Coop | 2 / 4 jogadores na mesma região | 🟡 2 jogadores (tráfego medido); 4 ⬜ |
@@ -59,6 +59,8 @@ Os testes rodarão por linha de comando e registrarão resultados nesta tabela.
 | 2026-10-23 | `benchmark_monsters.gd` com o nó de aura (G3b) em todo ator, sem aura ativa | PC de dev | 50: **0,94 ms** · 100: **1,75 ms** · 200: **3,79 ms** (p99 4,76): sem custo extra (sem aura, nada roda por quadro) |
 | 2026-10-23 | `benchmark_auras.gd` (G3d) — N personagens parados, todos na tela, sem aura e com a aura da coroa em cada nível de qualidade, 600 quadros. **Antes** (anel pintado pixel a pixel em cada ator) | PC de dev | sem aura → com aura (média, p99): 10: 0,25 → **0,35 ms** (p99 0,53) · 30: 0,45 → **0,83 ms** (p99 2,5–3,6) · 60: 0,69 → **1,6–1,7 ms** (p99 **7,5**, picos a cada passo do giro, iguais em todo nível: o custo era o desenho do anel, não as partículas) |
 | 2026-10-23 | Mesmo `benchmark_auras.gd` **depois** da imagem compartilhada (`AuraRingImage`) | PC de dev | 10: 0,26 → **0,33 ms** (p99 0,48) · 30: 0,43 → **0,67–0,71 ms** (p99 0,9–1,1) · 60: 0,71–0,76 → **1,14–1,23 ms** (p99 1,4–1,6). Partículas (60 auras): 120 / 240 / 360 em baixo / médio / alto; draw calls +3 por aura (2 metades do anel + faíscas) |
+| 2026-10-23 | `benchmark_projectiles.gd` (H1) — N Projéteis arcanos no ar o tempo todo (quem some é reposto), "no ar" = sem alvos, "com alvos" = +40 slimes em volta levando os acertos; 600 quadros. **Antes** (cada projétil desenhava 3 círculos) | PC de dev | no ar, baixo: 200: **2,6 ms** · 500: **6,3 ms** · 1000: **13,0 ms** (~13 µs e **3 draw calls por projétil**). Com alvos, baixo: 200: 3,5 · 500: 7,8 · 1000: 15,0 ms. Separando: desenho ~7 ms de 13 (polígonos não se agrupam no Compatibility), busca de alvo ~3 ms (forma física nova a cada busca) |
+| 2026-10-23 | Mesmo `benchmark_projectiles.gd` **depois**: imagem do projétil pintada uma vez por habilidade (textura agrupa) e consulta física reaproveitada no `ActorQuery` | PC de dev | no ar (baixo / médio / alto): 200: **1,5 / 1,6 / 1,8 ms** · 500: **2,9 / 3,1 / 3,4 ms** · 1000: **5,5 / 5,9 / 6,2 ms** (p99 6,9–7,3). Com alvos: 200: 2,6 / 2,9 / 3,1 · 500: 5,5 / 5,7 / 6,1 · 1000: 9,5 / 10,0 / 10,3 ms. Draw calls com 1000: 3077 → **154–272**. Visual igual (captura antes/depois: só diferenças de 1/255 na sombra). `benchmark_monsters.gd` sem mudança (200: 3,6 ms) |
 | 2026-10-22 | `benchmark_region.gd` depois da F2c (regiões em mundos próprios), campina, sem save | PC de dev | média **0,87–0,88 ms**, p99 1,4–1,5 ms, 55,6 draw calls, 56 MB (conteúdo da Etapa E incluso; antes da F2c o teste lia o save de quem joga, agora não) |
 
 Leitura: o custo cresce de forma linear, ~15 µs por criatura ativa (IA + física + desenho).
@@ -71,6 +73,15 @@ picos. 60 auras somam ~0,45 ms; supondo o hardware modesto 3–4× mais lento, ~
 folga. O nível de qualidade quase não muda o tempo no PC de dev (as partículas são baratas aqui);
 ele existe para GPUs integradas, onde ainda não foi medido. O teto de partículas (150 / 400 / 800)
 não chegou a cortar nada com 60 auras da coroa.
+
+Leitura dos projéteis (H1): depois da correção, ~5,5 µs por projétil no ar (voo + busca de alvo +
+desenho) e ~10 µs com acertos (dano, recuo, faíscas, número de dano). 200 projéteis no ar somam
+~1,5 ms no PC de dev; supondo o hardware modesto 3–4× mais lento, ~5–6 ms: cabe, junto com uma
+luta normal. 1000 de uma vez (~6 ms aqui, ~20 ms no modesto) não cabe, mas é muito além do que o
+jogo prevê (4 jogadores com recarga de 2,5 s; futuras criaturas atiradoras). O teto de
+partículas segura o rastro (150 / 400 / 800). O que sobra no custo é a busca física de cada
+projétil a cada quadro; a alavanca, se um dia precisar, é buscar em quadros alternados ou por
+uma grade de atores. Nada passa pela rede (cada computador voa o seu; o host decide o acerto).
 
 Leitura das regiões ativas (F2b): uma região a mais que só simula (sem desenho) custa ~0,15–0,2 ms
 calma; o que pesa são as criaturas em combate (~15 µs cada, como acima), não as regiões em si.

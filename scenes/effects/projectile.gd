@@ -12,11 +12,19 @@ const CORE_RADIUS := 2.0
 const GLOW_RADIUS := 4.0
 const SHADOW_SIZE := Vector2(4.0, 1.5)
 const SHADOW_COLOR := Color(0.05, 0.04, 0.1, 0.35)
+## Canto de cima à esquerda da imagem do projétil, relativo aos pés.
+const IMAGE_ORIGIN := Vector2(-GLOW_RADIUS, -HEIGHT - GLOW_RADIUS)
 const TRAIL_PARTICLES := 6
 const TRAIL_LIFETIME := 0.25
 const IMPACT_PARTICLES := 8
 const IMPACT_SPEED := 40.0
 const IMPACT_LIFETIME := 0.3
+
+## Imagem do projétil (sombra, brilho e núcleo), uma por habilidade, pintada na primeira vez.
+## Três círculos desenhados por projétil viravam 3 chamadas de desenho cada (polígonos não se
+## agrupam no renderizador Compatibility): 1000 projéteis custavam ~7 ms só de desenho (Etapa H).
+## Uma textura por projétil se agrupa com as outras iguais.
+static var _images := {}
 
 var _ability: AbilityData
 var _caster: WeakRef
@@ -74,8 +82,30 @@ func _hit(caster: Character, target: Character) -> void:
 
 
 func _draw() -> void:
-	draw_set_transform(Vector2.ZERO, 0.0, SHADOW_SIZE)
-	draw_circle(Vector2.ZERO, 1.0, SHADOW_COLOR)
-	draw_set_transform(Vector2.ZERO)
-	draw_circle(Vector2(0, -HEIGHT), GLOW_RADIUS, _ability.vfx_glow_color)
-	draw_circle(Vector2(0, -HEIGHT), CORE_RADIUS, _ability.vfx_color)
+	draw_texture(_image_of(_ability), IMAGE_ORIGIN)
+
+
+static func _image_of(ability: AbilityData) -> ImageTexture:
+	if not _images.has(ability):
+		_images[ability] = ImageTexture.create_from_image(_paint(ability))
+	return _images[ability]
+
+
+## Pinta o que antes eram três círculos: acende cada pixel cujo centro cai dentro da forma
+## (o mesmo critério de `draw_circle`), na ordem sombra → brilho → núcleo.
+static func _paint(ability: AbilityData) -> Image:
+	var size := Vector2i(ceili(GLOW_RADIUS * 2.0), ceili(HEIGHT + GLOW_RADIUS + SHADOW_SIZE.y))
+	var image := Image.create_empty(size.x, size.y, false, Image.FORMAT_RGBA8)
+	var orb := Vector2(0, -HEIGHT)
+	for y in size.y:
+		for x in size.x:
+			var point := IMAGE_ORIGIN + Vector2(x, y) + Vector2.ONE * 0.5
+			var color := Color.TRANSPARENT
+			if (point / SHADOW_SIZE).length() <= 1.0:
+				color = color.blend(SHADOW_COLOR)
+			if point.distance_to(orb) <= GLOW_RADIUS:
+				color = color.blend(ability.vfx_glow_color)
+			if point.distance_to(orb) <= CORE_RADIUS:
+				color = color.blend(ability.vfx_color)
+			image.set_pixel(x, y, color)
+	return image

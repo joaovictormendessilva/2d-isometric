@@ -120,7 +120,8 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
     - Importar recursos: `G --headless --path . --import`
     - Testes automáticos: `G --headless --path . --fixed-fps 60 -s res://tests/run_tests.gd`
     - Desempenho (com janela; `--fixed-fps 60` = 1 passo de física por quadro, sem espera):
-      `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd`, `.../benchmark_monsters.gd` e
+      `G --path . --fixed-fps 60 -s res://tests/benchmark_region.gd`, `.../benchmark_monsters.gd`,
+      `.../benchmark_auras.gd`, `.../benchmark_projectiles.gd` e
       `.../benchmark_regions.gd` (várias regiões ativas no host)
     - Testes reprovam também qualquer erro de script registrado durante o teste.
     - Verificações de imagem (com janela; os testes acima não enxergam pixels):
