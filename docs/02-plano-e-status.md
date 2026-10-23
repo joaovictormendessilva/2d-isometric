@@ -13,7 +13,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D | Combate, vida, dano, primeiro inimigo, recompensas | ✅ |
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
-| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 ✅ (moedas, poção, receitas de NPC); F4 a seguir |
+| F | Região jogável com progressão, NPCs e mini boss | 🟡 F1 ✅; F2 ✅; F3 ✅ (moedas, poção, receitas de NPC); F4a (Rei Slime) aguardando validação |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ⬜ |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
@@ -187,7 +187,13 @@ Ordem proposta (cada um com validação do João antes do próximo):
   (escolha do João: aprender e levar). O mercador ensina a poção de vida (40 moedas); depois ela
   se fabrica em qualquer lugar com 3 gosmas (João: sem bancada). Fica no save e no coop o
   host decide. 133 testes. Validado pelo João (2026-10-22).
-- **F4 – Mini boss** ⬜: ataques com aviso no chão, fases, drop especial.
+- **F4 – Mini boss** 🟡 (branch `stage-f/mini-boss`, ADR-024): o **Rei Slime** (escolha do João).
+  F4a: salto com aviso no chão, barra de vida de chefe, drop especial; F4b: fase 2 (divide-se em
+  slimes pequenos e salta mais rápido).
+  F4a 🟡 implementado: clareira no leste da floresta; o chefe salta em quem está a meia distância
+  (círculo vermelho no chão enche até a queda; sair dele evita o dano), golpeia quem está perto,
+  barra de vida no alto da tela, Núcleo do Rei Slime ao morrer, renasce em 5 min. No coop o host
+  decide e os clientes veem o salto. 138 testes. Aguardando validação do João.
 - **F5 – Ciclo de progressão** ⬜: algo liberado pelo chefe (área ou receita) e balanceamento.
 
 ## Funcionalidades
@@ -225,6 +231,8 @@ Ordem proposta (cada um com validação do João antes do próximo):
 - Receitas de NPC (F3c): na loja do mercador, seção "Receitas": clique em "Receita: Poção de vida"
   (40 moedas) para aprender. Depois a poção aparece acesa na coluna Fabricar (3 gosmas, em
   qualquer lugar). Antes de aprender ela fica apagada com o motivo na dica. Fica salvo.
+- Rei Slime (F4a): na floresta, siga para o leste até a clareira. Ele salta em quem está a meia
+  distância: saia do círculo vermelho antes de ele cair e bata nele enquanto se recupera.
 - Coleta: tecla E (botão A) perto de uma árvore de lenha (copa amarelada) ou veio de cobre
   (pedra com pontos laranja); níveis de coleta no HUD.
 

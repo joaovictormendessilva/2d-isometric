@@ -6,6 +6,10 @@ extends Resource
 @export var id: StringName
 @export var stats: ActorStats
 @export var attack: MeleeAttackData
+## Ataque especial opcional: salto com queda em área (precisa do nó SlamAttacker na cena).
+@export var slam: SlamAttackData
+## Chefe: barra de vida no alto da tela para quem está por perto (F4).
+@export var is_boss := false
 @export_group("Comportamento (px no chão)")
 ## Distância em que percebe um jogador.
 @export var aggro_radius: float = 110.0

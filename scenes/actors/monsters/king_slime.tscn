@@ -1,0 +1,39 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/actors/actor.tscn" id="1_actor"]
+[ext_resource type="Script" path="res://scenes/actors/monsters/monster.gd" id="2_monster"]
+[ext_resource type="Resource" path="res://data/monsters/king_slime.tres" id="3_data"]
+[ext_resource type="Script" path="res://scenes/actors/monsters/slime_visual.gd" id="4_visual"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/king_slime.png" id="5_body"]
+[ext_resource type="Script" path="res://scenes/actors/ai/monster_brain.gd" id="6_brain"]
+[ext_resource type="Script" path="res://scenes/components/slam_attacker.gd" id="7_slam"]
+[ext_resource type="Script" path="res://scenes/components/slam_feedback.gd" id="8_slam_feedback"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/shadow_large.png" id="9_shadow"]
+
+[node name="KingSlime" instance=ExtResource("1_actor")]
+script = ExtResource("2_monster")
+data = ExtResource("3_data")
+faction = &"monsters"
+
+[node name="Footprint" parent="."]
+radius = 14.0
+
+[node name="SlamAttacker" type="Node" parent="."]
+script = ExtResource("7_slam")
+
+[node name="Visual" parent="."]
+script = ExtResource("4_visual")
+
+[node name="Shadow" parent="Visual"]
+texture = ExtResource("9_shadow")
+
+[node name="Body" type="Sprite2D" parent="Visual"]
+texture = ExtResource("5_body")
+centered = false
+offset = Vector2(-15, -24)
+
+[node name="Brain" type="Node" parent="."]
+script = ExtResource("6_brain")
+
+[node name="SlamFeedback" type="Node" parent="."]
+script = ExtResource("8_slam_feedback")

@@ -3,7 +3,8 @@ extends CharacterBody2D
 ## Corpo simulado de QUALQUER ator — jogador ou criatura. A origem fica nos PÉS (Y-sort).
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
-## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, Gatherer, NetSync ("Net").
+## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, SlamAttacker, Gatherer,
+## NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
@@ -31,6 +32,7 @@ var bonuses := StatBonuses.new()
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
 var health: Health
 var attacker: MeleeAttacker
+var slammer: SlamAttacker
 var gatherer: Gatherer
 var net: NetSync
 
@@ -45,6 +47,7 @@ var _weapon_attack: MeleeAttackData
 func _enter_tree() -> void:
 	health = get_node_or_null("Health")
 	attacker = get_node_or_null("MeleeAttacker")
+	slammer = get_node_or_null("SlamAttacker")
 	gatherer = get_node_or_null("Gatherer")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
@@ -104,12 +107,21 @@ func set_move_intent(direction: Vector2) -> void:
 
 ## Pede um ataque na direção dada (plano do chão). Retorna se o ataque começou.
 func request_attack(direction: Vector2) -> bool:
-	if attacker == null or not is_alive() or _stun_left > 0.0:
+	if attacker == null or not is_alive() or _stun_left > 0.0 \
+			or (slammer and slammer.is_slamming()):
 		return false
 	if not attacker.try_attack(direction):
 		return false
 	facing = direction.normalized()
 	return true
+
+
+## Pede um salto com queda em `landing` (tela; ver SlamAttacker). Retorna se começou.
+func request_slam(landing: Vector2) -> bool:
+	if slammer == null or not is_alive() or _stun_left > 0.0 \
+			or (attacker and attacker.is_attacking()):
+		return false
+	return slammer.try_slam(landing)
 
 
 ## Pede para coletar o ponto de coleta mais próximo ao alcance. Retorna se começou.
@@ -174,6 +186,8 @@ func _physics_process(delta: float) -> void:
 	var speed := move_speed() * Iso.move_speed_factor(intent, stats.horizontal_speed_factor)
 	if attacker:
 		speed *= attacker.move_multiplier()
+	if slammer:
+		speed *= slammer.move_multiplier()
 	var rate := stats.acceleration if intent != Vector2.ZERO else stats.friction
 	ground_velocity = ground_velocity.move_toward(intent * speed, rate * delta)
 	velocity = Iso.ground_to_screen(ground_velocity)
@@ -198,6 +212,8 @@ func _on_died() -> void:
 	collision_layer = 0
 	if attacker:
 		attacker.stop()  # sem bote "fantasma" depois da morte
+	if slammer:
+		slammer.stop()
 	if gatherer:
 		gatherer.stop()
 	died.emit(self)

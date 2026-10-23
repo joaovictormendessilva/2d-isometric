@@ -19,6 +19,7 @@ const LUMBER_TREE := "res://scenes/gathering/lumber_tree.tscn"
 const COPPER_VEIN := "res://scenes/gathering/copper_vein.tscn"
 const OLD_OAK := "res://scenes/gathering/old_oak.tscn"
 const MERCHANT := "res://scenes/npc/merchant.tscn"
+const KING_SLIME := "res://scenes/actors/monsters/king_slime.tscn"
 
 enum Side { EAST, WEST }
 
@@ -45,6 +46,8 @@ const PASSAGE_INSET := 22.0
 ## quantidade, quantos perto da entrada]. `far`: distância máxima (chão) da entrada para
 ## criaturas e pontos de coleta. `passages`: [id, lado, y, região destino, passagem destino].
 ## `npcs`: [cena, posição em relação à entrada (px de tela)], dentro da área livre da entrada.
+## `boss`: [cena, posição (px de tela), raio da clareira (chão), renascimento (s)]: a clareira é
+## aberta (sem água, objetos, pontos de coleta nem criaturas) e o chefe nasce no meio dela.
 var REGIONS := [
 	{
 		"id": &"meadow", "node": "Meadow", "path": "res://scenes/regions/meadow/meadow.tscn",
@@ -63,6 +66,7 @@ var REGIONS := [
 		"monsters": 10, "far": 1500.0,
 		"resources": [[OLD_OAK, 8, 1], [LUMBER_TREE, 8, 1], [COPPER_VEIN, 3, 0]],
 		"passages": [[&"to_meadow", Side.WEST, 480.0, &"meadow", &"to_forest"]],
+		"boss": [KING_SLIME, Vector2(1250, 480), 120.0, 300.0],
 	},
 ]
 
@@ -159,6 +163,7 @@ func _build_region(tile_set: TileSet) -> Node2D:
 	# Por último: abrir caminho não mexe no sorteio do resto do mapa.
 	_carve_passages(region, ground)
 	_place_npcs(entities, region, spawn.position)
+	_place_boss(region, ground)
 	return region
 
 
@@ -372,3 +377,31 @@ func _place_npcs(entities: Node2D, region: Node2D, spawn: Vector2) -> void:
 		npc.position = spawn + entry[1]
 		_add_owned(entities, npc, region)
 		print("[gen] %s npc: %s em %s" % [_r["id"], npc.name, npc.position])
+
+
+## Chefe (F4) numa clareira: por último, para não mexer no sorteio do resto do mapa. O ponto
+## dele entra no fim de `MonsterSpawns` (os outros pontos mantêm o número).
+func _place_boss(region: Node2D, ground: TileMapLayer) -> void:
+	var boss: Array = _r.get("boss", [])
+	if boss.is_empty():
+		return
+	var center: Vector2 = boss[1]
+	var radius: float = boss[2]
+	for cell in _region_cells(ground):
+		if Iso.ground_distance(ground.map_to_local(cell), center) <= radius \
+				and ground.get_cell_atlas_coords(cell) == TerrainAtlas.coords(&"water"):
+			ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(&"grass_0"))
+	for holder: Node in [region.get_node("Entities"), region.get_node("MonsterSpawns")]:
+		for node: Node2D in holder.get_children():
+			if Iso.ground_distance(node.position, center) <= radius:
+				print("[gen] %s: %s tirado da clareira do chefe" % [_r["id"], node.name])
+				holder.remove_child(node)
+				node.free()
+	var point := Marker2D.new()
+	point.set_script(load(SPAWN_POINT_SCRIPT))
+	point.name = "Boss"
+	point.position = center
+	point.set(&"monster_scene", load(boss[0]))
+	point.set(&"respawn_time", boss[3])
+	_add_owned(region.get_node("MonsterSpawns"), point, region)
+	print("[gen] %s chefe em %s" % [_r["id"], center])

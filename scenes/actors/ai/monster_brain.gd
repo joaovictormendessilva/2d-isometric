@@ -5,6 +5,8 @@ extends Node
 ## Ao desistir ("evadir"), volta até casa imune e sem perceber ninguém, e lá recupera a vida
 ## toda. Sem isso, ela oscila na borda da coleira ou vira alvo fácil enquanto foge.
 ## Gera só INTENÇÕES para o Monster pai — igual a um jogador, mas automatizado.
+## Criaturas com salto (SlamAttacker, chefes) saltam sobre alvos a meia distância, se o ponto
+## de queda for chão livre; perto, usam o golpe comum.
 ## Sem busca de caminho por enquanto: as pegadas redondas deslizam em volta dos obstáculos.
 
 ## A escolha de alvo roda a 5 Hz (barato com muitas criaturas); o movimento, todo quadro.
@@ -43,10 +45,14 @@ func _physics_process(delta: float) -> void:
 	if _think_left <= 0.0:
 		_think_left = THINK_INTERVAL
 		_think()
+	if _body.slammer and _body.slammer.is_slamming():
+		return  # no ar ou se recuperando: o salto decide
 	if _target == null:
 		_return_home()
 		return
 	var to_target := Iso.screen_to_ground(_target.position - _body.position)
+	if _try_slam(to_target):
+		return
 	var gap := to_target.length() - _target.footprint_radius() - _body.footprint_radius()
 	if gap <= _body.data.attack.reach * ATTACK_RANGE_FRACTION:
 		_body.set_move_intent(Vector2.ZERO)
@@ -60,6 +66,19 @@ func _think() -> void:
 		_returning = true
 		_body.health.set_immune(true)
 	_target = null if _returning else _pick_target()
+
+
+## Salta no alvo se puder: salto pronto, alvo a meia distância e chão livre onde ele está.
+func _try_slam(to_target: Vector2) -> bool:
+	if _body.slammer == null or not _body.slammer.can_slam():
+		return false
+	var slam := _body.slammer.attack
+	var distance := to_target.length()
+	if distance < slam.min_distance or distance > slam.max_distance:
+		return false
+	var space := _body.get_world_2d().direct_space_state
+	return GroundQuery.is_walkable(space, _target.position, _body.footprint_radius()) \
+		and _body.request_slam(_target.position)
 
 
 ## Jogador vivo mais próximo dentro do raio de agressão.

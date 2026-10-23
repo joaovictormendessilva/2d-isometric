@@ -11,10 +11,6 @@ signal attack_finished
 
 enum Phase { READY, WINDUP, RECOVERY }
 
-## Maior raio de pegada esperado num alvo; amplia a busca física inicial.
-const MAX_TARGET_RADIUS := 16.0
-const MAX_TARGETS := 32
-
 @export var attack: MeleeAttackData
 
 var _phase := Phase.READY
@@ -101,28 +97,12 @@ func _finish() -> void:
 
 
 func _find_targets() -> Array[Character]:
-	# Busca física larga (círculo de tela cobre a elipse do chão), depois filtro exato no chão.
-	var shape := CircleShape2D.new()
-	shape.radius = _body.footprint_radius() + attack.reach + MAX_TARGET_RADIUS
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = shape
-	query.transform = Transform2D(0.0, _body.global_position)
-	query.collision_mask = PhysicsLayers.ACTORS
-	var targets: Array[Character] = []
-	for hit in _body.get_world_2d().direct_space_state.intersect_shape(query, MAX_TARGETS):
-		var target := hit.collider as Character
-		if target != null and _can_hit(target):
-			targets.append(target)
-	return targets
+	return ActorQuery.hostiles_near(_body, _body.global_position, _body.footprint_radius(),
+		attack.reach).filter(_in_arc)
 
 
-func _can_hit(target: Character) -> bool:
-	if target == _body or target.faction == _body.faction or not target.is_alive():
-		return false
+func _in_arc(target: Character) -> bool:
 	var to_target := Iso.screen_to_ground(target.global_position - _body.global_position)
-	var gap := to_target.length() - target.footprint_radius() - _body.footprint_radius()
-	if gap > attack.reach:
-		return false
 	if attack.arc_degrees >= 360.0 or to_target.is_zero_approx():
 		return true
 	return absf(rad_to_deg(_direction.angle_to(to_target))) <= attack.arc_degrees / 2.0

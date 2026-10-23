@@ -34,6 +34,10 @@ func _ready() -> void:
 	if _body.attacker:
 		_body.attacker.attack_started.connect(_on_attack_started)
 		_body.attacker.attack_struck.connect(_on_attack_struck.unbind(2))
+	if _body.slammer:  # salto: avermelha durante o aviso, volta ao saltar
+		_body.slammer.slam_started.connect(func(_l: Vector2, attack: SlamAttackData) -> void:
+			_tween_modulate(Color.WHITE, TELEGRAPH_COLOR, attack.windup))
+		_body.slammer.slam_launched.connect(_on_attack_struck)
 	_body.died.connect(_on_died.unbind(1))
 	_body.revived.connect(_on_revived.unbind(1))
 

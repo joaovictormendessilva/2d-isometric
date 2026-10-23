@@ -78,5 +78,6 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 | Moedas e loja (F3) | ✅ | ✅ automático (host confere NPC ao alcance, preço dos dados, índices e teto da carteira; moedas só ao dono) | ⬜ |
 | Poção de vida (F3b) | ✅ | ✅ automático (host escolhe a poção, confere índice, vida e espera; cura e espera chegam ao cliente; pedidos forjados recusados) | ⬜ |
 | Receitas de NPC (F3c) | ✅ | ✅ automático (host confere distância, receita ensinada e moedas; receita chega ao cliente; pedidos forjados recusados; fabricar confere o livro do host) | ⬜ |
+| Mini boss: salto do Rei Slime (F4a) | ✅ | ✅ automático (host simula o chefe e aplica o dano; o cliente recebe o salto com o ponto de queda e mostra o aviso) | ⬜ |
 | Desconexão/reconexão | — | ✅ automático (desconexão de host e cliente; quem volta com o mesmo perfil recebe o próprio personagem; mesmo perfil duas vezes é recusado) | ⬜ |
 | Salvamento | ✅ automático (personagem, bancada, pontos de coleta; arquivo adulterado ignorado) | ✅ automático (progresso do amigo guardado no save do host) | ⬜ |
