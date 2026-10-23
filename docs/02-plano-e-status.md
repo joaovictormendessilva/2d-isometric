@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c 🟡 transmog) |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c ✅ transmog; G3d ⬜ carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -282,7 +282,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     (metade de trás atrás do corpo, metade da frente na frente), luz translúcida no chão
     pulsando e faíscas douradas subindo. Aparece para todos no coop. Capturas: `--equip=<ids>`
     (tela e folha de quadros). 185 testes.
-  - G3c 🟡 implementada, aguarda validação do João (branch `stage-g/transmog`, ADR-030):
+  - G3c ✅ (validado pelo João, 2026-10-23; branch `stage-g/transmog`, ADR-030):
     cosméticos (aparência separada dos atributos) e **transmog** (pedido do João,
     2026-10-23: a aparência de um item com os atributos de outro). Diretrizes de efeitos em ADR-029.
     Escolha do João (2026-10-23): **coleção permanente**, conseguir o item uma vez libera a
