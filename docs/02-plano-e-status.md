@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 (buffs e debuffs) em andamento |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 (primeira habilidade) em andamento |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -213,23 +213,23 @@ Ordem proposta (cada um com validação do João antes do próximo):
 
 Ordem combinada com o João (2026-10-23), cada um validado por ele antes do próximo:
 
-- **G1 – Buffs e debuffs** 🟡 (branch `stage-g/status-effects`): base de efeitos com duração,
+- **G1 – Buffs e debuffs** ✅ (branch `stage-g/status-effects`): base de efeitos com duração,
   em dados, para jogadores e criaturas; o host decide.
-  - G1a 🟡 implementado (ADR-025): núcleo (efeito em `data/`: duração, bônus de atributos,
+  - G1a ✅ implementado (ADR-025): núcleo (efeito em `data/`: duração, bônus de atributos,
     dano/cura por tick; reaplicar renova), aplicado pelo host e enviado aos clientes; vai no save.
     Primeiros efeitos: veneno (3 por segundo, 6 s) e rapidez (+25% de velocidade, 30 s). Ainda
     sem nada visível no jogo (vem na G1b/G1c). 154 testes.
-  - G1b 🟡 implementado: acima da vida, um quadrado por efeito com ícone e segundos (borda verde =
+  - G1b ✅ implementado: acima da vida, um quadrado por efeito com ícone e segundos (borda verde =
     buff, vermelha = debuff); partículas no ator (bolhas verdes subindo no veneno, rastro azul nos
     pés na rapidez; em dados, no máximo 8 por efeito); aviso flutuante ao ganhar um efeito; dano de
     veneno em amarelo-esverdeado. Captura: `--effect=<id>` (tela) e `--effects=` (folha de
     quadros). 155 testes.
-  - G1c 🟡 implementado: **slime venenoso** (escolha do João; verde-limão, só na floresta, metade
+  - G1c ✅ implementado: **slime venenoso** (escolha do João; verde-limão, só na floresta, metade
     dos pontos alternados com o slime comum, mesmos atributos e bote; o bote que acerta envenena;
     solta 1 a 3 gosmas) e **poção de rapidez** (mercador, 25 moedas; +25% de velocidade por 30 s;
     espera própria de 5 s, não divide com a poção de vida; vale beber com vida cheia). Golpes de
     qualquer criatura podem aplicar efeitos (`on_hit_effects` nos dados). 159 testes.
-    Aguardando validação do João (G1 inteira).
+    Validado pelo João (2026-10-23): rapidez conferida pelo painel F3, veneno e HUD ok.
 - **G2 – Primeira habilidade mágica** ⬜: tecla de habilidade, mira no cursor, aviso no chão,
   efeito mágico (estilo Albion/V Rising). Primeiro ataque à distância; com ele, o chefe passa a
   perseguir quem o ataca de longe (ver "Direção de combate").

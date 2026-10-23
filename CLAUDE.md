@@ -15,6 +15,9 @@ Inspirações de intenção (nunca copiar conteúdo, nomes, sprites ou identidad
 - **V Rising** — o mesmo estilo de lançar habilidades (teclas de habilidade, mira no cursor).
 - **Hero Siege** — referência de design (João, 2026-10-22): HUD, ambientação medieval que muda
   conforme o mundo, cosméticos que mudam o personagem, skills, grind e mapas em pixel art.
+  **Referência de arte prioritária por enquanto** (João, 2026-10-23): pesa sobre as outras na
+  arte definitiva (paleta, proporções, sprites, HUD). Até lá, a arte provisória só não deve ir
+  contra ela.
 
 Mundo dividido em **regiões conectadas** (não um mundo único). Single-player primeiro, mas a
 arquitetura considera **coop LAN** desde o início e uma possível evolução para online.

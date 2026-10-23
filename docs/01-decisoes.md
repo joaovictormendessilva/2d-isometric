@@ -641,7 +641,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-025 — Buffs e debuffs (efeitos com duração)
 
-- **Status**: Hipótese (G1a implementada; G1b/G1c a seguir; validação do João no fim da G1)
+- **Status**: Aceita (G1a, G1b e G1c validadas pelo João, 2026-10-23)
 - **Direção do João (2026-10-23)**: a Etapa G começa por buffs e debuffs (base que habilidades,
   auras e poções vão usar); auras e cosméticos vêm na G3.
 - **Decisões** (técnicas, ajustáveis em `data/`):

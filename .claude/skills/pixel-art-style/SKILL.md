@@ -8,7 +8,9 @@ description: Regras de pixel art do projeto e como conferir cada sprite — pale
 Objetivo do João: arte bonita e **sem cara de IA genérica**. Na prática, "cara de IA" é:
 cores demais, gradientes suaves, bordas borradas, ruído de pixels soltos, sombra em volta de
 tudo ("pillow shading"), luz incoerente e silhuetas que não se leem. As regras abaixo evitam
-isso. A identidade visual final (paleta oficial, tom) é **decisão criativa do João**: até lá,
+isso. Referência de arte prioritária no momento: **Hero Siege** (João, 2026-10-23), para a arte
+definitiva; a provisória só não deve contrariá-la. A identidade visual final (paleta oficial, tom)
+é **decisão criativa do João**: até lá,
 estas regras valem para a arte provisória e para avaliar assets.
 
 ## Base técnica (fixa)
