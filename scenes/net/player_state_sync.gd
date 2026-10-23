@@ -6,8 +6,10 @@ extends HostRequests
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
 ## estrutura, vestir e tirar equipamento, comprar, vender e aprender receitas com um NPC, usar um
-## item como a poção); o host confere e aplica. Esperas (poções) começadas no host e receitas
-## aprendidas também vão ao dono. Offline, os pedidos são aplicados na hora.
+## item como a poção, escolher a aparência de um espaço); o host confere e aplica. Esperas
+## (poções) começadas no host, receitas aprendidas e aparências colecionadas também vão ao dono;
+## as aparências escolhidas vão a todos, junto com o equipamento. Offline, os pedidos são
+## aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -45,8 +47,9 @@ func track_player(player_id: int) -> void:
 	if _tracked.get(player_id) == inventory:
 		return
 	_tracked[player_id] = inventory
-	session.get_equipment(player_id).slot_changed.connect(
-		_broadcast_equipment.bind(player_id).unbind(1))
+	var equipment := session.get_equipment(player_id)
+	equipment.slot_changed.connect(_broadcast_equipment.bind(player_id).unbind(1))
+	equipment.look_changed.connect(_broadcast_equipment.bind(player_id).unbind(1))
 	if player_id == multiplayer.get_unique_id():
 		return
 	inventory.slot_changed.connect(_send_slot.bind(player_id, inventory))
@@ -63,6 +66,7 @@ func track_player(player_id: int) -> void:
 	session.get_recipe_book(player_id).learned.connect(
 		func(recipe_id: StringName, is_new: bool) -> void:
 			_send(player_id, &"_recipe_learned", [recipe_id, is_new]))
+	session.get_appearances(player_id).collected.connect(_send_collection.bind(player_id).unbind(1))
 
 
 ## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
@@ -113,6 +117,12 @@ func request_equip(index: int) -> void:
 ## Jogador local clicou no espaço de equipamento `index` (vestir o que está na mão, ou tirar).
 func request_click_equipment(index: int) -> void:
 	_request(&"_click_equipment_requested", [index])
+
+
+## Jogador local quer mostrar `look_id` no espaço de equipamento `index` (transmog; ou
+## `Equipment.OWN_LOOK` / `HIDDEN_LOOK`).
+func request_set_look(index: int, look_id: StringName) -> void:
+	_request(&"_set_look_requested", [index, look_id])
 
 
 ## Jogador local quer fazer a receita `recipe_id` uma vez.
@@ -228,7 +238,12 @@ func _send_equipment(peer: int, player_id: int) -> void:
 	var ids := PackedStringArray()
 	for index in equipment.size():
 		ids.append(equipment.item_id(index))
-	_send(peer, &"_equipment", [player_id, ids])
+	_send(peer, &"_equipment", [player_id, ids, equipment.looks()])
+
+
+## Host: a coleção inteira ao dono (muda raramente: um equipamento novo).
+func _send_collection(player_id: int) -> void:
+	_send(player_id, &"_collection", [session.get_appearances(player_id).snapshot()])
 
 
 ## Host: inventário de quem pediu (o próprio host, numa chamada local, ou o cliente remetente).
@@ -271,6 +286,13 @@ func _click_equipment_requested(index: int) -> void:
 	var inventory := _requester_inventory()
 	if inventory:  # confere índice e se o item da mão cabe no espaço
 		EquipmentRules.click_slot(inventory, session.get_equipment(_requester()), index)
+
+
+@rpc("any_peer", "call_remote", "reliable")
+func _set_look_requested(index: int, look_id: StringName) -> void:
+	if _requester_inventory():  # confere índice, tipo do espaço e se a aparência foi colecionada
+		EquipmentRules.set_look(session.get_equipment(_requester()),
+			session.get_appearances(_requester()), index, look_id)
 
 
 ## Soltar um espaço = pegar a pilha e jogar fora o que está na mão, de uma vez no host.
@@ -401,6 +423,7 @@ func _full_state_requested() -> void:
 	_send(player_id, &"_coins", [session.get_wallet(player_id).coins()])
 	for recipe_id in session.get_recipe_book(player_id).all_learned():
 		_send(player_id, &"_recipe_learned", [recipe_id, false])
+	_send_collection(player_id)
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -471,20 +494,32 @@ func _equipment_requested(player_id: int) -> void:
 		_send_equipment(multiplayer.get_remote_sender_id(), player_id)
 
 
-## Equipamento de um jogador vindo do host: tudo ou nada — mesmo número de espaços, e cada um
-## vazio ou com um equipamento conhecido do tipo do espaço.
+## Coleção de aparências do jogador local vinda do host (conferida contra o catálogo local).
 @rpc("authority", "call_remote", "reliable")
-func _equipment(player_id: int, ids: PackedStringArray) -> void:
+func _collection(ids: PackedStringArray) -> void:
+	var collection := session.get_appearances(multiplayer.get_unique_id())
+	if collection:
+		collection.replicate(ids, items)
+
+
+## Equipamento de um jogador vindo do host: tudo ou nada — mesmo número de espaços, e cada um
+## vazio ou com um equipamento conhecido do tipo do espaço; cada aparência a própria, escondida
+## ou um equipamento conhecido do tipo do espaço.
+@rpc("authority", "call_remote", "reliable")
+func _equipment(player_id: int, ids: PackedStringArray, looks: PackedStringArray) -> void:
 	var equipment := session.get_equipment(player_id)
-	if equipment == null or ids.size() != equipment.size():
+	if equipment == null or ids.size() != equipment.size() or looks.size() != equipment.size():
 		return
 	for index in ids.size():
 		var item := equipment.data_of(ids[index])
 		if ids[index] != Equipment.EMPTY \
 				and (item == null or item.get_slot() != equipment.slot_type(index)):
 			return
+		if not EquipmentRules.is_valid_look(equipment, index, StringName(looks[index])):
+			return
 	for index in ids.size():
 		equipment.replicate_slot(index, StringName(ids[index]))
+		equipment.replicate_look(index, StringName(looks[index]))
 
 
 ## Pilha vinda da rede: vazia, ou item conhecido em quantidade dentro do limite dele.

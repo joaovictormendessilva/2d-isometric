@@ -255,10 +255,12 @@ func _instantiate_player(data: Dictionary) -> Character:
 	gatherer.session = session
 	gatherer.items = items
 	(character.get_node("StatusEffects") as StatusEffects).effects = session.get_effects(character.player_id)
-	# Equipamento → atributos e golpe, em todos os computadores (cada um recebe o de todos).
+	# Equipamento → atributos, golpe e aparência, em todos os computadores (cada um recebe o de
+	# todos).
 	var equipment := session.get_equipment(character.player_id)
 	character.apply_equipment(equipment)
 	equipment.slot_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
+	equipment.look_changed.connect(character.apply_equipment.bind(equipment).unbind(1))
 	if _sized.get(character.player_id) != equipment:
 		_sized[character.player_id] = equipment
 		equipment.slot_changed.connect(_fit_inventory.bind(character.player_id).unbind(1))

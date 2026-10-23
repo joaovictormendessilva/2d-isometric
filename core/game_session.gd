@@ -16,6 +16,7 @@ var _cooldowns: Dictionary[int, Cooldowns] = {}  # player_id -> esperas (poçõe
 var _recipe_books: Dictionary[int, RecipeBook] = {}  # player_id -> receitas aprendidas
 var _effects: Dictionary[int, ActiveEffects] = {}  # player_id -> buffs e debuffs
 var _ability_books: Dictionary[int, AbilityBook] = {}  # player_id -> habilidades
+var _appearances: Dictionary[int, AppearanceCollection] = {}  # player_id -> aparências colecionadas
 var _items: ItemDatabase
 var _equipment_layout: EquipmentLayout
 
@@ -58,6 +59,8 @@ func add_player(player_id: int, entity_id: int,
 		_recipe_books[player_id] = RecipeBook.new()
 		_effects[player_id] = ActiveEffects.new()
 		_ability_books[player_id] = AbilityBook.new()
+		_appearances[player_id] = AppearanceCollection.new()
+		_appearances[player_id].watch(_inventories[player_id], _equipment[player_id])
 
 
 func get_inventory(player_id: int) -> Inventory:
@@ -92,6 +95,10 @@ func get_ability_book(player_id: int) -> AbilityBook:
 	return _ability_books.get(player_id)
 
 
+func get_appearances(player_id: int) -> AppearanceCollection:
+	return _appearances.get(player_id)
+
+
 func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
@@ -108,6 +115,7 @@ func remove_player(player_id: int) -> void:
 	_recipe_books.erase(player_id)
 	_effects.erase(player_id)
 	_ability_books.erase(player_id)
+	_appearances.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

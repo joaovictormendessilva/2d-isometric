@@ -88,8 +88,9 @@ func is_alive() -> bool:
 	return health == null or not health.is_dead()
 
 
-## Equipamento vestido mudou: soma os bônus e troca o golpe pelo da arma (sem arma: o golpe
-## desarmado de `stats`). Vale antes de entrar na árvore (aplicado no `_ready`).
+## Equipamento vestido ou aparência mudou: soma os bônus e troca o golpe pelo da arma (sem arma:
+## o golpe desarmado de `stats`); as auras vêm do que APARECE (transmog, ADR-030), sem repetir
+## a mesma aura. Vale antes de entrar na árvore (aplicado no `_ready`).
 func apply_equipment(equipment: Equipment) -> void:
 	_equipment_bonuses = StatBonuses.total(equipment.equipped())
 	var weapon := equipment.weapon()
@@ -97,12 +98,12 @@ func apply_equipment(equipment: Equipment) -> void:
 	_update_bonuses()
 	if is_node_ready() and attacker:
 		attacker.set_attack(_weapon_attack if _weapon_attack else stats.unarmed_attack)
-	var worn: Array[AuraData] = []
-	for item in equipment.equipped():
-		if item.aura:
-			worn.append(item.aura)
-	if worn != auras:
-		auras = worn
+	var shown: Array[AuraData] = []
+	for item in equipment.shown_items():
+		if item.aura and item.aura not in shown:
+			shown.append(item.aura)
+	if shown != auras:
+		auras = shown
 		auras_changed.emit()
 
 
