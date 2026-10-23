@@ -9,6 +9,7 @@ signal craft_requested(recipe_id: StringName)
 const MISSING_COLOR := UiStyle.DANGER
 ## Motivo de não poder fabricar → chave de texto.
 const CHECK_TEXTS := {
+	CraftingRules.Check.NOT_LEARNED: &"CRAFT_NOT_LEARNED",
 	CraftingRules.Check.NEEDS_STATION: &"CRAFT_NEEDS_STATION",
 	CraftingRules.Check.MISSING_INGREDIENTS: &"CRAFT_MISSING_INGREDIENTS",
 	CraftingRules.Check.INVENTORY_FULL: &"CRAFT_INVENTORY_FULL",
@@ -31,9 +32,10 @@ func setup(p_recipe: RecipeData, items: ItemDatabase) -> void:
 	activated.connect(func() -> void: craft_requested.emit(recipe.id))
 
 
-## Mostra o que falta e se dá para fabricar com este inventário e estes lugares.
-func refresh(inventory: Inventory, stations: Array[RecipeData.Station]) -> void:
-	var state := CraftingRules.check(recipe, inventory, stations)
+## Mostra o que falta e se dá para fabricar com este inventário, estes lugares e estas receitas
+## aprendidas.
+func refresh(inventory: Inventory, stations: Array[RecipeData.Station], book: RecipeBook) -> void:
+	var state := CraftingRules.check(recipe, inventory, stations, book)
 	for item_id in recipe.ingredients:
 		var have := inventory.count(item_id)
 		var need: int = recipe.ingredients[item_id]

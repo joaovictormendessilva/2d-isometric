@@ -155,6 +155,14 @@ func resource_node(game: Node, data_id: StringName) -> ResourceNode:
 	return null
 
 
+## Primeiro NPC da região (o mercador, na campina), ou null.
+func merchant_node(game: Node) -> Npc:
+	for node in (game.region as Region).entities.get_children():
+		if node is Npc:
+			return node
+	return null
+
+
 ## Põe o personagem encostado no ponto de coleta (à esquerda dele, no plano do chão).
 func stand_next_to(character: Character, node: ResourceNode) -> void:
 	character.position = node.approach_point(character.footprint_radius())

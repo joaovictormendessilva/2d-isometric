@@ -1,8 +1,9 @@
 class_name ShopPanel
 extends Control
 ## Loja de um NPC para o jogador LOCAL (F3): abre com a tecla de interagir perto dele e
-## mostra as moedas e o que ele vende; clicar numa oferta compra uma unidade. Vender é pelo
-## inventário, que abre junto (botão direito num item: "Vender"; ver InventoryPanel).
+## mostra as moedas, o que ele vende e as receitas que ensina; clicar numa oferta compra uma
+## unidade (ou aprende a receita). Vender é pelo inventário, que abre junto (botão direito num
+## item: "Vender"; ver InventoryPanel).
 ## Fecha com a tecla de interagir de novo, junto com o inventário (I / Esc) ou ao se afastar.
 ## Não pausa o jogo. Cada ação é um pedido ao host (PlayerStateSync).
 
@@ -18,6 +19,7 @@ const HINT_WIDTH := 150.0
 
 var _inventory: Inventory
 var _wallet: Wallet
+var _book: RecipeBook
 var _player_state: PlayerStateSync
 var _player_id := 0
 var _items: ItemDatabase
@@ -25,6 +27,10 @@ var _npc: Npc
 var _window := DraggableWindow.new()
 var _offers := VBoxContainer.new()
 var _rows: Array[OfferRow] = []
+## Receitas que o NPC ensina (seção escondida quando não ensina nenhuma).
+var _recipe_section := VBoxContainer.new()
+var _recipe_offers := VBoxContainer.new()
+var _recipe_rows: Array[RecipeOfferRow] = []
 var _refresh_queued := false
 
 
@@ -39,6 +45,7 @@ func setup(inventory: Inventory, wallet: Wallet, items: ItemDatabase,
 		player_state: PlayerStateSync, player_id: int) -> void:
 	_inventory = inventory
 	_wallet = wallet
+	_book = player_state.session.get_recipe_book(player_id)
 	_items = items
 	_player_state = player_state
 	_player_id = player_id
@@ -48,9 +55,18 @@ func setup(inventory: Inventory, wallet: Wallet, items: ItemDatabase,
 	_window.add_content(coins)
 	_offers.add_theme_constant_override(&"separation", ROW_GAP)
 	_window.add_content(_offers)
+	_recipe_section.add_theme_constant_override(&"separation", ROW_GAP)
+	var recipes_title := Label.new()
+	recipes_title.text = Texts.get_text(&"SHOP_RECIPES")
+	recipes_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_recipe_section.add_child(recipes_title)
+	_recipe_offers.add_theme_constant_override(&"separation", ROW_GAP)
+	_recipe_section.add_child(_recipe_offers)
+	_window.add_content(_recipe_section)
 	_window.add_content(HintLabel.create(Texts.get_text(&"SHOP_HINT"), HINT_WIDTH))
 	inventory.slot_changed.connect(_queue_refresh.unbind(1))
 	wallet.changed.connect(_queue_refresh.unbind(1))
+	_book.learned.connect(_queue_refresh.unbind(2))
 
 
 ## NPC com quem o jogador está negociando (null = loja fechada).
@@ -97,16 +113,34 @@ func _build_offers() -> void:
 	for row in _rows:
 		row.free()
 	_rows.clear()
+	for row in _recipe_rows:
+		row.free()
+	_recipe_rows.clear()
 	_window.set_title(_npc.data.get_display_name())
-	var ids: Array[StringName] = []
-	ids.assign(_npc.data.offers.keys())
-	ids.sort()  # ordem estável na tela
-	for item_id in ids:
+	for item_id in _sorted_ids(_npc.data.offers):
 		var row := OfferRow.new()
 		row.setup(_npc.data, _items.get_item(item_id))
 		row.buy_requested.connect(_player_state.request_buy)
 		_offers.add_child(row)
 		_rows.append(row)
+	for recipe_id in _sorted_ids(_npc.data.recipe_offers):
+		var recipe := _player_state.recipes.get_recipe(recipe_id)
+		if recipe == null:
+			continue  # dado errado (o teste de dados avisa); não quebra a loja
+		var row := RecipeOfferRow.new()
+		row.setup(_npc.data, recipe, _items)
+		row.learn_requested.connect(_player_state.request_learn)
+		_recipe_offers.add_child(row)
+		_recipe_rows.append(row)
+	_recipe_section.visible = not _recipe_rows.is_empty()
+
+
+## Ids de uma tabela de preços em ordem estável na tela.
+static func _sorted_ids(prices: Dictionary[StringName, int]) -> Array[StringName]:
+	var ids: Array[StringName] = []
+	ids.assign(prices.keys())
+	ids.sort()
+	return ids
 
 
 ## Uma compra muda moedas e espaços: atualiza uma vez só, no fim do quadro.
@@ -120,3 +154,5 @@ func _refresh() -> void:
 	_refresh_queued = false
 	for row in _rows:
 		row.refresh(_inventory, _wallet)
+	for row in _recipe_rows:
+		row.refresh(_book, _wallet)

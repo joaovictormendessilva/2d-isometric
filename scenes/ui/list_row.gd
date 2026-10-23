@@ -1,9 +1,9 @@
 class_name ListRow
 extends PanelContainer
-## Linha clicável de lista da interface (receita, oferta de loja): ícone e nome em cima e, embaixo,
-## o que a subclasse puser em `details` (ingredientes, preço). Borda clara ao passar o mouse;
-## apagada quando indisponível (o motivo vai na dica). Clique numa linha disponível emite
-## `activated`; quem decide o resultado é o host.
+## Linha clicável de lista da interface (receita, oferta de loja, receita à venda): ícone e nome em
+## cima e, embaixo, o que a subclasse puser em `details` (ingredientes, preço). Borda clara ao
+## passar o mouse; apagada quando indisponível (o motivo vai na dica). Clique numa linha
+## disponível emite `activated`; quem decide o resultado é o host.
 
 signal activated
 
@@ -17,8 +17,8 @@ var _style := StyleBoxFlat.new()
 var _available := false
 
 
-## Monta a linha com o ícone e o nome de `item`.
-func build(item: ItemData) -> void:
+## Monta a linha com o ícone e o nome de `item` (ou `title`, se dado).
+func build(item: ItemData, title: String = "") -> void:
 	_style.bg_color = UiStyle.SLOT_BACK
 	_style.border_color = UiStyle.BORDER
 	_style.set_border_width_all(1)
@@ -34,7 +34,7 @@ func build(item: ItemData) -> void:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	row.add_child(column)
 	var name_label := Label.new()
-	name_label.text = item.get_display_name()
+	name_label.text = title if not title.is_empty() else item.get_display_name()
 	column.add_child(name_label)
 	details.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(details)

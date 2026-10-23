@@ -3,7 +3,8 @@ extends RefCounted
 ## Regras de compra e venda com um NPC (sem nós): se o jogador pode e a troca em si, sempre
 ## tudo ou nada. Usadas pelo host para decidir e por todos para mostrar.
 
-enum Check { OK, NOT_SOLD, NOT_ENOUGH_COINS, INVENTORY_FULL, NOT_BOUGHT, WALLET_FULL }
+enum Check { OK, NOT_SOLD, NOT_ENOUGH_COINS, INVENTORY_FULL, NOT_BOUGHT, WALLET_FULL,
+	NOT_TAUGHT, ALREADY_KNOWN }
 
 
 ## Comprar UMA unidade de `item_id` de `npc`.
@@ -47,6 +48,26 @@ static func sell(npc: NpcData, inventory: Inventory, index: int, amount: int, wa
 	var price := sell_price(items.get_item(inventory.slot_item(index)))
 	inventory.set_slot(index, inventory.slot_item(index), inventory.slot_amount(index) - amount)
 	wallet.add(price * amount)
+	return true
+
+
+## Aprender `recipe` com `npc` (F3c): ele precisa ensiná-la e o jogador ainda não sabê-la.
+static func check_learn(npc: NpcData, recipe: RecipeData, book: RecipeBook,
+		wallet: Wallet) -> Check:
+	if recipe == null or not recipe.must_learn or not npc.teaches(recipe.id):
+		return Check.NOT_TAUGHT
+	if book.knows(recipe):
+		return Check.ALREADY_KNOWN
+	if not wallet.can_afford(npc.recipe_price(recipe.id)):
+		return Check.NOT_ENOUGH_COINS
+	return Check.OK
+
+
+static func learn(npc: NpcData, recipe: RecipeData, book: RecipeBook, wallet: Wallet) -> bool:
+	if check_learn(npc, recipe, book, wallet) != Check.OK:
+		return false
+	wallet.spend(npc.recipe_price(recipe.id))
+	book.learn(recipe)
 	return true
 
 

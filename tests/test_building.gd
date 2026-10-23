@@ -16,7 +16,8 @@ func test_placed_workbench_unlocks_its_recipes_nearby() -> void:
 	inventory.add(&"copper_ore", 10)
 	inventory.add(&"wood", 10)
 	var copper_axe := state.recipes.get_recipe(&"copper_axe")
-	check(not CraftingRules.craft(copper_axe, inventory, state.stations_of(player_id)),
+	check(not CraftingRules.craft(copper_axe, inventory, state.stations_of(player_id),
+		RecipeBook.new()),
 		"sem bancada: machado de cobre não sai")
 
 	inventory.click_slot(0)  # pega a bancada
@@ -32,7 +33,8 @@ func test_placed_workbench_unlocks_its_recipes_nearby() -> void:
 	check(structures(game).size() == 1 and not inventory.is_holding(), "bancada colocada e gasta")
 	check(not preview.visible, "mão vazia: sem prévia")
 	check(RecipeData.Station.WORKBENCH in state.stations_of(player_id), "perto da bancada")
-	check(CraftingRules.craft(copper_axe, inventory, state.stations_of(player_id)),
+	check(CraftingRules.craft(copper_axe, inventory, state.stations_of(player_id),
+		RecipeBook.new()),
 		"perto da bancada: machado de cobre feito")
 
 	character.position += Vector2(300, 0)
