@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b ✅ aura da coroa; G3c ✅ transmog; G3d 🟡 carga de auras) |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -268,7 +268,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     mira passou a levar a distância (não só a direção); no controle, sem mira própria ainda, a
     área cai 80 à frente. O aviso no chão é o mesmo do salto do Rei Slime, na cor da habilidade
     (vermelho continua sendo só "perigo para você"). 179 testes.
-- **G3 – Auras e cosméticos** 🟡: brilhos, runas e auras em volta do personagem (estilo Grand
+- **G3 – Auras e cosméticos** ✅ (na `main`): brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
   Divisão proposta (2026-10-23), cada parte validada pelo João antes da próxima:
   - G3a ✅ (validado pelo João, 2026-10-23; branch `stage-g/effect-quality`, ADR-028): níveis de
@@ -303,7 +303,7 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
     - Futuro (pedido do João, 2026-10-23): com muitos itens por tipo, trocar a lista por uma
       **tela de aparências com a grade de imagens** liberadas daquele tipo. Fica para quando a
       interface definitiva (menus, inventário, bolsa, HUD) for desenhada, na referência Hero Siege.
-  - G3d 🟡 implementada, aguarda validação do João (branch `stage-g/aura-load-test`): teste de
+  - G3d ✅ (validado pelo João, 2026-10-23; branch `stage-g/aura-load-test`): teste de
     carga com 10 / 30 / 60 auras (`tests/benchmark_auras.gd`, `docs/03-desempenho.md`). Achado:
     picos de 7,5 ms com 60 auras (o anel era pintado pixel a pixel em cada personagem). Corrigido:
     cada quadro do anel é pintado uma vez e dividido por todos com a mesma aura; mesmo visual,

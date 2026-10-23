@@ -817,7 +817,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-030 — Cosméticos e transmog: coleção permanente de aparências
 
-- **Status**: Hipótese (G3c implementada em 2026-10-23; aguarda validação do João)
+- **Status**: Aceita (G3c validada pelo João em 2026-10-23)
 - **Direção do João (2026-10-23)**: transmog = aparência de um item com os atributos de outro;
   **coleção permanente** (conseguir o item uma vez libera a aparência para sempre, mesmo
   vendendo ou destruindo); a **aura vai junto com a aparência**; a aparência **vale sozinha**,
