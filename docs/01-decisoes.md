@@ -585,7 +585,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-024 — Mini boss: Rei Slime e o salto com aviso no chão
 
-- **Status**: Hipótese (F4a + F4b, aguardando validação do João)
+- **Status**: Aceita (F4a + F4b validadas pelo João, 2026-10-23)
 - **Direção do João (2026-10-22)**: o primeiro mini boss é o **Rei Slime** (slime gigante), numa
   clareira da floresta; fase 2 se divide em slimes pequenos e salta mais rápido (F4b).
 - **Decisões** (técnicas, ajustáveis em `data/`):
