@@ -679,7 +679,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-026 — Habilidades aprendidas e equipadas
 
-- **Status**: Hipótese (G2a implementada; aguardando a G2b para validação do João)
+- **Status**: Aceita (G2a e G2b validadas pelo João em 2026-10-23)
 - **Direção do João (2026-10-23)**: habilidades **aprendidas e equipadas** (livre para montar
   builds, estilo Terraria); mago e arqueiro são escolhas de equipamento e habilidade, não classe
   fixa. Lançar no estilo Albion/V Rising (tecla, mira no cursor).
@@ -710,3 +710,29 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   cada mudança e as recargas. Previsão recusada pelo host = só um projétil sem efeito no dono.
 - **Consequências**: novas habilidades = um `.tres` + nome na tabela de textos + tomo (ou outra
   fonte). A G2c (ameaça) usa o dano à distância que agora existe.
+- **Mira** (correção do teste do João): teclas não trocam a mira; teclado e mouse se usam juntos.
+  Só o controle mira para onde o personagem olha. Mira própria do controle (analógico direito,
+  ajuda de mira) fica para depois e mexe só em `LocalPlayerInput`.
+
+## ADR-027 — Ameaça e passeio das criaturas
+
+- **Status**: Hipótese (G2c implementada; aguardando validação do João)
+- **Contexto**: João (2026-10-23): atacada de longe, a criatura nem reagia, e perseguindo desistia
+  assim que o jogador saía do raio de agressão, bem antes da coleira. Chefes corpo a corpo
+  precisam ir atrás de magos e arqueiros. E, sem alvo, as criaturas ficavam paradas.
+- **Decisões** (genéricas, valem para toda criatura; números em `data/` ou no topo da IA):
+  - **Tabela de ameaça** (`ThreatTable`, lógica pura, por criatura, só no host): dano soma
+    ameaça (golpe sem dano ainda conta o mínimo); entrar no raio de agressão dá a ameaça mínima.
+    A criatura persegue a maior ameaça e só troca de alvo com 10% de vantagem (não fica virando).
+    Quem morre ou sai da região sai da tabela.
+  - **Quem fere vira alvo de qualquer distância** e a criatura reage no mesmo quadro.
+  - **Perseguição só acaba na coleira** (`leash_radius`): sair do raio de agressão não basta.
+    Na coleira, desiste imune e limpa a tabela (ADR-024 continua valendo).
+  - **Passeio** (`MonsterData.wander_radius`, 0 = parado): sem alvo, anda devagar até pontos
+    sorteados perto de casa, com pausas de 1,5–4 s; desiste de um ponto que não alcança em 4 s.
+    Filhotes de chefe não passeiam (seguem o chefe).
+- **Rede e segurança**: nada novo na rede. A ameaça usa o dano já decidido pelo host (o jogador
+  responsável vem do host, nunca do cliente); o passeio só move a criatura no host, e a posição
+  chega aos clientes como antes.
+- **Consequências**: classes à distância precisam se mexer (o chefe vem e salta neles). Futuro:
+  ameaça extra por cura/provocação e "fúria" que esquece a ameaça com o tempo, se o João quiser.

@@ -20,4 +20,5 @@ stats = ExtResource("2_stats")
 attack = ExtResource("3_attack")
 aggro_radius = 110.0
 leash_radius = 260.0
+wander_radius = 40.0
 drops = Array[ExtResource("4_drop")]([SubResource("Resource_drop_gel")])
