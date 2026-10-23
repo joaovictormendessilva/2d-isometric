@@ -16,6 +16,8 @@ extends Node
 ##   --lang=<código>              idioma dos textos (ex.: en); sem ele, o idioma do sistema.
 ##   --region=<id>                o host começa nessa região (ex.: forest), sem olhar o save.
 ##   --quality=<low|medium|high>  qualidade dos efeitos só nesta execução (ADR-028).
+##   --equip=<ids>                veste esses itens (data/items/, separados por vírgula) antes da
+##                                captura.
 
 const REGIONS_DIR := "res://data/regions/"
 const START_REGION := &"meadow"
@@ -300,8 +302,11 @@ func _handle_command_line() -> void:
 	var open_shop := false
 	var shop_npc := &""
 	var effects: Array[StatusEffectData] = []
+	var equip := ""
 	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--screenshot="):
+		if arg.begins_with("--equip="):
+			equip = arg.trim_prefix("--equip=")
+		elif arg.begins_with("--screenshot="):
 			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
@@ -317,6 +322,7 @@ func _handle_command_line() -> void:
 				effects.append(effect)
 	if screenshot_path.is_empty():
 		return
+	dev_equip(local_player_id(), equip)
 	for i in SCREENSHOT_FRAMES:
 		await get_tree().physics_frame
 		var character := session.get_player_entity(local_player_id()) as Character
@@ -335,6 +341,16 @@ func _handle_command_line() -> void:
 	get_viewport().get_texture().get_image().save_png(screenshot_path)
 	print("[main] screenshot: %s" % screenshot_path)
 	get_tree().quit()
+
+
+## Capturas (tela e folha de quadros): veste itens novos de `ids` (separados por vírgula) direto
+## no equipamento do jogador, onde couberem. Não é ação de jogo: só ferramentas chamam.
+func dev_equip(player_id: int, ids: String) -> void:
+	var equipment := session.get_equipment(player_id)
+	for id in ids.split(",", false):
+		var item := equipment.data_of(StringName(id))
+		if item == null or not EquipmentRules.give_equipped(equipment, item):
+			push_warning("[main] --equip: %s não é equipamento ou não coube" % id)
 
 
 ## Captura de tela da loja: põe o jogador ao lado do primeiro NPC da região e abre a loja.

@@ -10,6 +10,8 @@ extends CharacterBody2D
 
 signal died(character: Character)
 signal revived(character: Character)
+## As auras mudaram (equipamento vestido; ver `auras`).
+signal auras_changed
 
 ## Lentidão nunca para o ator de vez: no mínimo esta fração da velocidade.
 const MIN_SPEED_FACTOR := 0.2
@@ -32,6 +34,8 @@ var facing := Vector2.DOWN
 var bonuses := StatBonuses.new()
 ## Efeitos aplicados em quem os ataques deste ator acertam (criaturas: `MonsterData`).
 var on_hit_effects: Array[StatusEffectData] = []
+## Auras em volta do ator (só aparência, ADR-029): as do equipamento vestido.
+var auras: Array[AuraData] = []
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -93,6 +97,13 @@ func apply_equipment(equipment: Equipment) -> void:
 	_update_bonuses()
 	if is_node_ready() and attacker:
 		attacker.set_attack(_weapon_attack if _weapon_attack else stats.unarmed_attack)
+	var worn: Array[AuraData] = []
+	for item in equipment.equipped():
+		if item.aura:
+			worn.append(item.aura)
+	if worn != auras:
+		auras = worn
+		auras_changed.emit()
 
 
 ## Equipamento ou efeitos mudaram: recalcula os bônus (vida máxima e defesa, já na árvore).

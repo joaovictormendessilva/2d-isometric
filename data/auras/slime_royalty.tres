@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="AuraData" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://core/effects/aura_data.gd" id="1_aura"]
+
+[resource]
+script = ExtResource("1_aura")
+radius = 14.0
+ring_color = Color(0.91, 0.72, 0.29, 1)
+rune_color = Color(0.71, 0.54, 0.91, 1)
+rune_count = 4
+turns_per_second = 0.08
+pulse_period = 2.0
+pulse_light = 0.4
+glow_alpha = 0.3
+sparkle_amount = 6
+sparkle_color = Color(1, 0.94, 0.66, 1)
+sparkle_rise_speed = 14.0
+sparkle_lifetime = 1.2

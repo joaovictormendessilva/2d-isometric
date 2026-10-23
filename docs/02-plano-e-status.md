@@ -14,7 +14,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | D+ | **Teste de risco de rede cedo**: 2 instâncias locais trocando movimento e dano | ✅ |
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
-| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a qualidade dos efeitos implementada) |
+| G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | 🟡 G1 ✅ (buffs e debuffs); G2 ✅ (habilidades: projétil e explosão arcanos, ameaça); G3 🟡 (auras e cosméticos: G3a ✅ qualidade dos efeitos; G3b aura da coroa implementada) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ⬜ |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
@@ -271,13 +271,17 @@ Ordem combinada com o João (2026-10-23), cada um validado por ele antes do pró
 - **G3 – Auras e cosméticos** 🟡: brilhos, runas e auras em volta do personagem (estilo Grand
   Fantasia), ligados a equipamentos e efeitos; níveis de qualidade e limite de partículas.
   Divisão proposta (2026-10-23), cada parte validada pelo João antes da próxima:
-  - G3a 🟡 implementado (branch `stage-g/effect-quality`, ADR-028): níveis de qualidade dos
-    efeitos (baixo/médio/alto) e teto de partículas do computador, em `data/vfx/quality.tres`;
-    valem para o veneno, a rapidez, as faíscas e o rastro das magias. Troca: F4 com o painel F3
-    aberto (provisório, sem menu de opções ainda); `--quality=` nas capturas. 182 testes.
-  - G3b ⬜: núcleo de aura em dados (camadas: anel de runas no chão com metade de trás e da
-    frente, brilho pulsante, faíscas em volta) e a **primeira aura na Coroa do Rei Slime**
-    (escolha do João, 2026-10-23); qualquer equipamento pode ganhar a sua; aparece no coop.
+  - G3a ✅ (validado pelo João, 2026-10-23; branch `stage-g/effect-quality`, ADR-028): níveis de
+    qualidade dos efeitos (baixo/médio/alto) e teto de partículas do computador, em
+    `data/vfx/quality.tres`; valem para o veneno, a rapidez, as faíscas e o rastro das magias.
+    Troca: F4 com o painel F3 aberto (provisório, sem menu de opções ainda); `--quality=` nas
+    capturas. 182 testes.
+  - G3b 🟡 implementado (branch `stage-g/crown-aura`, ADR-029): aura em dados
+    (`data/auras/`), ligada ao equipamento vestido. A **Coroa do Rei Slime** (escolha do João,
+    2026-10-23) acende a primeira: anel dourado nos pés com 4 runas violeta girando devagar
+    (metade de trás atrás do corpo, metade da frente na frente), luz translúcida no chão
+    pulsando e faíscas douradas subindo. Aparece para todos no coop. Capturas: `--equip=<ids>`
+    (tela e folha de quadros). 185 testes.
   - G3c ⬜: cosméticos (aparência separada dos atributos).
   - G3d ⬜: teste de carga com 10 / 30 / 60 auras (`docs/03-desempenho.md`).
 

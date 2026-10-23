@@ -751,7 +751,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-028 — Níveis de qualidade dos efeitos e teto de partículas
 
-- **Status**: Hipótese (G3a, 2026-10-23; aguarda validação do João)
+- **Status**: Aceita (G3a validada pelo João em 2026-10-23)
 - **Contexto**: a visão pede efeitos marcantes com níveis de qualidade e limite de partículas
   (`docs/03-desempenho.md`); as auras da G3 vão somar muitas partículas na tela.
 - **Decisões** (técnicas, valores em `data/vfx/quality.tres`):
@@ -769,3 +769,29 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Consequências**: as auras (G3b) usam o mesmo `claim`. Pendente: menu de opções para o jogador
   (com textos traduzíveis); o host com várias regiões conta também as partículas das regiões que
   não está mostrando (aceitável; revisar se pesar).
+
+## ADR-029 — Auras (anel de runas, luz no chão e faíscas)
+
+- **Status**: Hipótese (G3b, 2026-10-23; aguarda validação do João)
+- **Direção do João (2026-10-23)**: a primeira aura vem da **Coroa do Rei Slime** (recompensa
+  visível de quem venceu o chefe).
+- **Decisões** (técnicas, ajustáveis em `data/auras/`):
+  - **Aura = dado** (`AuraData`): raio, cores do anel e das runas, número de runas, giro, pulso
+    (clarear e período), luz no chão e faíscas. Só aparência: não muda atributo nem regra.
+  - **Fonte**: `EquipmentData.aura`. O personagem junta as auras do equipamento vestido
+    (`Character.auras`, sinal `auras_changed`); efeitos e criaturas podem ser fontes depois.
+  - **Desenho** (técnica de ADR-007): anel elíptico pixel a pixel, metade de trás antes do sprite
+    e metade da frente depois (`AuraRing`), dentro do Visual (pisca e some junto com o ator).
+    Giro e pulso em passos de 12 por segundo, como animação de pixel art. Cor cheia, sem soma de
+    luz: somada, a cor desbotava sobre a grama (dourado virava amarelo-claro, violeta sumia).
+    Luz translúcida no chão dentro do anel, pulsando com ele.
+  - **Faíscas** de 2 px subindo de dentro do anel, pelo `VfxQuality.claim` (ADR-028).
+  - **Primeira aura** (`slime_royalty`): anel dourado da coroa, 4 runas violeta do Rei Slime
+    girando devagar, faíscas douradas.
+- **Rede e segurança**: nada novo. O equipamento de cada jogador já chega a todos (o host envia,
+  o cliente confere cada id no catálogo local); a aura sai dos dados locais desse item.
+- **Desempenho**: sem aura, nada roda por quadro (200 slimes: 3,8 ms, igual às medições
+  anteriores). Com aura: 2 desenhos simples a cada passo do giro + 6 partículas. Teste de carga
+  com muitas auras na G3d.
+- **Consequências**: qualquer item ganha aura apontando para um arquivo. O sprite da coroa na
+  cabeça do personagem ainda não existe (só o ícone); fica para a arte de equipamentos.
