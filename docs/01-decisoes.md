@@ -585,7 +585,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-024 — Mini boss: Rei Slime e o salto com aviso no chão
 
-- **Status**: Hipótese (F4a + F4b, aguardando validação do João)
+- **Status**: Aceita (F4a + F4b validadas pelo João, 2026-10-23)
 - **Direção do João (2026-10-22)**: o primeiro mini boss é o **Rei Slime** (slime gigante), numa
   clareira da floresta; fase 2 se divide em slimes pequenos e salta mais rápido (F4b).
 - **Decisões** (técnicas, ajustáveis em `data/`):
@@ -629,3 +629,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   chefe, drop especial.
 - **Consequências**: novos chefes ou criaturas que saltam = dados + cena com `SlamAttacker`. A F4b
   (fases) e a F5 (o núcleo libera algo) usam esta base.
+- **F5a (João, 2026-10-23)**: o drop do chefe libera uma **receita de equipamento** (não uma área).
+  O núcleo é ingrediente da Coroa do Rei Slime (bancada; cabeça, melhor que o elmo de cobre).
+  Regra testada (`tests/test_progression.gd`): drop exclusivo de chefe sempre serve a uma receita.
+  Validado pelo João (2026-10-23). Pendente para quando houver ataques à distância: o chefe passa a
+  perseguir quem o fere de longe (ameaça por dano), ver "Direção de combate" no plano.
