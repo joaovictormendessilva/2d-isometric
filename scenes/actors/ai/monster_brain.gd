@@ -11,7 +11,8 @@ extends Node
 
 ## A escolha de alvo roda a 5 Hz (barato com muitas criaturas); o movimento, todo quadro.
 const THINK_INTERVAL := 0.2
-## Ataca quando a folga até o alvo for menor que esta fração do alcance.
+## Sem `engage_distance` no ataque: ataca quando a folga até o alvo for menor que esta fração do
+## alcance.
 const ATTACK_RANGE_FRACTION := 0.8
 const HOME_TOLERANCE := 6.0
 ## Fração da velocidade ao voltar para casa sem ter desistido (alvo saiu do raio de agressão).
@@ -54,7 +55,7 @@ func _physics_process(delta: float) -> void:
 	if _try_slam(to_target):
 		return
 	var gap := to_target.length() - _target.footprint_radius() - _body.footprint_radius()
-	if gap <= _body.data.attack.reach * ATTACK_RANGE_FRACTION:
+	if gap <= _engage_distance():
 		_body.set_move_intent(Vector2.ZERO)
 		_body.request_attack(to_target)
 	else:
@@ -79,6 +80,14 @@ func _try_slam(to_target: Vector2) -> bool:
 	var space := _body.get_world_2d().direct_space_state
 	return GroundQuery.is_walkable(space, _target.position, _body.footprint_radius()) \
 		and _body.request_slam(_target.position)
+
+
+## Folga até o alvo para começar o golpe: a do ataque (investidas começam de longe) ou parte
+## do alcance.
+func _engage_distance() -> float:
+	var attack := _body.data.attack
+	return attack.engage_distance if attack.engage_distance > 0.0 \
+		else attack.reach * ATTACK_RANGE_FRACTION
 
 
 ## Jogador vivo mais próximo dentro do raio de agressão.

@@ -29,6 +29,40 @@ func test_slime_attack_is_telegraphed() -> void:
 		"preparação do bote (%.2f s) é visível" % slime.data.attack.windup)
 
 
+## Apanhando durante a preparação, o slime pisca e VOLTA ao vermelho do aviso (antes o flash
+## apagava o aviso e o bote parecia sair do nada).
+func test_damage_flash_keeps_the_attack_warning() -> void:
+	var slime := spawn_slime(Vector2.ZERO)
+	var visual: CanvasItem = slime.get_node("Visual")
+	slime.request_attack(Vector2.RIGHT)
+	await physics_frames(5)
+	slime.health.apply_damage(DamageInfo.create(1, Vector2.LEFT, 0.0, 0, 1))
+	await physics_frames(roundi(ActorFeedback.FLASH_TIME * 60.0) + 2)
+	check(visual.modulate.is_equal_approx(ActorFeedback.TELEGRAPH_COLOR),
+		"depois do flash, continua vermelho (%s)" % visual.modulate)
+
+
+## O bote é uma investida: acerta quem ficou parado a meia distância (fora do alcance do
+## golpe parado) e erra quem se afastou durante o aviso. Vale para todo slime (e o Rei Slime).
+func test_slime_lunge_reaches_who_stays_and_misses_who_runs() -> void:
+	for runs: bool in [false, true]:
+		var slime := spawn_slime(Vector2.ZERO)  # sem sessão: a IA não age, o teste comanda
+		var attack := slime.data.attack
+		var player := spawn_character(Vector2.ZERO)
+		var start := slime.footprint_radius() + player.footprint_radius() + attack.engage_distance
+		player.position = Vector2(start, 0)  # no eixo x, chão = tela
+		player.reset_physics_interpolation()
+		check(attack.engage_distance > attack.reach, "a investida começa de fora do alcance parado")
+		check(slime.request_attack(Vector2.RIGHT), "começou o bote")
+		if runs:
+			player.position.x += 60.0
+		await physics_frames(roundi((attack.windup + attack.lunge_hit_time) * 60.0) + 4)
+		var hurt := player.health.current < player.health.max_health
+		check(hurt != runs, "quem fugiu escapa; quem ficou leva" if runs else "quem ficou leva o bote")
+		slime.free()
+		player.free()
+
+
 ## Jogador parado logo depois da coleira: o slime desiste e volta para casa de vez, em vez
 ## de oscilar na borda (perceber → passar da coleira → voltar → perceber de novo...).
 ## Voltando, ele é imune (não vira alvo fácil) e, em casa, recupera a vida toda.

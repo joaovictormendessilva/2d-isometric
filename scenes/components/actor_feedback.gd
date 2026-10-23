@@ -22,6 +22,9 @@ const IMMUNE_FADE_TIME := 0.2
 @export var visual: CanvasItem
 
 var _tween: Tween
+## Preparando um ataque telegrafado: o flash de dano volta ao vermelho, não ao normal (senão,
+## apanhando, o aviso sumia e o ataque parecia sair do nada).
+var _telegraphing := false
 
 @onready var _body: Character = get_parent()
 
@@ -34,10 +37,13 @@ func _ready() -> void:
 	if _body.attacker:
 		_body.attacker.attack_started.connect(_on_attack_started)
 		_body.attacker.attack_struck.connect(_on_attack_struck.unbind(2))
+		_body.attacker.attack_finished.connect(_on_attack_struck)  # interrompido: sem golpe
 	if _body.slammer:  # salto: avermelha durante o aviso, volta ao saltar
 		_body.slammer.slam_started.connect(func(_l: Vector2, attack: SlamAttackData) -> void:
+			_telegraphing = true
 			_tween_modulate(Color.WHITE, TELEGRAPH_COLOR, attack.windup))
 		_body.slammer.slam_launched.connect(_on_attack_struck)
+		_body.slammer.slam_finished.connect(_on_attack_struck)
 	_body.died.connect(_on_died.unbind(1))
 	_body.revived.connect(_on_revived.unbind(1))
 
@@ -48,7 +54,7 @@ func _process(_delta: float) -> void:
 
 
 func _on_damaged() -> void:
-	_tween_modulate(FLASH_COLOR, Color.WHITE, FLASH_TIME)
+	_tween_modulate(FLASH_COLOR, TELEGRAPH_COLOR if _telegraphing else Color.WHITE, FLASH_TIME)
 
 
 func _on_healed() -> void:
@@ -61,15 +67,18 @@ func _on_immunity_changed(immune: bool) -> void:
 
 func _on_attack_started(_direction: Vector2, attack: MeleeAttackData) -> void:
 	if attack.windup >= TELEGRAPH_MIN_WINDUP:
+		_telegraphing = true
 		_tween_modulate(Color.WHITE, TELEGRAPH_COLOR, attack.windup)
 
 
 func _on_attack_struck() -> void:
+	_telegraphing = false
 	if visual.modulate != Color.WHITE:
 		_tween_modulate(visual.modulate, Color.WHITE, FLASH_TIME)
 
 
 func _on_died() -> void:
+	_telegraphing = false
 	_tween_modulate(Color.WHITE, Color(1, 1, 1, 0), DEATH_FADE_TIME)
 
 

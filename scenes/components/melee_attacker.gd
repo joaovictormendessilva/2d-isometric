@@ -1,7 +1,8 @@
 class_name MeleeAttacker
 extends Node
 ## Executa ataques corpo a corpo do Character pai: preparação (telegrafia) → golpe → recuperação.
-## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão.
+## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
+## investida (`lunge_hit_time`), continua acertando quem o avanço tocar, uma vez cada.
 ## Só o HOST aplica o dano (`multiplayer.is_server()`; offline também é host). Nos outros
 ## computadores o ataque roda igual, só para a apresentação e o bote.
 
@@ -17,6 +18,9 @@ var _phase := Phase.READY
 var _time_left := 0.0
 var _direction := Vector2.DOWN
 var _next_attack: MeleeAttackData
+## Investida: tempo que o avanço ainda acerta, e quem já foi acertado neste ataque.
+var _hit_left := 0.0
+var _hit: Dictionary[Character, bool] = {}
 
 @onready var _body: Character = get_parent()
 
@@ -60,6 +64,9 @@ func interrupt() -> void:
 func _physics_process(delta: float) -> void:
 	if _phase == Phase.READY:
 		return
+	if _hit_left > 0.0:
+		_hit_left -= delta
+		_hit_targets()
 	_time_left -= delta
 	if _time_left > 0.0:
 		return
@@ -73,11 +80,21 @@ func _strike() -> void:
 	_phase = Phase.RECOVERY
 	_time_left = attack.recovery
 	_body.add_ground_impulse(_direction * attack.lunge)
-	if multiplayer.is_server():
-		for target in _find_targets():
+	_hit.clear()
+	_hit_left = attack.lunge_hit_time
+	_hit_targets()
+	attack_struck.emit(_direction, attack)
+
+
+## Só o host aplica dano; cada alvo uma vez por ataque.
+func _hit_targets() -> void:
+	if not multiplayer.is_server():
+		return
+	for target in _find_targets():
+		if not _hit.has(target):
+			_hit[target] = true
 			target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
 				attack.knockback, _body.entity_id, _body.player_id))
-	attack_struck.emit(_direction, attack)
 
 
 ## Troca o golpe (ex.: arma vestida). No meio de um ataque, vale a partir do próximo.
@@ -90,6 +107,8 @@ func set_attack(value: MeleeAttackData) -> void:
 
 func _finish() -> void:
 	_phase = Phase.READY
+	_hit_left = 0.0
+	_hit.clear()
 	if _next_attack:
 		attack = _next_attack
 		_next_attack = null
