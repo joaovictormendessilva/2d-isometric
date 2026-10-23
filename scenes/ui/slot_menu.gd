@@ -1,10 +1,9 @@
 class_name SlotMenu
-extends PanelContainer
+extends ContextMenu
 ## Menu do botão direito num espaço do inventário: "Usar" (consumíveis, como a poção),
 ## "Equipar" (equipamentos), "Dividir" (pilhas
 ## de 2 ou mais), "Soltar" (a pilha inteira cai no chão) e, com uma loja aberta que compra o
-## item, "Vender 1" e "Vender tudo" (com quanto rende). Fecha ao escolher, com Esc ou com um
-## clique fora dele; esse clique não vira ataque (o menu está no grupo que segura o mouse).
+## item, "Vender 1" e "Vender tudo" (com quanto rende). Fecha ao escolher (o resto: ContextMenu).
 
 signal use_chosen(index: int)
 signal equip_chosen(index: int)
@@ -23,8 +22,7 @@ var _sell_all := Button.new()
 
 
 func _ready() -> void:
-	visible = false
-	add_to_group(LocalPlayerInput.MOUSE_CAPTURE_GROUP)
+	super._ready()
 	var column := VBoxContainer.new()
 	add_child(column)
 	for entry: Array in [[_use, &"SLOT_MENU_USE", use_chosen],
@@ -53,26 +51,7 @@ func open(index: int, amount: int, usable: bool, equippable: bool, sell_price: i
 	_sell_one.text = Texts.format(&"SLOT_MENU_SELL_ONE", [sell_price])
 	_sell_all.visible = sell_price > 0 and amount > 1
 	_sell_all.text = Texts.format(&"SLOT_MENU_SELL_ALL", [sell_price * amount])
-	visible = true
-	reset_size()
-	var limit := get_viewport_rect().size - size
-	position = Vector2(clampf(at.x, 0.0, limit.x), clampf(at.y, 0.0, limit.y)).round()
-
-
-func captures_mouse() -> bool:
-	return visible
-
-
-func _input(event: InputEvent) -> void:
-	if not visible:
-		return
-	var button := event as InputEventMouseButton
-	if button and button.pressed and not get_global_rect().has_point(button.position):
-		# Adiado: neste mesmo clique o menu ainda conta como aberto (não ataca).
-		hide.call_deferred()
-	elif event.is_action_pressed(&"ui_cancel"):
-		hide()
-		get_viewport().set_input_as_handled()
+	_show_at(at)
 
 
 func _choose(chosen: Signal) -> void:
