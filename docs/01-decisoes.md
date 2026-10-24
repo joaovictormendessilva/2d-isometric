@@ -1112,7 +1112,10 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     1 s** (componente genérico `Channel`, barrinha acima da cabeça); dano, morte ou andar
     interrompem. Completa, o personagem chega na frente da pedra escolhida (outra região ou a
     mesma). Montado também viaja e chega montado (achado do João: antes a canalização exigia
-    estar a pé); subindo na montaria, não.
+    estar a pé); subindo na montaria, não. **Canalizando, só anda** (pedidos do João): ataque,
+    habilidade, coleta, montar/descer e o menu de destinos ficam recusados (o host confere), e
+    uma **aura de teleporte** (dados: `data/auras/teleport.tres`, mesmo sistema das auras de
+    equipamento) aparece para todos enquanto dura.
 - **Rede e segurança (ADR-013)**: protocolo **21**. Tipo de entidade "pedra de portal" (id
   conferido entre as pedras da própria região, posição conferida). Pedidos "ativar" (sem
   argumentos: o host escolhe a pedra ao alcance pela posição dele) e "viajar" (id do destino:

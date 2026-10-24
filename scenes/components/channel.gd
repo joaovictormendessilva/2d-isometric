@@ -3,13 +3,16 @@ extends Node
 ## Canalização do Character pai (jogador; ADR-037): ficar alguns segundos no lugar até uma ação
 ## acontecer (viajar por uma pedra de portal). Só o host começa e completa; dano, morte ou sair do
 ## lugar interrompem. Os outros computadores recebem o começo e o fim pelo NetSync e só mostram a
-## barrinha de progresso.
+## barrinha de progresso e a aura. Canalizando, o jogador só anda (e andar interrompe).
 
 ## Começou ou acabou (completou ou foi interrompida).
 signal changed
 
 ## Andar mais que isto (chão) desde o começo interrompe.
 const MOVE_TOLERANCE := 6.0
+
+## Aura em volta do jogador enquanto canaliza (em todo computador; ex.: teleporte).
+@export var aura: AuraData
 
 var _seconds := 0.0
 var _left := 0.0
@@ -76,6 +79,8 @@ func _interrupt() -> void:
 func _run(seconds: float) -> void:
 	_seconds = seconds
 	_left = seconds
+	if aura:
+		_body.show_aura(aura, seconds > 0.0)
 	if seconds == 0.0:
 		_done = Callable()
 	changed.emit()

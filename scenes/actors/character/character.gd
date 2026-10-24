@@ -10,7 +10,7 @@ extends CharacterBody2D
 
 signal died(character: Character)
 signal revived(character: Character)
-## As auras mudaram (equipamento vestido; ver `auras`).
+## As auras mudaram (equipamento vestido ou aura temporária; ver `auras`).
 signal auras_changed
 
 ## Lentidão nunca para o ator de vez: no mínimo esta fração da velocidade.
@@ -36,7 +36,8 @@ var facing := Vector2.DOWN
 var bonuses := StatBonuses.new()
 ## Efeitos aplicados em quem os ataques deste ator acertam (criaturas: `MonsterData`).
 var on_hit_effects: Array[StatusEffectData] = []
-## Auras em volta do ator (só aparência, ADR-029): as do equipamento vestido.
+## Auras em volta do ator (só aparência, ADR-029): as do equipamento vestido e as temporárias
+## (`show_aura`, ex.: canalizando um teleporte).
 var auras: Array[AuraData] = []
 ## Montaria vestida (jogadores; ver `apply_equipment` e Rider), ou null.
 var mount: MountData
@@ -58,6 +59,8 @@ var _move_intent := Vector2.ZERO
 var _stun_left := 0.0
 var _weapon_attack: AttackData
 var _equipment_bonuses := StatBonuses.new()
+var _gear_auras: Array[AuraData] = []
+var _extra_auras: Array[AuraData] = []
 
 @onready var _collision_layer := collision_layer
 
@@ -113,9 +116,29 @@ func apply_equipment(equipment: Equipment) -> void:
 	for item in equipment.shown_items():
 		if item.aura and item.aura not in shown:
 			shown.append(item.aura)
-	if shown != auras:
-		auras = shown
-		auras_changed.emit()
+	if shown != _gear_auras:
+		_gear_auras = shown
+		_refresh_auras()
+
+
+## Liga ou desliga uma aura temporária (além das do equipamento), ex.: canalizando.
+func show_aura(aura: AuraData, shown: bool) -> void:
+	if shown == (aura in _extra_auras):
+		return
+	if shown:
+		_extra_auras.append(aura)
+	else:
+		_extra_auras.erase(aura)
+	_refresh_auras()
+
+
+func _refresh_auras() -> void:
+	var all := _gear_auras.duplicate()
+	for aura in _extra_auras:
+		if aura not in all:
+			all.append(aura)
+	auras = all
+	auras_changed.emit()
 
 
 ## Equipamento ou efeitos mudaram: recalcula os bônus (vida máxima e defesa, já na árvore).
@@ -161,12 +184,13 @@ func set_move_intent(direction: Vector2) -> void:
 	_move_intent = direction.limit_length(1.0)
 
 
-## Livre para agir: vivo, sem atordoamento, a pé e sem outro ataque, salto ou lançamento em
-## andamento. `mounted_ok`: já montado também serve (canalizar numa pedra de portal); subindo, não.
+## Livre para agir: vivo, sem atordoamento, a pé, sem canalizar e sem outro ataque, salto ou
+## lançamento em andamento. `mounted_ok`: já montado também serve (canalizar numa pedra de
+## portal); subindo, não.
 func can_act(mounted_ok: bool = false) -> bool:
 	return is_alive() and _stun_left == 0.0 and not (attacker and attacker.is_attacking()) \
 		and not (slammer and slammer.is_slamming()) and not (caster and caster.is_casting()) \
-		and not (_riding() and not (mounted_ok and rider.is_mounted()))
+		and not (_riding() and not (mounted_ok and rider.is_mounted())) and not _channeling()
 
 
 ## Subindo na montaria ou montado: não ataca, não coleta nem lança habilidades (ADR-035).
@@ -174,9 +198,19 @@ func _riding() -> bool:
 	return rider != null and rider.is_busy()
 
 
+## Canalizando (ex.: teleporte numa pedra de portal): só pode andar, e andar interrompe.
+func _channeling() -> bool:
+	return channel != null and channel.is_channeling()
+
+
+## Montaria ou canalização ocupam o jogador: sem ataque, coleta nem lançamento.
+func _occupied() -> bool:
+	return _riding() or _channeling()
+
+
 ## Pede um ataque na direção dada (plano do chão). Retorna se o ataque começou.
 func request_attack(direction: Vector2) -> bool:
-	if attacker == null or not is_alive() or _stun_left > 0.0 or _riding() \
+	if attacker == null or not is_alive() or _stun_left > 0.0 or _occupied() \
 			or (slammer and slammer.is_slamming()) or (caster and caster.is_casting()):
 		return false
 	if not attacker.try_attack(direction):
@@ -198,7 +232,7 @@ func request_cast(ability: AbilityData, aim: Vector2) -> bool:
 ## Lançamento decidido em outro computador (host ou dono que previu): como `play_remote_attack`,
 ## ignora o atordoamento, que pode diferir por milissegundos entre computadores.
 func play_remote_cast(ability: AbilityData, aim: Vector2) -> void:
-	if caster and is_alive() and not _riding() and caster.try_cast(ability, aim):
+	if caster and is_alive() and not _occupied() and caster.try_cast(ability, aim):
 		facing = aim.normalized()
 
 
@@ -212,7 +246,7 @@ func request_slam(landing: Vector2) -> bool:
 
 ## Pede para coletar o ponto de coleta mais próximo ao alcance. Retorna se começou.
 func request_gather() -> bool:
-	if gatherer == null or not is_alive() or _stun_left > 0.0 or _riding() \
+	if gatherer == null or not is_alive() or _stun_left > 0.0 or _occupied() \
 			or (attacker and attacker.is_attacking()):
 		return false
 	if not gatherer.try_gather(gatherer.find_node()):
@@ -231,7 +265,7 @@ func face_towards(screen_point: Vector2) -> void:
 ## Ataque decidido em outro computador (ver NetSync): ignora atordoamento, que pode diferir
 ## por alguns milissegundos entre computadores.
 func play_remote_attack(direction: Vector2, tolerance: float) -> void:
-	if attacker and is_alive() and not _riding() and attacker.try_attack(direction, tolerance):
+	if attacker and is_alive() and not _occupied() and attacker.try_attack(direction, tolerance):
 		facing = direction.normalized()
 
 

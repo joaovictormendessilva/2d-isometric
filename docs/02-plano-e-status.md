@@ -446,7 +446,8 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   pedra acesa, **E abre a lista** das outras que você ativou; escolher **canaliza 1 s** (barrinha;
   apanhar ou andar interrompem) e leva até a frente da pedra escolhida. 256 testes (6 novos);
   protocolo 21. Correção após o teste do João: montado também dá para viajar (chega montado).
-  257 testes.
+  Também: canalizando, só dá para andar (sem atacar, lançar, coletar, montar ou reabrir o menu)
+  e aparece uma aura de teleporte roxa em volta do personagem. 259 testes.
 
 ## Funcionalidades
 

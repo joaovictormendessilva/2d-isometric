@@ -218,8 +218,11 @@ func _on_waystone_travel(player_id: int, waystone_id: StringName) -> void:
 
 
 ## Jogador local usou uma pedra ativada: menu com as outras pedras ativadas (escolher pede a
-## viagem ao host). Sem nenhuma, o aviso diz o que falta.
+## viagem ao host). Sem nenhuma, o aviso diz o que falta. Já viajando (canalizando), nada.
 func _open_waystone_menu(from: Waystone) -> void:
+	var character := session.get_player_entity(local_player_id()) as Character
+	if character.channel and character.channel.is_channeling():
+		return
 	var destinations := player_state.waystone_destinations(local_player_id(), from)
 	if destinations.is_empty():
 		_player_feedback.show_no_destination()
@@ -228,7 +231,6 @@ func _open_waystone_menu(from: Waystone) -> void:
 	for waystone_id in destinations:
 		choices.append([waystones.get_stone(waystone_id).get_display_name(),
 			player_state.request_waystone_travel.bind(waystone_id)])
-	var character := session.get_player_entity(local_player_id()) as Character
 	_waystone_menu.open(choices, get_viewport().get_canvas_transform() * character.global_position,
 		true)
 
@@ -331,6 +333,10 @@ func _on_local_player_spawned(character: Character) -> void:
 		$UI.add_child(_boss_bar)
 	_boss_bar.set_character(character)
 	_event_arrow.set_character(character)
+	if character.channel:  # começou a viajar: o menu de destinos não serve mais
+		character.channel.changed.connect(func() -> void:
+			if character.channel.is_channeling():
+				_waystone_menu.hide())
 	_player_feedback.set_character(character)
 	_interaction_prompt.setup(character)
 	_placement_preview.setup(inventory, items, character)

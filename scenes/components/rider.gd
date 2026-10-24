@@ -38,8 +38,10 @@ func move_multiplier() -> float:
 
 
 ## Host: o jogador apertou a tecla de montar. A pé: começa a subir (se der); subindo ou
-## montado: desce. Retorna se algo mudou.
+## montado: desce. Canalizando, nada. Retorna se algo mudou.
 func toggle() -> bool:
+	if _body.channel and _body.channel.is_channeling():
+		return false  # canalizando, não faz nada além de andar
 	if state.is_busy():
 		state.dismount()
 		return true

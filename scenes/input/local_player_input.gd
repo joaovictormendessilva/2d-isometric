@@ -7,6 +7,7 @@ extends Node
 ## baú de recompensa ao alcance; depois, a pedra de portal (ativar ou, já ativada, escolher para
 ## onde viajar); sem nada disso, coletar o ponto de coleta mais próximo.
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
+## Canalizando (teleporte da pedra de portal), só o movimento vale (e andar cancela).
 ## Montaria (R / direcional para baixo): sobe na montaria vestida ou desce (o host decide).
 ## Montado, apertar o ataque desce em vez de atacar.
 ## Habilidades (1–4 / RB, B, direcional): lança a do espaço, com a mesma mira do ataque.
@@ -65,6 +66,8 @@ func _physics_process(_delta: float) -> void:
 	if target == null:
 		return
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
+	if target.channel and target.channel.is_channeling():
+		return  # canalizando (teleporte): só anda, e andar interrompe
 	if Input.is_action_just_pressed(&"interact"):
 		var npc := player_state.npc_near(player_id) if player_state else null
 		var stone := player_state.waystone_near(player_id) if player_state else null

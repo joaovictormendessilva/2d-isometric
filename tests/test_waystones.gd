@@ -63,6 +63,55 @@ func test_traveling_channels_then_arrives_at_the_other_waystone() -> void:
 		"na frente da pedra de destino")
 
 
+## Já viajando, a pedra não oferece outro destino: o menu aberto fecha quando a canalização
+## começa e não abre de novo até ela acabar (achado do João na J5a).
+func test_menu_closes_and_stays_closed_while_channeling() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	_known(game).activate(CAMP)
+	_known(game).activate(FOREST_EDGE)
+	var stone := _stone(game, CAMP)
+	_stand_at(_player(game), stone)
+	var menu := game._waystone_menu as ChoiceMenu
+	game._open_waystone_menu(stone)
+	check(menu.visible and menu.choice_count() == 1, "menu com o destino")
+	(game.player_state as PlayerStateSync).request_waystone_travel(FOREST_EDGE)
+	check(_player(game).channel.is_channeling() and not menu.visible,
+		"começou a viajar: o menu fechou")
+	game._open_waystone_menu(stone)
+	check(not menu.visible, "viajando, E não abre o menu de novo")
+
+
+## Canalizando, o jogador só anda: ataque, habilidade, coleta e montaria são recusados; a aura de
+## teleporte aparece enquanto isso (pedidos do João na J5a).
+func test_channeling_shows_an_aura_and_blocks_every_action() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	_known(game).activate(CAMP)
+	_known(game).activate(FOREST_EDGE)
+	var session := game.session as GameSession
+	var inventory := session.get_inventory(1)
+	inventory.add(&"riding_slime", 1)
+	EquipmentRules.equip_from_inventory(inventory, session.get_equipment(1),
+		slot_of(inventory, &"riding_slime"))
+	var player := _player(game)
+	var aura := player.channel.aura
+	_stand_at(player, _stone(game, CAMP))
+	var state: PlayerStateSync = game.player_state
+	state.request_waystone_travel(FOREST_EDGE)
+	check(player.channel.is_channeling() and aura in player.auras, "canalizando, com a aura")
+	check(not player.request_attack(Vector2.RIGHT), "não ataca")
+	check(not player.can_act(), "não lança habilidades")
+	check(not player.request_gather(), "não coleta")
+	state.request_toggle_mount()
+	check(not player.rider.is_busy(), "não monta (com a montaria vestida)")
+	player.set_move_intent(Vector2.RIGHT)
+	await physics_frames(20)
+	player.set_move_intent(Vector2.ZERO)
+	check(not player.channel.is_channeling() and aura not in player.auras,
+		"andou: cancelou e a aura sumiu")
+
+
 ## Montado também viaja (achado do João na J5a) e chega montado; subindo na montaria, não.
 func test_traveling_while_mounted() -> void:
 	var game := start_game()

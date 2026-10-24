@@ -56,6 +56,8 @@ func _physics_process(delta: float) -> void:
 			READY_COLOR)
 		return
 	var stone := player_state.waystone_near(_character.player_id) if player_state else null
+	if stone and _character.channel and _character.channel.is_channeling():
+		return  # já viajando por ela
 	if stone:
 		var key := &"PROMPT_USE_WAYSTONE" if stone.is_lit() else &"PROMPT_ACTIVATE_WAYSTONE"
 		_show_over(stone, Texts.format(key, [Texts.action_key(&"interact")]), READY_COLOR)

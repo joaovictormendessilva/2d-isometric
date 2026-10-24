@@ -8,9 +8,11 @@ extends SceneTree
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
 ##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop | chest | mount
+##                      | teleport
 ##                      (padrão: attack)
 ##                      chest: na caverna dos slimes, o chefe morre; o jogador abre o baú
 ##                      (a saída rápida aparece perto); use um recorte maior (ex.: 160x100)
+##                      teleport: canaliza numa pedra de portal (aura) até viajar
 ##                      mount: sobe na montaria (--equip=riding_slime) e sai andando
 ##                      attack: com arma à distância (--equip=bow), o alvo fica mais longe
 ##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
@@ -130,6 +132,16 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 				target.reset_physics_interpolation()
 		"mount":
 			_player_state = game.player_state
+		"teleport":
+			_player_state = game.player_state
+			var known := (game.session as GameSession).get_waystones(game.local_player_id())
+			known.activate(&"meadow_camp")
+			known.activate(&"forest_edge")
+			var stone := (game.region as Region).entities.get_node("W_meadow_camp") as Waystone
+			character.position = stone.arrival_position()
+			character.reset_physics_interpolation()
+			await physics_frame
+			_player_state.request_waystone_travel(&"forest_edge")
 		"chest":
 			game._travel(game.local_player_id(), &"slime_cave", &"to_forest")
 			await physics_frame
