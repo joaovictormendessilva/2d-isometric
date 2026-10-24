@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | 🟡 I1 🟡 (código da partida) |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ⬜ · I3 ⬜ · I4 ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -360,7 +360,7 @@ João antes da próxima:
 Divisão proposta (2026-10-23), a partir das pendências da ADR-013; cada parte validada pelo
 João antes da próxima:
 
-- **I1 – Código da partida** 🟡 implementada, aguarda validação do João (branch
+- **I1 – Código da partida** ✅ (validado pelo João, 2026-10-23: três janelas, só o código certo entra) (branch
   `stage-i/match-code`). `--host-lan` mostra no canto da tela os IPs da rede local, a porta e
   um código de 6 letras sorteado; quem entra usa `--join=<ip> --code=<código>` (minúsculas,
   espaços e hífen aceitos). O código não trafega (desafio e resposta, ADR-013); 5 erros do
