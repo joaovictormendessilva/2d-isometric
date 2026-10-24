@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) validada; J5a (pedras de portal) em validação |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) validada; J5a (pedras de portal) validada |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -440,13 +440,14 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   Campina") e uma seta dourada na borda apontando para ele. Se ninguém o derrotar em 5 min (e
   ele não estiver lutando), vai embora. Derrotado, deixa um baú só para quem o feriu. Paredes de
   arena ficam para a J4b. 250 testes (6 novos); protocolo 20.
-- **J5a – Pedras de portal** 🟡 (aguardando validação do João; branch `stage-j/waystones`,
+- **J5a – Pedras de portal** ✅ (validada pelo João, 2026-10-24; branch `stage-j/waystones`,
   ADR-037). Obeliscos de pedra: um na campina (perto da entrada) e dois na floresta (entrada e
   boca da caverna). Perto de um, **E ativa** (a runa acende, só para você, e fica no save); numa
   pedra acesa, **E abre a lista** das outras que você ativou; escolher **canaliza 1 s** (barrinha;
   apanhar ou andar interrompem) e leva até a frente da pedra escolhida. 256 testes (6 novos);
   protocolo 21. Correção após o teste do João: montado também dá para viajar (chega montado).
-  Também: canalizando, só dá para andar (sem atacar, lançar, coletar, montar ou reabrir o menu)
+  Também: canalizando, atacar, lançar, coletar, montar e reabrir o menu ficam bloqueados (andar
+  continua possível e cancela a viagem)
   e aparece uma aura de teleporte roxa em volta do personagem. 259 testes.
 
 ## Funcionalidades
