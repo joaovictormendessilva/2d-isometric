@@ -1031,7 +1031,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-035 — Montarias: estilo Albion, montaria como equipamento
 
-- **Status**: Hipótese (J3a, aguardando validação do João)
+- **Status**: Aceita (J3a validada pelo João, 2026-10-24)
 - **Contexto**: J3, montarias (escolha do João, 2026-10-24). Combate montado: **estilo Albion**
   (escolha do João entre três): montaria é para viajar, não para lutar.
 - **Decisões**:

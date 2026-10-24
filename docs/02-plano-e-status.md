@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) em validação |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -429,7 +429,7 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   orbe azul mais lento que a flecha; ao acertar, ele **explode** e fere todos em volta (9 de dano,
   com onda no chão e faíscas). Ritmo mais lento que o arco. Correção junto: o personagem não fica
   mais vermelho ao preparar ataques lentos (o aviso vermelho é só das criaturas). 237 testes.
-- **J3a – Montaria** 🟡 (aguardando validação do João; branch `stage-j/mounts`, ADR-035). Novo
+- **J3a – Montaria** ✅ (validada pelo João, 2026-10-24; branch `stage-j/mounts`, ADR-035). Novo
   item **Slime de montaria** (espaço novo "Montaria" no equipamento), feito na bancada com 12
   gosmas e 10 madeiras. Vestido, **R** (ou direcional para baixo) sobe: 1 s parado com barrinha;
   montado, +80% de velocidade, mas sem atacar, coletar ou lançar; apanhar derruba; R ou ataque
