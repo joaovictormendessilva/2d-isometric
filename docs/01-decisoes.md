@@ -1009,7 +1009,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-034 — Cajado: orbe que explode
 
-- **Status**: Hipótese (J2b, aguardando validação do João)
+- **Status**: Aceita (J2b validada pelo João, 2026-10-24)
 - **Contexto**: J2b. Identidade escolhida pelo João (2026-10-24) entre quatro opções: orbe que
   explode (as outras eram orbe que atravessa, rajada em leque e "arco mágico").
 - **Decisões**:

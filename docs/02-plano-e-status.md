@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) concluída; J2a (arco) validada; J2b (cajado) em validação |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -424,7 +424,7 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
     (antes, para cima/baixo, iam com metade da velocidade e do alcance); arco mais lento (puxar
     0,25 s, recarregar 0,55 s, menos recuo; antes os slimes nem chegavam perto); flecha com 64
     direções em degraus regulares e ponta escura (antes parecia torta). 235 testes.
-- **J2b – Cajado** 🟡 (aguardando validação do João; branch `stage-j/weapons`, ADR-034). Novo item
+- **J2b – Cajado** ✅ (validada pelo João, 2026-10-24; branch `stage-j/weapons`, ADR-034). Novo item
   **Cajado** (2 mãos), feito na bancada com 8 madeiras, 4 cobres e 5 gosmas. O clique solta um
   orbe azul mais lento que a flecha; ao acertar, ele **explode** e fere todos em volta (9 de dano,
   com onda no chão e faíscas). Ritmo mais lento que o arco. Correção junto: o personagem não fica
