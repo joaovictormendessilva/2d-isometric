@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="1_prop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/cave_entrance.png" id="2_tex"]
+
+[node name="CaveEntrance" instance=ExtResource("1_prop")]
+
+[node name="Sprite" parent="." index="0"]
+texture = ExtResource("2_tex")
+offset = Vector2(-20, -29)
+
+[node name="Footprint" parent="." index="1"]
+position = Vector2(0, -9)
+radius = 18.0

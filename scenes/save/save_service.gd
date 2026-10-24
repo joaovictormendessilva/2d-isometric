@@ -68,13 +68,25 @@ func is_enabled() -> bool:
 
 ## Região onde o jogador estava ao sair ("" se não houver; quem chama confere no catálogo).
 func region_of(player_id: int) -> StringName:
+	return _record_name(player_id, "region")
+
+
+## Passagem onde ele chega ao voltar ("" = ponto de entrada da região): a entrada da dungeon
+## de onde saiu do jogo. Quem chama só procura entre as passagens da região.
+func passage_of(player_id: int) -> StringName:
+	return _record_name(player_id, "passage")
+
+
+func _record_name(player_id: int, field: String) -> StringName:
 	var record: Variant = _save.players.get(_network.player_key(player_id)) if is_enabled() else null
-	var region_id: Variant = record.get("region") if record is Dictionary else null
-	return StringName(region_id) if region_id is String else &""
+	var value: Variant = record.get(field) if record is Dictionary else null
+	return StringName(value) if value is String else &""
 
 
 ## A região acabou de ser carregada: volta ao estado guardado (estruturas, pontos de coleta).
 func region_loaded(region: Region) -> void:
+	if region.is_temporary():  # dungeon: sempre do zero, nunca guardada
+		return
 	_loaded.append(region)
 	if is_enabled():
 		_restore_region(region, _save.regions.get(String(region.region_id)))
@@ -82,6 +94,8 @@ func region_loaded(region: Region) -> void:
 
 ## A região vai ser liberada (ninguém mais nela): o estado dela fica guardado na memória.
 func region_unloading(region: Region) -> void:
+	if region.is_temporary():
+		return
 	_loaded.erase(region)
 	if is_enabled():
 		_save.regions[String(region.region_id)] = _capture_region(region)
@@ -150,7 +164,10 @@ func _remember(player_id: int) -> void:
 	record["appearances"] = Array(_session.get_appearances(player_id).snapshot())
 	record["looks"] = Array(_session.get_equipment(player_id).looks())
 	var region := Region.of(character)
-	if region:
+	if region and region.is_temporary():  # quem sai dentro da dungeon volta para a entrada
+		record["region"] = String(region.data.exit_region)
+		record["passage"] = String(region.data.exit_passage)
+	elif region:
 		record["region"] = String(region.region_id)
 	_save.players[key] = record
 

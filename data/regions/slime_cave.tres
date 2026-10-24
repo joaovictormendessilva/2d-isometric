@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="RegionData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/world/region_data.gd" id="1_region"]
+[ext_resource type="PackedScene" path="res://scenes/regions/slime_cave/slime_cave.tscn" id="2_scene"]
+
+[resource]
+script = ExtResource("1_region")
+id = &"slime_cave"
+scene = ExtResource("2_scene")
+temporary = true
+exit_region = &"forest"
+exit_passage = &"cave_entrance"

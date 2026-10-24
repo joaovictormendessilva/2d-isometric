@@ -5,10 +5,11 @@ const TEXTURE_PATH := "res://assets/tilesets/placeholder/terrain.png"
 const TILESET_PATH := "res://assets/tilesets/placeholder/terrain_tileset.tres"
 const SOURCE_ID := 0
 
-const COLUMNS: Array[StringName] = [&"grass_0", &"grass_1", &"grass_2", &"dirt", &"water"]
+const COLUMNS: Array[StringName] = [&"grass_0", &"grass_1", &"grass_2", &"dirt", &"water",
+	&"cave_floor", &"chasm"]
 const GRASS: Array[StringName] = [&"grass_0", &"grass_1", &"grass_2"]
 ## Tiles que bloqueiam passagem (ganham colisão no TileSet).
-const BLOCKING: Array[StringName] = [&"water"]
+const BLOCKING: Array[StringName] = [&"water", &"chasm"]
 
 
 static func coords(tile: StringName) -> Vector2i:

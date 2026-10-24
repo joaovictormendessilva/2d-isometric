@@ -341,8 +341,7 @@ func _place_requested(at: Vector2) -> void:
 		return
 	# O que é colocado é o que o HOST sabe estar na mão, nunca algo dito pelo cliente.
 	var placeable := items.get_item(inventory.held_item()) as PlaceableData
-	var space := character.get_world_2d().direct_space_state
-	if placeable and PlacementRules.can_place(space, placeable.structure, character.position, at) \
+	if placeable and Region.of(character).can_place(placeable.structure, character.position, at) \
 			and inventory.use_held(1):
 		spawner.spawn_structure(Region.of(character), placeable.structure, at)
 

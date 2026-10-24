@@ -21,6 +21,8 @@ const COPPER_VEIN := "res://scenes/gathering/copper_vein.tscn"
 const OLD_OAK := "res://scenes/gathering/old_oak.tscn"
 const MERCHANT := "res://scenes/npc/merchant.tscn"
 const KING_SLIME := "res://scenes/actors/monsters/king_slime.tscn"
+const CAVE_ENTRANCE := "res://scenes/props/cave_entrance.tscn"
+const DOORWAY_SCENE := "res://scenes/regions/doorway.tscn"
 
 enum Side { EAST, WEST }
 
@@ -50,6 +52,9 @@ const PASSAGE_INSET := 22.0
 ## `npcs`: [cena, posição em relação à entrada (px de tela)], dentro da área livre da entrada.
 ## `boss`: [cena, posição (px de tela), raio da clareira (chão), renascimento (s)]: a clareira é
 ## aberta (sem água, objetos, pontos de coleta nem criaturas) e o chefe nasce no meio dela.
+## `entrances`: [id, posição (px de tela), região destino, passagem destino]: entrada de dungeon
+## no meio do mapa (boca da caverna + passagem sem parede), numa clareira como a do chefe.
+## `terrain`: tiles de piso (sorteados), caminho e borda/lagos (bloqueia); sem ele, campo aberto.
 var REGIONS := [
 	{
 		"id": &"meadow", "node": "Meadow", "path": "res://scenes/regions/meadow/meadow.tscn",
@@ -71,8 +76,29 @@ var REGIONS := [
 		"resources": [[OLD_OAK, 8, 1], [LUMBER_TREE, 8, 1], [COPPER_VEIN, 3, 0]],
 		"passages": [[&"to_meadow", Side.WEST, 480.0, &"meadow", &"to_forest"]],
 		"boss": [KING_SLIME, Vector2(1250, 480), 120.0, 300.0],
+		"entrances": [[&"cave_entrance", Vector2(820, 300), &"slime_cave", &"to_forest"]],
+	},
+	{
+		# Primeira dungeon (J1, conteúdo de teste): caverna temporária com abismos, criaturas
+		# mais juntas, cobre e o Rei Slime no fundo (não renasce: a dungeon é que recomeça).
+		"id": &"slime_cave", "node": "SlimeCave",
+		"path": "res://scenes/regions/slime_cave/slime_cave.tscn",
+		"seed": 23, "spawn": Vector2(160, 480), "ambient": Color(0.62, 0.58, 0.72),
+		"terrain": CAVE_TERRAIN,
+		"tree_chance": 0.0, "rock_chance": 0.05, "lake_threshold": 0.45,
+		"monsters": 12, "far": 1500.0,
+		"monster_scenes": [SLIME_SCENE, POISON_SLIME_SCENE],
+		"resources": [[COPPER_VEIN, 6, 0]],
+		"passages": [[&"to_forest", Side.WEST, 480.0, &"forest", &"cave_entrance"]],
+		"boss": [KING_SLIME, Vector2(1350, 480), 120.0, 0.0],
 	},
 ]
+const OPEN_TERRAIN := {"floor": TerrainAtlas.GRASS, "path": &"dirt", "edge": &"water"}
+const CAVE_TERRAIN := {"floor": [&"cave_floor"], "path": &"cave_floor", "edge": &"chasm"}
+## Raio (chão) da clareira em volta de uma entrada de dungeon; e onde fica a passagem em relação
+## ao monte (logo na frente da boca).
+const ENTRANCE_CLEAR_RADIUS := 50.0
+const DOORWAY_OFFSET := Vector2(0, 4)
 
 ## Receita da região sendo gerada.
 var _r: Dictionary
@@ -168,6 +194,8 @@ func _build_region(tile_set: TileSet) -> Node2D:
 	_carve_passages(region, ground)
 	_place_npcs(entities, region, spawn.position)
 	_place_boss(region, ground)
+	_place_entrances(region, ground)
+	_check_connected(region, ground)
 	return region
 
 
@@ -190,7 +218,7 @@ func _paint_ground(ground: TileMapLayer, spawn: Vector2, rng: RandomNumberGenera
 	for cell in _region_cells(ground):
 		var tile := _pick_tile(ground.map_to_local(cell), spawn, lakes, paths, rng)
 		ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(tile))
-		if tile in TerrainAtlas.GRASS:
+		if tile in _terrain()["floor"]:
 			grass_cells.append(cell)
 	return grass_cells
 
@@ -216,16 +244,21 @@ func _pick_tile(p: Vector2, spawn: Vector2, lakes: FastNoiseLite, paths: FastNoi
 		minf(p.y - REGION_RECT.position.y, REGION_RECT.end.y - p.y) * Iso.Y_SCALE)
 	var wobble := (lakes.get_noise_2d(g.x * 3.0, g.y * 3.0) + 1.0) * 14.0
 	if edge < SHORE_WIDTH + wobble:
-		return &"water"
+		return _terrain()["edge"]
 	var near_spawn := Iso.ground_distance(p, spawn) < SPAWN_CLEAR_RADIUS
 	if not near_spawn and lakes.get_noise_2d(g.x, g.y) > _r["lake_threshold"]:
-		return &"water"
+		return _terrain()["edge"]
 	if absf(paths.get_noise_2d(g.x, g.y)) < 0.06:
-		return &"dirt"
+		return _terrain()["path"]
+	# Piso sorteado: 60% o primeiro tile, 25% o segundo, 15% o terceiro (se houver).
+	var floor_tiles: Array = _terrain()["floor"]
 	var r := rng.randf()
-	if r < 0.6:
-		return TerrainAtlas.GRASS[0]
-	return TerrainAtlas.GRASS[1] if r < 0.85 else TerrainAtlas.GRASS[2]
+	var index := 0 if r < 0.6 else (1 if r < 0.85 else 2)
+	return floor_tiles[mini(index, floor_tiles.size() - 1)]
+
+
+func _terrain() -> Dictionary:
+	return _r.get("terrain", OPEN_TERRAIN)
 
 
 func _place_props(region: Node2D, ground: TileMapLayer, entities: Node2D,
@@ -346,7 +379,7 @@ func _carve_passages(region: Node2D, ground: TileMapLayer) -> void:
 			CORRIDOR_LENGTH + CORRIDOR_HALF_HEIGHT, CORRIDOR_HALF_HEIGHT * 2.0)
 		for cell in _region_cells(ground):
 			if corridor.has_point(ground.map_to_local(cell)):
-				ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(&"dirt"))
+				ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(_terrain()["path"]))
 		for holder: Node in [region.get_node("Entities"), region.get_node("MonsterSpawns")]:
 			for node: Node2D in holder.get_children():
 				if corridor.grow(MIN_PROP_DISTANCE).has_point(node.position):
@@ -391,17 +424,7 @@ func _place_boss(region: Node2D, ground: TileMapLayer) -> void:
 	if boss.is_empty():
 		return
 	var center: Vector2 = boss[1]
-	var radius: float = boss[2]
-	for cell in _region_cells(ground):
-		if Iso.ground_distance(ground.map_to_local(cell), center) <= radius \
-				and ground.get_cell_atlas_coords(cell) == TerrainAtlas.coords(&"water"):
-			ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(&"grass_0"))
-	for holder: Node in [region.get_node("Entities"), region.get_node("MonsterSpawns")]:
-		for node: Node2D in holder.get_children():
-			if Iso.ground_distance(node.position, center) <= radius:
-				print("[gen] %s: %s tirado da clareira do chefe" % [_r["id"], node.name])
-				holder.remove_child(node)
-				node.free()
+	_clear_area(region, ground, center, boss[2], "clareira do chefe")
 	var point := Marker2D.new()
 	point.set_script(load(SPAWN_POINT_SCRIPT))
 	point.name = "Boss"
@@ -410,3 +433,66 @@ func _place_boss(region: Node2D, ground: TileMapLayer) -> void:
 	point.set(&"respawn_time", boss[3])
 	_add_owned(region.get_node("MonsterSpawns"), point, region)
 	print("[gen] %s chefe em %s" % [_r["id"], center])
+
+
+## Entradas de dungeon (J1), depois do chefe: numa clareira, o monte da caverna (objeto do
+## cenário, com Y-sort) e, na frente da boca, a passagem sem parede.
+func _place_entrances(region: Node2D, ground: TileMapLayer) -> void:
+	for entry: Array in _r.get("entrances", []):
+		var at: Vector2 = entry[1]
+		_clear_area(region, ground, at, ENTRANCE_CLEAR_RADIUS, "entrada %s" % entry[0])
+		var mound: Node2D = load(CAVE_ENTRANCE).instantiate()
+		mound.position = at
+		_add_owned(region.get_node("Entities"), mound, region)
+		var doorway: Area2D = load(DOORWAY_SCENE).instantiate()
+		doorway.name = String(entry[0]).to_pascal_case()
+		doorway.set(&"passage_id", entry[0])
+		doorway.set(&"target_region", entry[2])
+		doorway.set(&"target_passage", entry[3])
+		doorway.position = at + DOORWAY_OFFSET
+		_add_owned(region.get_node("Passages"), doorway, region)
+		print("[gen] %s entrada %s em %s" % [_r["id"], entry[0], at])
+
+
+## Abre uma clareira: borda/lagos viram piso e o que estiver dentro (objetos, pontos de coleta,
+## criaturas) sai.
+func _clear_area(region: Node2D, ground: TileMapLayer, center: Vector2, radius: float,
+		what: String) -> void:
+	var edge := TerrainAtlas.coords(_terrain()["edge"])
+	for cell in _region_cells(ground):
+		if Iso.ground_distance(ground.map_to_local(cell), center) <= radius \
+				and ground.get_cell_atlas_coords(cell) == edge:
+			ground.set_cell(cell, TerrainAtlas.SOURCE_ID, TerrainAtlas.coords(_terrain()["floor"][0]))
+	for holder: Node in [region.get_node("Entities"), region.get_node("MonsterSpawns")]:
+		for node: Node2D in holder.get_children():
+			if Iso.ground_distance(node.position, center) <= radius:
+				print("[gen] %s: %s tirado da %s" % [_r["id"], node.name, what])
+				holder.remove_child(node)
+				node.free()
+
+
+## Do ponto de entrada dá para andar (pelo chão, sem contar objetos) até cada passagem e até o
+## chefe? Abismos e lagos sorteados não podem fechar o caminho.
+func _check_connected(region: Node2D, ground: TileMapLayer) -> void:
+	var blocked: Array[Vector2i] = []
+	for tile in TerrainAtlas.BLOCKING:
+		blocked.append(TerrainAtlas.coords(tile))
+	var start := ground.local_to_map((region.get_node("PlayerSpawn") as Node2D).position)
+	var seen := {start: true}
+	var queue: Array[Vector2i] = [start]
+	while not queue.is_empty():
+		var cell: Vector2i = queue.pop_back()
+		for next in ground.get_surrounding_cells(cell):
+			var coords := ground.get_cell_atlas_coords(next)
+			if not seen.has(next) and coords != Vector2i(-1, -1) and coords not in blocked:
+				seen[next] = true
+				queue.append(next)
+	var goals: Array[Vector2] = []
+	for passage: Node2D in region.get_node("Passages").get_children():
+		goals.append(passage.transform * (passage.get_node("Arrival") as Node2D).position)  # fora da árvore
+	for point: Node2D in region.get_node("MonsterSpawns").get_children():
+		if point.name == "Boss":
+			goals.append(point.position)
+	for goal in goals:
+		var reached := seen.has(ground.local_to_map(goal))
+		_check(OK if reached else ERR_DOES_NOT_EXIST, "%s: caminho até %s" % [_r["id"], goal])

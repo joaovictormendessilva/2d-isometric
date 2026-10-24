@@ -20,6 +20,12 @@ const STONE := [Color("7f7f93"), Color("5d5d70"), Color("a8a8b8")]
 const TRUNK := [Color("6b4a2f"), Color("4e3522")]
 const LEAVES_OUTLINE := Color("1c3320")
 const STONE_OUTLINE := Color("2a2a36")
+## Caverna (J1): piso de pedra frio, mais escuro e menos saturado que quem anda nele; abismo
+## quase preto, puxado para o roxo (sombra fria).
+const CAVE_FLOOR := [Color("4a4452"), Color("3b3646"), Color("5c5566")]
+const CHASM := [Color("141019"), Color("0c0a10"), Color("221c2a")]
+## Rampa de cada tile do terreno (os de grama usam GRASS).
+const TILE_PALETTES := {&"dirt": DIRT, &"water": WATER, &"cave_floor": CAVE_FLOOR, &"chasm": CHASM}
 const LUMBER_LEAVES := [Color("7a9a3a"), Color("5b7a2c"), Color("a8c45a")]
 const OAK_LEAVES := [Color("2f6a3a"), Color("234f2c"), Color("4f8a4a")]
 const OAK_TRUNK := [Color("4e3522"), Color("3a271a")]
@@ -431,6 +437,7 @@ func _initialize() -> void:
 	_save(_stump(OAK_TRUNK), OUT_DIR + "oak_stump.png")
 	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
 	_save(_rubble(), OUT_DIR + "rubble.png")
+	_save(_cave_entrance(), OUT_DIR + "cave_entrance.png")
 	_save(_workbench(), OUT_DIR + "workbench.png")
 	_save(_sprite(MERCHANT, MERCHANT_PALETTE), OUT_DIR + "merchant.png")
 	for icon: String in ICONS:
@@ -512,14 +519,17 @@ func _terrain_atlas() -> Image:
 		var tile := columns[i]
 		var rng := RandomNumberGenerator.new()
 		rng.seed = 1000 + i
-		var palette: Array = WATER if tile == &"water" else (DIRT if tile == &"dirt" else GRASS)
+		var palette: Array = TILE_PALETTES.get(tile, GRASS)
+		var flat := tile in [&"water", &"chasm"]
 		for y in TILE.y:
 			for x in TILE.x:
 				if in_tile(x, y):
-					var color: Color = palette[0] if tile == &"water" else speckle(rng, palette, 0.11, 0.07)
+					var color: Color = palette[0] if flat else speckle(rng, palette, 0.11, 0.07)
 					img.set_pixel(i * TILE.x + x, y, color)
 		if tile == &"water":
 			_water_waves(img, i * TILE.x, rng)
+		elif tile == &"cave_floor":
+			_floor_cracks(img, i * TILE.x, rng)
 		elif tile in TerrainAtlas.GRASS:
 			_grass_blades(img, i * TILE.x, rng)
 	return img
@@ -532,6 +542,17 @@ func _grass_blades(img: Image, ox: int, rng: RandomNumberGenerator) -> void:
 		if in_tile(x, y) and in_tile(x, y - 1):
 			img.set_pixel(ox + x, y, GRASS[2])
 			img.set_pixel(ox + x, y - 1, GRASS[2])
+
+
+## Rachaduras curtas (3 px em diagonal, na direção do losango) no piso da caverna.
+func _floor_cracks(img: Image, ox: int, rng: RandomNumberGenerator) -> void:
+	for n in 2:
+		var x := rng.randi_range(8, TILE.x - 11)
+		var y := rng.randi_range(4, TILE.y - 6)
+		for d in 3:
+			if in_tile(x + d * 2, y + d):
+				img.set_pixel(ox + x + d * 2, y + d, CAVE_FLOOR[1])
+				img.set_pixel(ox + x + d * 2 + 1, y + d, CAVE_FLOOR[1])
 
 
 func _water_waves(img: Image, ox: int, rng: RandomNumberGenerator) -> void:
@@ -690,6 +711,23 @@ func _stump(trunk: Array) -> Image:
 			if _in_trunk(x, y, 3, 39):
 				img.set_pixel(x, y, ICON_PALETTE["r"] if y == 39 else (trunk[1] if x >= 18 else trunk[0]))
 	outline(img, LEAVES_OUTLINE)
+	return img
+
+
+## Entrada de caverna (J1): monte de pedra com a boca escura embaixo, no meio. Base no centro
+## de baixo: (20, 29).
+func _cave_entrance() -> Image:
+	var img := Image.create(40, 30, false, Image.FORMAT_RGBA8)
+	var center := Vector2(20, 24)  # domo: elipse cortada na base, apoiada no chão
+	for y in img.get_height():
+		for x in img.get_width():
+			if in_ellipse(x, y, center, Vector2(19, 20)):
+				var v := (x - center.x) * 0.35 + (y - 12.0) * 0.8
+				img.set_pixel(x, y, shade(STONE, v, 3.0, x, y))
+			if y >= 14 and in_ellipse(x, y, Vector2(20, 30), Vector2(7, 14)):
+				# Por dentro: a parede direita da boca pega a luz da esquerda.
+				img.set_pixel(x, y, CHASM[2] if x >= 25 and y >= 19 else CHASM[0])
+	outline(img, STONE_OUTLINE)
 	return img
 
 

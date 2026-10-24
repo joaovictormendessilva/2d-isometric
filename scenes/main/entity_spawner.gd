@@ -521,7 +521,7 @@ func _revive_player(player_id: int) -> void:
 
 
 ## Em todos os computadores a criatura morta sai do registro; no host, ela também deixa
-## drops, some e agenda o renascimento.
+## drops, some e agenda o renascimento (menos em dungeon).
 func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef) -> void:
 	session.unregister_entity(monster.entity_id)
 	var region := region_ref.get_ref() as Region
@@ -529,6 +529,8 @@ func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef)
 		return
 	_spawn_drops(monster as Monster, region)
 	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
+	if region.is_temporary():  # dungeon: limpa fica limpa até ser esquecida
+		return
 	get_tree().create_timer(region.get_monster_spawn_points()[point_index].respawn_time) \
 		.timeout.connect(_respawn_monster.bind(point_index, region_ref))
 

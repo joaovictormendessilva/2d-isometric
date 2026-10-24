@@ -40,8 +40,7 @@ func _process(_delta: float) -> void:
 		return
 	position = get_global_mouse_position().round()
 	can_place = is_instance_valid(_character) and _character.is_alive() \
-		and PlacementRules.can_place(get_world_2d().direct_space_state, _structure,
-			_character.position, position)
+		and Region.of(_character).can_place(_structure, _character.position, position)
 	modulate = VALID_COLOR if can_place else INVALID_COLOR
 
 
