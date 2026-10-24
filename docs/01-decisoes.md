@@ -258,8 +258,18 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Pendências registradas** (antes do coop pela internet — não aceitar sem resolver):
   - **Criptografia** (DTLS do ENet) e **código/senha da partida** — hoje desnecessários no
     127.0.0.1, obrigatórios antes de LAN aberta (código) e internet (ambos).
-  - Detecção de atravessar paredes (hoje só velocidade é validada).
-  - Limite de mensagens por segundo por cliente, com desconexão de quem abusar.
+  - ✅ Detecção de atravessar paredes (H4): o host refaz o caminho desde a última posição aceita
+    deslizando nas paredes como o `move_and_slide` do dono (mesma pegada, 4 deslizes); parou a
+    mais de 3 px do ponto recebido = parede no caminho, e o dono volta para onde o deslize parou
+    (engano raro do host vira ajuste pequeno). Testado: atravessar recusado; deslizar em volta de
+    uma árvore por 8 lados e 1 minuto de passeio entre árvores e pedras sem nenhuma correção.
+    **Toda habilidade futura que mova o personagem (investida, teleporte) passa por esta
+    conferência ou é decidida no host.**
+  - ✅ Limite de pedidos por cliente (H4, `PeerGuard`): cota de 60 por segundo com folga de 120,
+    no relógio do host; esgotou = desconectado (a saída passa pelo caminho normal e o save guarda o
+    personagem). Conta ações e pedidos que fazem o host responder muito; os "uma vez por
+    computador" ao receber entidades (centenas ao entrar numa região) ficam de fora, e repetidos
+    não custam nada. Um jogador em combate fica bem abaixo (teste de carga H3 sem desconexões).
   - **Segredo do perfil sem criptografia** (ADR-019): na LAN, quem escuta a rede poderia
     copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
   - **Espera da poção não vai no save** (ADR-022): sair e voltar zera a espera (10 s). Risco

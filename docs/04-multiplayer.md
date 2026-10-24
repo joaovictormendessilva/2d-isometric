@@ -58,7 +58,8 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 
 - Acerto decidido com posições ~0,1 s atrasadas do outro lado: ok no LAN; o online pede
   compensação de atraso.
-- O host valida velocidade, não paredes: um cliente adulterado poderia atravessar árvores.
+- O host valida velocidade e paredes (H4); quem inunda o host de pedidos é desconectado (H4).
+  Pendentes antes de abrir para a LAN (Etapa I): código da partida e criptografia (ADR-013).
 - Vida das criaturas não é recalculada quando alguém entra no meio da luta.
 - Identidade por segredo do perfil (ADR-019) trafega sem criptografia na LAN (ver ADR-013).
 - Aparências (G3c, ADR-030): a escolhida em cada espaço vai a todos com o equipamento; a coleção
