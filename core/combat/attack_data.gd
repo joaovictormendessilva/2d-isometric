@@ -1,4 +1,4 @@
-class_name MeleeAttackData
+class_name AttackData
 extends Resource
 ## Um ataque corpo a corpo (espada do jogador, bote do slime...). Fases: preparação
 ## (telegrafia) → golpe (instante do acerto) → recuperação. Valores em `data/`.

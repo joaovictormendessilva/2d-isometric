@@ -171,8 +171,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     (teclado/mouse/controle) ou `MonsterBrain` (IA). No coop, um terceiro controlador vai
     receber intenções pela rede — sem mudar o corpo.
   - **Componentes reutilizáveis** na cena base `scenes/actors/actor.tscn`: `Footprint`,
-    `Health`, `MeleeAttacker`, `ActorFeedback`. Jogador e slime são cenas herdadas.
-  - **Dano só na autoridade**: `MeleeAttacker` só aplica dano se `is_multiplayer_authority()`;
+    `Health`, `Attacker`, `ActorFeedback`. Jogador e slime são cenas herdadas.
+  - **Dano só na autoridade**: `Attacker` só aplica dano se `is_multiplayer_authority()`;
     `DamageInfo` carrega `source_player_id` para drops pessoais.
   - **Ataques em fases** (preparação → golpe → recuperação), definidos em dados. Preparação
     ≥ 0,2 s é telegrafada automaticamente (tom avermelhado) — regra testada.
@@ -186,7 +186,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     ser pego depois de pousar, passando por cima. O "ímã" (16 px) é `ActorStats.pickup_radius`,
     para equipamentos futuros aumentarem por jogador.
   - Apresentação (números de dano em pool, rastro, flash, HUD) só **lê** sinais.
-  - **Bote comprometido** (`MeleeAttackData.interruptible = false` no slime): levar dano não
+  - **Bote comprometido** (`AttackData.interruptible = false` no slime): levar dano não
     cancela a preparação do inimigo. Sem isso, segurar o ataque travava o slime para sempre
     (stun-lock, apontado pelo João). Teste `test_holding_attack_does_not_stun_lock_slime`.
   - **Coleira com evasão** (padrão de MMOs): ao passar da coleira, a criatura volta até casa

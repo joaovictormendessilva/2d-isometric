@@ -25,7 +25,7 @@ const INTERPOLATION_DELAY := 0.1
 ## Salto entre estados que é tratado como teletransporte (renascer), sem interpolar.
 const TELEPORT_DISTANCE := 48.0
 const BUFFER_SIZE := 8
-## Folga de chegada para ataques pela rede (ver `MeleeAttacker.try_attack`).
+## Folga de chegada para ataques pela rede (ver `Attacker.try_attack`).
 const ATTACK_TOLERANCE := 0.05
 ## Folga de alcance e de movimento para coletas pedidas pela rede (o host vê o dono atrasado).
 const GATHER_SLACK := 8.0

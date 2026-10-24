@@ -23,7 +23,7 @@ var _land_left := 0.0
 
 
 func _ready() -> void:
-	_character.attacker.attack_struck.connect(func(_d: Vector2, _a: MeleeAttackData) -> void:
+	_character.attacker.attack_struck.connect(func(_d: Vector2, _a: AttackData) -> void:
 		_strike_left = STRIKE_TIME)
 	if _character.slammer:
 		_character.slammer.slam_landed.connect(func(_l: Vector2, _a: SlamAttackData) -> void:

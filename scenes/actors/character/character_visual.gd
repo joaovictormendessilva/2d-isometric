@@ -45,7 +45,7 @@ func _process(delta: float) -> void:
 
 ## O rastro gira no plano do chão: o pai (SlashPivot) achata Y pela metade, então o
 ## arco aparece em perspectiva isométrica.
-func _on_attack_struck(direction: Vector2, _attack: MeleeAttackData) -> void:
+func _on_attack_struck(direction: Vector2, _attack: AttackData) -> void:
 	var angle := direction.angle()
 	if _slash_tween:
 		_slash_tween.kill()

@@ -65,7 +65,7 @@ func _on_immunity_changed(_immune: bool) -> void:
 	_tween_modulate(visual.modulate, _rest_color(), IMMUNE_FADE_TIME)
 
 
-func _on_attack_started(_direction: Vector2, attack: MeleeAttackData) -> void:
+func _on_attack_started(_direction: Vector2, attack: AttackData) -> void:
 	if attack.windup >= TELEGRAPH_MIN_WINDUP:
 		_telegraphing = true
 		_tween_modulate(_rest_color(false), _rest_color(), attack.windup)

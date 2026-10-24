@@ -93,9 +93,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 ## Etapa D — checklist (branch `stage-d/combat`)
 
 - [x] Núcleo de combate em dados: `ActorStats` (vida, defesa, invulnerabilidade, recuo),
-      `MeleeAttackData` (dano, alcance, arco, recuo, bote, preparação/recuperação),
+      `AttackData` (dano, alcance, arco, recuo, bote, preparação/recuperação),
       `CombatRules` (defesa com retorno decrescente, escala de vida por nº de jogadores)
-- [x] Componentes reutilizáveis: `Health`, `MeleeAttacker`, `ActorFeedback` (flash,
+- [x] Componentes reutilizáveis: `Health`, `Attacker`, `ActorFeedback` (flash,
       telegrafia, piscar, sumir)
 - [x] Espada: golpe em arco na direção do mouse (ou do olhar no teclado/controle), segurar
       repete, recuo no alvo, rastro do golpe, números de dano

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://core/actors/monster_data.gd" id="1_monster"]
 [ext_resource type="Script" path="res://core/actors/actor_stats.gd" id="2_stats"]
-[ext_resource type="Script" path="res://core/combat/melee_attack_data.gd" id="3_attack"]
+[ext_resource type="Script" path="res://core/combat/attack_data.gd" id="3_attack"]
 [ext_resource type="Script" path="res://core/items/drop_entry.gd" id="4_drop"]
 [ext_resource type="Resource" path="res://data/items/gel.tres" id="5_gel"]
 [ext_resource type="Script" path="res://core/combat/slam_attack_data.gd" id="6_slam"]

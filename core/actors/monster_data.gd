@@ -5,7 +5,7 @@ extends Resource
 
 @export var id: StringName
 @export var stats: ActorStats
-@export var attack: MeleeAttackData
+@export var attack: AttackData
 ## Ataque especial opcional: salto com queda em área (precisa do nó SlamAttacker na cena).
 @export var slam: SlamAttackData
 ## Chefe: barra de vida no alto da tela para quem está por perto (F4).
