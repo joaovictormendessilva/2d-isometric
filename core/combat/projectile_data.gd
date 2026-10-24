@@ -6,9 +6,9 @@ extends Resource
 
 enum Look { ORB, ARROW }
 
-## Pixels por segundo no plano do chão.
+## Pixels de TELA por segundo, iguais em todas as direções (quem mira vê a tela; ADR-033).
 @export var speed: float = 220.0
-## Distância máxima (chão); depois some.
+## Distância máxima, em pixels de tela; depois some.
 @export var max_range: float = 160.0
 ## Raio (chão) em que o projétil acerta uma pegada.
 @export var hit_radius: float = 4.0
@@ -17,5 +17,7 @@ enum Look { ORB, ARROW }
 @export var look := Look.ORB
 ## Orbe: o miolo. Flecha: a haste.
 @export var color := Color.WHITE
-## Orbe: o brilho em volta do miolo. Flecha: ponta e penas. Também o rastro.
+## Orbe: o brilho em volta do miolo. Flecha: as penas. Também o rastro.
 @export var glow_color := Color.WHITE
+## Flecha: a ponta (diferente das penas, para se ver para onde ela aponta).
+@export var tip_color := Color.WHITE

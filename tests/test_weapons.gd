@@ -51,6 +51,23 @@ func test_arrow_vanishes_at_max_range() -> void:
 	check(_arrows(game.region) == 0, "chegou ao alcance e sumiu")
 
 
+## Quem mira vê a tela: depois do mesmo tempo, a flecha para cima andou na tela o mesmo que a da
+## direita (no plano do chão, a vertical aparece pela metade; achado do João na J2a).
+func test_arrow_flies_the_same_on_screen_in_every_direction() -> void:
+	var game := start_game()
+	var player := _archer(game)
+	var bow := player.attacker.attack
+	var flown := []
+	for aim: Vector2 in [Vector2.RIGHT, Vector2.UP]:
+		await wait_until(func() -> bool: return player.request_attack(aim), 120)
+		await physics_frames(roundi(bow.windup * 60.0) + 10)
+		var arrow := _flying(game.region)[0] as Node2D
+		var start := Iso.ground_to_screen(aim * player.footprint_radius()).length()  # borda da pegada
+		flown.append(arrow.position.distance_to(player.position) - start)
+		arrow.queue_free()
+	check_near(flown[0], flown[1], 1.0, "mesma distância na tela (%s)" % [flown])
+
+
 ## Coop: o cliente veste o arco (o host decide) e atira; a flecha do host fere o slime, e o host
 ## e o cliente veem a flecha voar.
 func test_client_shoots_through_host() -> void:
@@ -110,6 +127,10 @@ func _place(monster: Monster, at: Vector2) -> void:
 
 
 ## Flechas voando na região (projéteis ficam na camada de entidades).
-func _arrows(region: Region) -> int:
+func _flying(region: Region) -> Array[Node]:
 	return region.entities.get_children().filter(func(n: Node) -> bool:
-		return n is Projectile and not n.is_queued_for_deletion()).size()
+		return n is Projectile and not n.is_queued_for_deletion())
+
+
+func _arrows(region: Region) -> int:
+	return _flying(region).size()

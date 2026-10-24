@@ -983,10 +983,16 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   - **`ProjectileData`** (voo e aparência: velocidade, alcance, raio de acerto, aparência orbe
     ou flecha, cores) saiu da `AbilityData`: o projétil arcano e as armas usam o mesmo
     `Projectile`. Dano, recuo e efeitos vêm de quem soltou (habilidade ou arma).
+  - **Voo igual na tela** (ajuste após o teste do João): velocidade e alcance dos projéteis
+    (flechas e magias) contam em pixels de TELA, não no plano do chão. No plano do chão a flecha
+    para cima aparecia com metade da velocidade e do alcance; quem mira com o mouse vê a tela.
+    O acerto continua pela pegada no plano do chão. (O andar segue no plano do chão, ADR-006.)
   - **Flecha** em pixel art sem girar sprite: uma imagem pintada pixel a pixel para cada uma de
-    16 direções na tela (guardada após a primeira vez, como o orbe). Projéteis nascem na borda da
+    64 direções na tela (com 16 o desenho ficava até 11° fora do voo, "torta"), em degraus
+    regulares; penas claras atrás e ponta escura na frente para se ver para onde aponta (guardada após a primeira vez, como o orbe). Projéteis nascem na borda da
     pegada de quem solta (não atravessam o próprio corpo).
-  - **Sem munição** por enquanto: a aljava é só o item da mão secundária que o arco aceita.
+  - **Sem munição** (decisão do João, 2026-10-24): o arco não gasta flechas; a aljava é só o item
+    da mão secundária que o arco aceita.
   - **Apresentação**: arma à distância não mostra o rastro da espada; na preparação o corpo recua
     1 px (puxar a corda) e no disparo sai um sopro de faíscas na boca da arma.
 - **Rede e segurança (ADR-013)**: nenhuma mensagem nova. O ataque já é pedido ao host e
@@ -994,7 +1000,9 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   host) e solta a flecha para mostrar; só a flecha do host fere. Protocolo **18** (catálogo de
   itens novo: computadores de versões diferentes recusariam o equipamento um do outro).
 - **Conteúdo de teste**: arco (2 mãos, aceita aljava; feito na bancada com 10 madeiras e 3
-  gosmas): flecha de 7 de dano, alcance 190, preparação 0,12 s, recuperação 0,42 s (~13 de dano
-  por segundo à distância; a espada faz ~21 corpo a corpo).
+  gosmas): flecha de 6 de dano, recuo 20, alcance 170 px de tela, preparação 0,25 s,
+  recuperação 0,55 s, 40% da velocidade ao atirar (~7,5 de dano por segundo à distância; a
+  espada faz ~21 corpo a corpo). Primeira versão (7 de dano a cada 0,54 s, recuo 50) era rápida
+  demais: os slimes nem chegavam perto (João).
 - **Limitações**: a flecha ainda atravessa árvores e pedras (pendência da ADR-026); o
   personagem não mostra a arma na mão (vem com a arte definitiva).

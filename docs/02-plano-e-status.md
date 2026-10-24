@@ -417,9 +417,13 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
 - **J2a – Arco** 🟡 (aguardando validação do João; branch `stage-j/weapons`, ADR-033). Novo item
   **Arco** (2 mãos, aceita aljava), feito na bancada com 10 madeiras e 3 gosmas. Vestido, o
   clique esquerdo solta uma flecha na direção do mouse: acerta o primeiro inimigo no caminho
-  (7 de dano) ou some no alcance. Na preparação o personagem recua 1 px e no disparo sai um
+  (6 de dano) ou some no alcance. Na preparação o personagem recua 1 px e no disparo sai um
   sopro de faíscas. Magias e armas agora usam o mesmo projétil. 234 testes (4 novos);
   protocolo de rede 18.
+  - Ajustes após o teste do João: flechas e magias voam igual em todas as direções na tela
+    (antes, para cima/baixo, iam com metade da velocidade e do alcance); arco mais lento (puxar
+    0,25 s, recarregar 0,55 s, menos recuo; antes os slimes nem chegavam perto); flecha com 64
+    direções em degraus regulares e ponta escura (antes parecia torta). 235 testes.
 
 ## Funcionalidades
 
@@ -576,6 +580,9 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
 
 Ideias do João para considerar nas etapas certas — não são compromissos ainda.
 
+- **Energia e mana** (João, 2026-10-24): energia para ataques físicos e mana para magia, como
+  dificuldade. Antes, analisar os custos (quanto gasta cada ataque, como recupera, interface).
+  Hoje armas não gastam nada e habilidades só têm recarga.
 - **Escolher em que mão segurar** (escudo/tomo à direita ou à esquerda, mudando a animação):
   adiado (ADR-018) — com o personagem espelhado ao virar, dobraria a arte de combate por 2–3 px
   de diferença. Reavaliar se os sprites crescerem.

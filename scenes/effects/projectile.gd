@@ -1,10 +1,12 @@
 class_name Projectile
 extends Node2D
-## Projétil de uma habilidade (ADR-026) ou de uma arma à distância (ADR-033): voa em linha reta no
-## plano do chão até acertar o primeiro inimigo de quem o soltou ou chegar ao alcance. Em todo
-## computador ele voa e some ao tocar alguém (apresentação); só no host o toque causa dano e aplica
-## os efeitos. Mora na camada de entidades da região (ordem de desenho pelos pés), mas não é
-## entidade: nada dele passa pela rede. Ainda atravessa árvores e pedras (pendência da ADR-026).
+## Projétil de uma habilidade (ADR-026) ou de uma arma à distância (ADR-033): voa em linha reta
+## até acertar o primeiro inimigo de quem o soltou ou chegar ao alcance. Velocidade e alcance
+## contam NA TELA, iguais em todas as direções para quem mira (ADR-033); o acerto continua pela
+## pegada no plano do chão. Em todo computador ele voa e some ao tocar alguém (apresentação); só
+## no host o toque causa dano e aplica os efeitos. Mora na camada de entidades da região (ordem
+## de desenho pelos pés), mas não é entidade: nada dele passa pela rede. Ainda atravessa árvores
+## e pedras (pendência da ADR-026).
 
 ## Altura do voo acima do chão, em pixels de tela (meio do corpo).
 const HEIGHT := 9.0
@@ -14,10 +16,11 @@ const SHADOW_SIZE := Vector2(4.0, 1.5)
 const SHADOW_COLOR := Color(0.05, 0.04, 0.1, 0.35)
 ## Canto de cima à esquerda da imagem do orbe, relativo aos pés.
 const ORB_ORIGIN := Vector2(-GLOW_RADIUS, -HEIGHT - GLOW_RADIUS)
-## Flecha: comprimento em pixels (ponta e penas inclusas) e quantas direções têm imagem própria
-## (pixel art não gira: cada direção é pintada pixel a pixel, sem borrar).
+## Flecha: comprimento em pixels no eixo principal (ponta e penas inclusas) e quantas direções
+## têm imagem própria (pixel art não gira: cada direção é pintada pixel a pixel, sem borrar). Com
+## 64, o desenho fica no máximo ~3° fora do voo: 16 deixavam a flecha "torta" (João, J2a).
 const ARROW_LENGTH := 9
-const ARROW_DIRECTIONS := 16
+const ARROW_DIRECTIONS := 64
 const ARROW_HALF := ceili(ARROW_LENGTH / 2.0)
 const ARROW_ORIGIN := Vector2(-ARROW_HALF, -HEIGHT - ARROW_HALF)
 const TRAIL_PARTICLES := 6
@@ -39,6 +42,8 @@ var _knockback := 0.0
 var _effects: Array[StatusEffectData] = []
 var _caster: WeakRef
 var _direction := Vector2.RIGHT
+## Direção do voo NA TELA (unitária): o projétil anda igual em todas as direções na tela.
+var _screen_direction := Vector2.RIGHT
 var _traveled := 0.0
 var _image: ImageTexture
 var _image_origin := Vector2.ZERO
@@ -64,13 +69,15 @@ func setup(data: ProjectileData, caster: Character, direction: Vector2, damage: 
 	_effects = effects
 	_caster = weakref(caster)
 	_direction = direction.normalized()
+	_screen_direction = Iso.ground_to_screen(_direction).normalized()
 	# Nasce na borda da pegada, à frente: não atravessa o corpo de quem soltou.
 	position = caster.position + Iso.ground_to_screen(_direction * caster.footprint_radius())
 
 
 func _ready() -> void:
 	if _data.look == ProjectileData.Look.ARROW:
-		var turn := _arrow_turn(_direction)
+		var turn := posmod(roundi(_screen_direction.angle() / TAU * ARROW_DIRECTIONS),
+			ARROW_DIRECTIONS)
 		_image = _cached([_data, turn], _paint_arrow.bind(_data, turn))
 		_image_origin = ARROW_ORIGIN
 	else:
@@ -96,7 +103,7 @@ func _physics_process(delta: float) -> void:
 		queue_free()  # quem soltou saiu (viagem, desconexão): o projétil some junto
 		return
 	var step := _data.speed * delta
-	position += Iso.ground_to_screen(_direction * step)
+	position += _screen_direction * step
 	_traveled += step
 	var targets := ActorQuery.hostiles_near(caster, position, 0.0, _data.hit_radius)
 	if not targets.is_empty():
@@ -127,12 +134,6 @@ static func _cached(key: Array, paint: Callable) -> ImageTexture:
 	return _images[key]
 
 
-## Qual das `ARROW_DIRECTIONS` imagens mostra o voo em `direction` (chão), pela direção NA TELA.
-static func _arrow_turn(direction: Vector2) -> int:
-	var on_screen := Iso.ground_to_screen(direction)
-	return posmod(roundi(on_screen.angle() / TAU * ARROW_DIRECTIONS), ARROW_DIRECTIONS)
-
-
 ## Acende cada pixel cujo centro cai dentro da forma (o mesmo critério de `draw_circle`), na
 ## ordem sombra → brilho → núcleo.
 static func _paint_orb(data: ProjectileData) -> Image:
@@ -153,7 +154,9 @@ static func _paint_orb(data: ProjectileData) -> Image:
 	return image
 
 
-## Sombra no chão e uma linha de pixels na direção `turn`: penas (2 px) → haste → ponta (2 px).
+## Sombra no chão e uma linha de pixels na direção `turn`: penas (2 px) → haste → ponta (1 px).
+## A linha anda 1 px por passo no eixo principal e sobe no outro em degraus arredondados sempre
+## para o mesmo lado: degraus regulares (2:1 vira 2-2-2), sem "dente" no meio.
 static func _paint_arrow(data: ProjectileData, turn: int) -> Image:
 	var side := ARROW_HALF * 2 + 1
 	var size := Vector2i(side, ceili(HEIGHT + ARROW_HALF + SHADOW_SIZE.y))
@@ -164,9 +167,19 @@ static func _paint_arrow(data: ProjectileData, turn: int) -> Image:
 			if (point / SHADOW_SIZE).length() <= 1.0:
 				image.set_pixel(x, y, SHADOW_COLOR)
 	var along := Vector2.from_angle(turn * TAU / ARROW_DIRECTIONS)
-	var middle := Vector2(0, -HEIGHT) - ARROW_ORIGIN
-	for i in ARROW_LENGTH:
-		var pixel := (middle + along * (i - (ARROW_LENGTH - 1) / 2.0)).round()
-		var tip_or_feathers := i < 2 or i >= ARROW_LENGTH - 2
-		image.set_pixelv(Vector2i(pixel), data.glow_color if tip_or_feathers else data.color)
+	var steep := absf(along.y) > absf(along.x)
+	var major := along.y if steep else along.x
+	var slope := (along.x if steep else along.y) / absf(major)
+	var middle := Vector2i(Vector2(0, -HEIGHT) - ARROW_ORIGIN)
+	var half := (ARROW_LENGTH - 1) / 2
+	for step in range(-half, half + 1):  # da cauda (penas) à ponta
+		var main := step * int(signf(major))
+		var cross := floori(step * slope + 0.5)
+		var pixel := middle + (Vector2i(cross, main) if steep else Vector2i(main, cross))
+		var color := data.color
+		if step == half:
+			color = data.tip_color
+		elif step < 2 - half:
+			color = data.glow_color
+		image.set_pixelv(pixel, color)
 	return image
