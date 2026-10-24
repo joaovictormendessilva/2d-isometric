@@ -36,6 +36,9 @@ const SLIME_OUTLINE := Color("2a1840")
 const POISON_SLIME := [Color("9ccc3a"), Color("4f8a3a"), Color("d4f05a")]
 const POISON_SLIME_OUTLINE := Color("1c2e1a")
 const SLIME_EYES := Color("1b1a26")
+## Slime de montaria (J3): azul, para nunca ser confundido com os slimes inimigos (roxo e verde).
+const RIDING_SLIME := [Color("4a9ad8"), Color("2e4a8a"), Color("a8e8f8")]
+const RIDING_SLIME_OUTLINE := Color("16243f")
 const SLASH := Color(1.0, 0.97, 0.85)
 const SHADOW := Color(0.05, 0.04, 0.1, 0.35)
 
@@ -263,6 +266,24 @@ const STAFF := [
 	"oWo.....",
 	"oo......",
 ]
+## Slime de montaria (J3): gota azul com sela.
+## Sela da montaria: assento de madeira com a borda clara (luz de cima).
+const SADDLE := [
+	".oooooo.",
+	"owwrrwwo",
+	"oWWWWWWo",
+	".oooooo.",
+]
+const RIDING_SLIME_ICON := [
+	"........",
+	"..oooo..",
+	".owwwWo.",
+	"obBWWBNo",
+	"obBBBBNo",
+	"oBBoBoNo",
+	".oNNNNo.",
+	"..oooo..",
+]
 const SHIELD := [
 	".oooooo.",
 	"owwWwwWo",
@@ -469,6 +490,7 @@ const ICONS := {
 	"wooden_shield": [SHIELD, {}],
 	"bow": [BOW, {}],
 	"staff": [STAFF, {}],
+	"riding_slime": [RIDING_SLIME_ICON, {}],
 	"copper_helmet": [HELMET, {}],
 	"simple_backpack": [BACKPACK, {}],
 	"magnet_ring": [RING, {}],
@@ -510,6 +532,7 @@ func _initialize() -> void:
 	_save(_slime(), OUT_DIR + "slime.png")
 	_save(_slime(POISON_SLIME, POISON_SLIME_OUTLINE), OUT_DIR + "poison_slime.png")
 	_save(_king_slime(), OUT_DIR + "king_slime.png")
+	_save(_riding_slime(), OUT_DIR + "riding_slime.png")
 	_save(_shadow(Vector2i(26, 8)), OUT_DIR + "shadow_large.png")
 	_save(_gel(), OUT_DIR + "gel.png")
 	_save(_slash(), OUT_DIR + "slash.png")
@@ -719,6 +742,19 @@ func _king_slime() -> Image:
 		img.fill_rect(Rect2i(eye, Vector2i(2, 3)), SLIME_EYES)
 	var crown := _sprite(CROWN, ICON_PALETTE.merged({"o": CROWN_OUTLINE}, true))
 	img.blend_rect(crown, Rect2i(Vector2i.ZERO, crown.get_size()), Vector2i(11, 2))
+	return img
+
+
+## Montaria (J3): gota larga azul com olhos olhando para a direita (o lado da frente; o jogo
+## espelha) e sela de madeira nas costas. Domo alto: o cavaleiro tampa só o topo, e o corpo e
+## os olhos aparecem embaixo dele. Pés no centro da base: (13, 17).
+func _riding_slime() -> Image:
+	var img := _blob(Vector2i(26, 18), Vector2(13, 10.5), Vector2(12, 7), 3.5, RIDING_SLIME,
+		RIDING_SLIME_OUTLINE)
+	for eye in [Vector2i(18, 11), Vector2i(21, 11)]:
+		img.fill_rect(Rect2i(eye, Vector2i(1, 3)), SLIME_EYES)
+	var saddle := _sprite(SADDLE, ICON_PALETTE)
+	img.blend_rect(saddle, Rect2i(Vector2i.ZERO, saddle.get_size()), Vector2i(7, 3))
 	return img
 
 

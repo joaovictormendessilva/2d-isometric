@@ -1,7 +1,7 @@
 class_name ItemTexts
 extends RefCounted
 ## Texto de um item para a dica ao passar o mouse: nome e, em equipamentos, o que ele faz
-## (dano da arma, duas mãos, bônus) e, em consumíveis, a cura, os efeitos e a espera. Mesmo texto no
+## (dano da arma, duas mãos, montaria, bônus) e, em consumíveis, a cura, os efeitos e a espera. Mesmo texto no
 ## inventário, no equipamento, nas receitas e na loja.
 
 ## Bônus de `StatBonuses` → chave de texto (só os diferentes de zero aparecem).
@@ -37,6 +37,11 @@ static func describe(item: ItemData) -> String:
 			lines.append_array(_bonus_lines(effect.bonuses))
 		if consumable.cooldown > 0.0:
 			lines.append(Texts.format(&"STAT_COOLDOWN", [roundi(consumable.cooldown)]))
+	var mount := item as MountData
+	if mount:
+		lines.append(Texts.format(&"STAT_MOUNT_SPEED", [roundi(mount.speed_percent)]))
+		lines.append(Texts.format(&"STAT_MOUNT_KEY", [Texts.action_key(&"mount"),
+			String.num(mount.mount_time, 1)]))
 	var equipment := item as EquipmentData
 	if equipment:
 		lines.append_array(_bonus_lines(equipment.bonuses))

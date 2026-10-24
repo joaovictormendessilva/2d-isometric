@@ -5,7 +5,7 @@ extends ItemData
 ## `data/items/` (ADR-018).
 
 ## Tipos de espaço. Quantos de cada o personagem tem: `EquipmentLayout` (dados).
-enum Slot { MAIN_HAND, OFF_HAND, HEAD, CHEST, LEGS, BACKPACK, ACCESSORY }
+enum Slot { MAIN_HAND, OFF_HAND, HEAD, CHEST, LEGS, BACKPACK, ACCESSORY, MOUNT }
 
 ## Espaço deste item (armas e itens secundários definem o próprio; ver `get_slot`).
 @export var slot: Slot = Slot.ACCESSORY

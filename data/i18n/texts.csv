@@ -12,6 +12,7 @@ ITEM_SWORD,Espada,Sword
 ITEM_WOODEN_SHIELD,Escudo de madeira,Wooden shield
 ITEM_BOW,Arco,Bow
 ITEM_STAFF,Cajado,Staff
+ITEM_RIDING_SLIME,Slime de montaria,Riding slime
 ITEM_COPPER_HELMET,Elmo de cobre,Copper helmet
 ITEM_SIMPLE_BACKPACK,Mochila simples,Simple backpack
 ITEM_MAGNET_RING,Anel magnético,Magnet ring
@@ -85,6 +86,7 @@ EQUIP_SLOT_CHEST,Peito,Chest
 EQUIP_SLOT_LEGS,Pernas,Legs
 EQUIP_SLOT_BACKPACK,Mochila,Backpack
 EQUIP_SLOT_ACCESSORY,Acessório,Accessory
+EQUIP_SLOT_MOUNT,Montaria,Mount
 EQUIP_LOOK_SHOWN,Aparência: %s,Appearance: %s
 EQUIP_LOOK_HIDDEN,Aparência escondida,Appearance hidden
 EQUIP_LOOK_HINT,Botão direito: aparência,Right-click: appearance
@@ -96,6 +98,8 @@ STAT_TWO_HANDED,Duas mãos,Two-handed
 STAT_MAX_HEALTH,Vida máxima +%d,Max health +%d
 STAT_DEFENSE,Defesa +%d,Defense +%d
 STAT_MOVE_SPEED,Velocidade +%d%%,Speed +%d%%
+STAT_MOUNT_SPEED,Montado: velocidade +%d%%,Mounted: speed +%d%%
+STAT_MOUNT_KEY,[%s] montar e descer (leva %s s parado; dano derruba),[%s] mount and dismount (takes %s s standing still; damage knocks you off)
 STAT_PICKUP_RADIUS,Ímã de itens +%d,Item magnet +%d
 STAT_INVENTORY_SLOTS,Espaços +%d,Slots +%d
 PROMPT_TALK,[%s] %s,[%s] %s

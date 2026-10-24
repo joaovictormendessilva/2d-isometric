@@ -1028,3 +1028,32 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Conteúdo de teste**: cajado feito na bancada com 8 madeiras, 4 minérios de cobre e 5 gosmas.
   Orbe azul, 9 de dano, explosão de raio 20, recuo 40, velocidade 170 e alcance 150 px de tela,
   preparação 0,3 s, recuperação 0,7 s (~9 de dano por segundo num alvo; mais num grupo).
+
+## ADR-035 — Montarias: estilo Albion, montaria como equipamento
+
+- **Status**: Aceita (J3a validada pelo João, 2026-10-24)
+- **Contexto**: J3, montarias (escolha do João, 2026-10-24). Combate montado: **estilo Albion**
+  (escolha do João entre três): montaria é para viajar, não para lutar.
+- **Decisões**:
+  - **Montaria = equipamento** (`MountData`, espaço novo **Montaria** no fim do
+    `EquipmentLayout`; saves antigos continuam valendo). Dados: velocidade extra montado (%),
+    tempo de subir, desenho e altura do cavaleiro.
+  - **Tecla de montar** (R / direcional para baixo): a pé, começa a subir; subindo ou montado,
+    desce. Montado, apertar o ataque desce (sem atacar junto). A dica do item mostra a tecla.
+  - **Subir** leva o tempo da montaria (1 s), parado, com a barrinha de progresso acima da cabeça
+    (a mesma da coleta). Só começa livre para agir (vivo, sem atordoamento, sem outra ação).
+  - **Montado**: mais rápido; não ataca, não coleta nem lança habilidades. **Qualquer dano**
+    (inclusive veneno) interrompe a subida ou derruba; morrer e tirar a montaria também.
+  - **Estado na sessão** (`RideState` por jogador, como os efeitos), não no personagem: continua
+    montado ao viajar entre regiões. Não vai para o save (entra no mundo a pé).
+  - **Apresentação**: desenho da montaria embaixo do personagem (espelha junto), cavaleiro mais
+    alto, poeira ao subir e ao descer.
+- **Rede e segurança (ADR-013)**: protocolo **19**. Mensagem nova "montar/descer" (sem
+  argumentos; o host olha a montaria vestida e o estado DELE, passa pela cota do `PeerGuard`) e
+  "fase da montaria" (host → todos, conferida; também no estado completo de quem chega). A
+  velocidade montada entra na conferência de movimento do host só quando o HOST o considera
+  montado. Montado, o host recusa ataques e lançamentos vindos do cliente.
+- **Conteúdo de teste**: **slime de montaria** (azul, para não confundir com os inimigos), +80%
+  de velocidade, 1 s para subir; feito na bancada com 12 gosmas e 10 madeiras.
+- **Limitações**: um tipo de montaria; o desenho não tem animação própria (balança com o
+  passo); andar sobre a água (backlog) fica para uma montaria futura.

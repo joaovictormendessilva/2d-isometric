@@ -4,4 +4,4 @@
 
 [resource]
 script = ExtResource("1_layout")
-slots = Array[int]([0, 1, 2, 3, 4, 5, 6, 6])
+slots = Array[int]([0, 1, 2, 3, 4, 5, 6, 6, 7])

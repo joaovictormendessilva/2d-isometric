@@ -6,7 +6,8 @@ extends HostRequests
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
 ## estrutura, vestir e tirar equipamento, comprar, vender e aprender receitas com um NPC, usar um
-## item como a poção, escolher a aparência de um espaço, abrir um baú de dungeon); o host confere
+## item como a poção, escolher a aparência de um espaço, abrir um baú de dungeon, montar e
+## desmontar); o host confere
 ## e aplica. Esperas (poções) começadas no host, receitas aprendidas e aparências colecionadas
 ## também vão ao dono; as aparências escolhidas vão a todos, junto com o equipamento. Offline,
 ## os pedidos são aplicados na hora.
@@ -153,6 +154,11 @@ func request_learn(recipe_id: StringName) -> void:
 ## Jogador local quer abrir o baú de dungeon perto dele (o host escolhe qual e sorteia).
 func request_open_chest() -> void:
 	_request(&"_open_chest_requested", [])
+
+
+## Jogador local apertou a tecla de montar (ADR-035): a pé, sobe; subindo ou montado, desce.
+func request_toggle_mount() -> void:
+	_request(&"_toggle_mount_requested", [])
 
 
 ## Jogador local quer usar o item do espaço `index` (menu "Usar"). Se já se sabe que não dá,
@@ -404,6 +410,16 @@ func _open_chest_requested() -> void:
 	if chest:
 		chest.open_for(player_id)
 		spawner.spawn_loot(Region.of(chest), chest.data.drops, chest.position, player_id)
+
+
+## Sem argumentos: o host olha a montaria vestida e o estado DELE do personagem de quem pediu.
+@rpc("any_peer", "call_remote", "reliable")
+func _toggle_mount_requested() -> void:
+	if not _accepts_request():
+		return
+	var character := session.get_player_entity(_requester()) as Character
+	if character and character.rider:
+		character.rider.toggle()
 
 
 @rpc("any_peer", "call_remote", "reliable")

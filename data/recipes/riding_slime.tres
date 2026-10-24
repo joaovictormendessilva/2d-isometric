@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="RecipeData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://core/crafting/recipe_data.gd" id="1_recipe"]
+[ext_resource type="Resource" path="res://data/items/riding_slime.tres" id="2_result"]
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"riding_slime"
+station = 1
+ingredients = Dictionary[StringName, int]({
+&"gel": 12,
+&"wood": 10
+})
+result = ExtResource("2_result")
+result_amount = 1
