@@ -943,7 +943,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-032 — Fim de dungeon: baú do chefe e saída rápida
 
-- **Status**: Hipótese (J1b, aguarda validação do João)
+- **Status**: Aceita (J1b validada pelo João, 2026-10-24)
 - **Contexto**: J1b, continuação da ADR-031: a dungeon não tinha recompensa de fim nem como sair
   depois do chefe sem voltar a pé.
 - **Decisões**:
