@@ -479,6 +479,7 @@ func _instantiate_minion(data: Dictionary, region: Region) -> Monster:
 	var minion: Monster = summoner.data.minion_scene.instantiate()
 	minion.position = data["position"]
 	minion.max_health_multiplier = data["health_multiplier"]
+	minion.grants_mastery_xp = false
 	_register(minion, data["entity_id"])
 	minion.died.connect(_on_minion_died)
 	if multiplayer.is_server():

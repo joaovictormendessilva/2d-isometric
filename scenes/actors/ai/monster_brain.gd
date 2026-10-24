@@ -226,3 +226,4 @@ func _return_home() -> void:
 		_idle_point = _home
 		_body.health.set_immune(false)
 		_body.health.restore_full()
+		_body.forget_mastery_damage()

@@ -1,7 +1,7 @@
 class_name MasteryData
 extends SkillData
 ## Maestria de combate (estilo Albion, ADR-038): um tipo de arma ou de magia com nível próprio,
-## que sobe ferindo inimigos com ela e aumenta o dano dela. Sem classe nem nível geral: trocar de
+## que sobe matando inimigos com ela (pelo dano causado, ver MasteryLedger) e aumenta o dano dela. Sem classe nem nível geral: trocar de
 ## arma é treinar outra trilha. Golpes (`AttackData.mastery`) e habilidades
 ## (`AbilityData.mastery`) dizem qual maestria treinam. Valores em `data/skills/`.
 

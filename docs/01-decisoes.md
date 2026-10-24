@@ -1141,13 +1141,19 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     golpe (`AttackData.mastery`) e cada habilidade (`AbilityData.mastery`) diz qual treina; o
     soco e as criaturas não têm. Sem classe e sem nível geral: trocar de arma é treinar outra
     trilha.
-  - **Experiência = dano causado de fato** (`xp_per_damage`; o que passa da vida que restava não
-    conta, então matar com um golpe forte não rende mais que a vida do alvo). Vale no coop: cada
-    um ganha pelo próprio dano.
+  - **Experiência paga na morte** (pedido do João, 2026-10-24): cada golpe anota no alvo o dano
+    causado de fato (`MasteryLedger`; o que passa da vida que restava não conta), e a experiência
+    só sai quando ele morre, para cada um pelo próprio dano (`xp_per_damage`). Motivo: pagar por
+    golpe deixava ferir a criatura, correr até ela voltar para casa curada e repetir sem fim.
+    Voltar para casa (ou reviver) apaga o anotado; se ela se curar no meio da luta, o total pago
+    nunca passa da vida máxima (as partes encolhem juntas). Dano em área rende pela vida de cada
+    alvo, igual a matá-los um a um. **Filhotes invocados por chefe não pagam**: senão bastaria
+    deixar o chefe vivo invocando (e o corpo a corpo, que não o faz saltar, ganharia menos que o
+    mago pela mesma luta).
   - **Bônus**: +3% de dano por nível acima do 1 (`damage_bonus_per_level`), até o nível 20
     (+57%). O dano é calculado com o nível de quem golpeia na hora do golpe (o projétil leva o
     dele) e arredondado; nunca fica abaixo do dano da arma. Números provisórios.
-  - **Um ponto só para o golpe do jogador**: `Character.strike` (aplica o dano e dá a
+  - **Um ponto só para o golpe do jogador**: `Character.strike` (aplica o dano e anota a
     experiência) e `Character.mastery_damage`, usados pelo corpo a corpo, pelos projéteis e
     pelas áreas (`AreaStrike`).
   - **Interface**: linha no HUD, acima da coleta, com as maestrias **em uso** (arma vestida e
@@ -1159,4 +1165,6 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   não tem como pedir experiência.
 - **Limitações e próximos passos possíveis**: maestria não libera nada ainda (ex.: armas melhores
   exigindo nível, estilo Albion); não há tela com todas as maestrias (só as em uso no HUD e os
-  avisos); dano de efeitos ao longo do tempo (veneno, queimadura) não dá experiência.
+  avisos); dano de efeitos ao longo do tempo (veneno, queimadura) não dá experiência (mas a
+  criatura morta por ele ainda paga o dano dos golpes); criatura que some sem morrer (região
+  descarregada) não paga.

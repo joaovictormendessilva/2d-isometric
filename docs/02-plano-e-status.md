@@ -451,10 +451,11 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   e aparece uma aura de teleporte roxa em volta do personagem. 259 testes.
 - **J6a – Maestria por arma** 🟡 (aguardando validação do João; branch `stage-j/weapon-mastery`,
   ADR-038). Progressão de combate estilo Albion, escolha do João: Espada, Arco, Cajado e Arcano
-  (as magias) têm nível próprio, que sobe ferindo inimigos com elas (experiência = dano causado).
+  (as magias) têm nível próprio, que sobe matando inimigos com elas (experiência = dano que cada
+  um causou, paga na morte; filhotes de chefe não pagam).
   Cada nível dá +3% de dano àquela arma ou magia (até o nível 20). No HUD, acima da coleta,
   aparece a maestria do que está em uso ("Espada 3 (40%)"); ao subir, "Espada nível 3! (+6% de
-  dano)". Fica no save; no coop o host decide. 269 testes (10 novos); protocolo 22.
+  dano)". Fica no save; no coop o host decide. 270 testes (11 novos); protocolo 22.
 
 ## Funcionalidades
 
@@ -467,7 +468,7 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   lutar; dano derruba.
 - Chefe errante (J4a): de tempos em tempos um chefe surge com aviso e seta; baú para quem o feriu.
 - Pedras de portal (J5a): E ativa; numa pedra acesa, E escolhe para qual outra viajar (1 s).
-- Maestria por arma (J6a): ferir com espada, arco, cajado ou magias sobe o nível delas (+dano);
+- Maestria por arma (J6a): matar com espada, arco, cajado ou magias sobe o nível delas (+dano);
   o HUD mostra a do que está em uso.
 - Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
   (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.

@@ -156,9 +156,14 @@ func test_enraged_slam_spawns_minions_that_vanish_with_the_boss() -> void:
 	check(_monsters(game) == before + boss.data.max_minions, "no máximo %d vivos" % boss.data.max_minions)
 	var drops_before := pickups(game).size()
 	var minion: Monster = spawner._minions[boss.entity_id][0]
-	_hurt(minion, minion.health.max_health)
+	var player := (game.session as GameSession).get_player_entity(1) as Character
+	var sword := player.attacker.attack.mastery
+	player.strike(minion, DamageInfo.create(minion.health.max_health * 10, Vector2.RIGHT, 0.0, 0, 1),
+		sword)
 	await physics_frames(2)
+	check(minion.health.is_dead(), "filhote morreu")
 	check(pickups(game).size() == drops_before, "filhote não deixa drops")
+	check(player.skills.xp(sword.id) == 0, "nem experiência (senão o chefe vivo seria uma fazenda)")
 	_hurt(boss, boss.health.max_health)
 	check(await wait_until(func() -> bool: return _monsters(game) == before - 1, 120),
 		"o chefe morreu e os filhotes sumiram")

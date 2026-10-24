@@ -43,6 +43,9 @@ var auras: Array[AuraData] = []
 var mount: MountData
 ## Experiência do jogador (coleta e maestrias; ver `strike`). Null em criaturas.
 var skills: SkillProgress
+## Se matar este ator paga experiência de maestria a quem o feriu. Filhotes invocados por um
+## chefe não pagam: senão bastaria deixar o chefe vivo invocando para treinar sem fim.
+var grants_mastery_xp := true
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -63,6 +66,7 @@ var _weapon_attack: AttackData
 var _equipment_bonuses := StatBonuses.new()
 var _gear_auras: Array[AuraData] = []
 var _extra_auras: Array[AuraData] = []
+var _mastery_ledger := MasteryLedger.new()
 
 @onready var _collision_layer := collision_layer
 
@@ -279,15 +283,21 @@ func mastery_damage(base: int, mastery: MasteryData) -> int:
 	return mastery.scaled_damage(base, skills.level(mastery))
 
 
-## Host: aplica um golpe deste ator em `target`. Jogadores ganham experiência na maestria do
-## golpe pelo dano causado de fato (o que passa da vida que restava não conta). Retorna se feriu.
+## Host: aplica um golpe deste ator em `target`. Jogadores anotam no alvo o dano causado de fato
+## (o que passa da vida que restava não conta); a experiência da maestria vem quando ele morre
+## (ver `_on_died`). Retorna se feriu.
 func strike(target: Character, info: DamageInfo, mastery: MasteryData = null) -> bool:
 	var before := target.health.current
 	if not target.health.apply_damage(info):
 		return false
-	if mastery and skills:
-		skills.add_xp(mastery.id, mastery.xp_for_damage(before - target.health.current))
+	if mastery and skills and target.grants_mastery_xp:
+		target._mastery_ledger.record(skills, mastery, before - target.health.current)
 	return true
+
+
+## Host: a criatura voltou para casa curada (ver MonsterBrain): o dano anotado não vale mais.
+func forget_mastery_damage() -> void:
+	_mastery_ledger.clear()
 
 
 func apply_hit_effects(target: Character) -> void:
@@ -313,6 +323,7 @@ func revive(at: Vector2) -> void:
 	_stun_left = 0.0
 	collision_layer = _collision_layer
 	health.restore_full()
+	forget_mastery_damage()
 	revived.emit(self)
 
 
@@ -377,4 +388,6 @@ func _on_died() -> void:
 		gatherer.stop()
 	if caster:
 		caster.stop()
+	# Adiado: a morte é avisada dentro de `apply_damage`, antes de `strike` anotar o golpe final.
+	_mastery_ledger.pay_out.call_deferred(health.max_health)
 	died.emit(self)

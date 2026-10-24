@@ -43,7 +43,8 @@ func test_mastery_level_raises_damage_from_level_two_on() -> void:
 			"nunca cai ao subir (nível %d)" % level)
 
 
-func test_sword_hit_gives_mastery_xp_for_the_damage_dealt() -> void:
+## A experiência vem na morte, pelo dano que cada um causou (ferir e deixar curar não rende).
+func test_mastery_xp_is_paid_when_the_target_dies() -> void:
 	var player := spawn_character(Vector2.ZERO)
 	player.skills = SkillProgress.new()
 	var slime := spawn_slime(Vector2(20, 0))
@@ -52,10 +53,31 @@ func test_sword_hit_gives_mastery_xp_for_the_damage_dealt() -> void:
 	check(sword.mastery == SWORD_MASTERY, "a espada inicial treina Espada")
 	player.request_attack(Vector2.RIGHT)
 	await physics_frames(10)
-	var dealt := slime.health.max_health - slime.health.current
-	check(dealt > 0, "acertou")
-	check(player.skills.xp(SWORD_MASTERY.id) == SWORD_MASTERY.xp_for_damage(dealt),
-		"experiência = dano causado (%d)" % player.skills.xp(SWORD_MASTERY.id))
+	check(slime.health.current < slime.health.max_health, "acertou")
+	check(player.skills.xp(SWORD_MASTERY.id) == 0, "ferir ainda não paga")
+	player.strike(slime, DamageInfo.create(999, Vector2.RIGHT, 0, 0, 1), SWORD_MASTERY)
+	await physics_frames(1)
+	check(player.skills.xp(SWORD_MASTERY.id) == SWORD_MASTERY.xp_for_damage(slime.health.max_health),
+		"na morte: experiência = vida do alvo (%d)" % player.skills.xp(SWORD_MASTERY.id))
+
+
+## Coop: cada um ganha pelo dano que causou, e o total nunca passa da vida do alvo, nem se ele
+## se curou no meio da luta.
+func test_kill_xp_is_split_by_damage_and_capped_by_health() -> void:
+	var ledger := MasteryLedger.new()
+	var a := SkillProgress.new()
+	var b := SkillProgress.new()
+	ledger.record(a, SWORD_MASTERY, 30)
+	ledger.record(b, ARCANE_BOLT.mastery, 10)
+	ledger.pay_out(100)
+	check(a.xp(SWORD_MASTERY.id) == 30 and b.xp(ARCANE_BOLT.mastery.id) == 10, "cada um pela parte dele")
+	ledger.record(a, SWORD_MASTERY, 150)
+	ledger.record(b, ARCANE_BOLT.mastery, 50)
+	ledger.pay_out(100)  # 200 de dano num alvo de 100 de vida: curou no meio
+	check(a.xp(SWORD_MASTERY.id) == 30 + 75 and b.xp(ARCANE_BOLT.mastery.id) == 10 + 25,
+		"curar não vira experiência: as partes encolhem juntas")
+	ledger.pay_out(100)
+	check(a.xp(SWORD_MASTERY.id) == 105, "pago uma vez só")
 
 
 func test_overkill_damage_gives_no_extra_xp() -> void:
@@ -99,10 +121,11 @@ func test_spell_trains_its_own_mastery() -> void:
 	slime.reset_physics_interpolation()
 	await physics_frames(2)
 	check(player.skills == (game.session as GameSession).get_skills(1), "experiência da sessão")
+	slime.health.set_current(1)  # o orbe mata
 	check(player.request_cast(ARCANE_BOLT, Vector2(40, 0)), "lançou")
-	var hit := await wait_until(func() -> bool: return slime.health.current < slime.health.max_health,
-		60)
+	var hit := await wait_until(func() -> bool: return slime.health.is_dead(), 60)
 	check(hit, "o projétil acertou")
+	await physics_frames(1)
 	check(player.skills.xp(ARCANE_BOLT.mastery.id) > 0, "Arcano ganhou experiência")
 	check(player.skills.xp(SWORD_MASTERY.id) == 0, "Espada não")
 
@@ -145,12 +168,13 @@ func test_client_mastery_xp_is_decided_by_the_host() -> void:
 	var slime := first_monster(host)
 	slime.position = on_host.position + Iso.ground_to_screen(Vector2(18, 0))
 	slime.reset_physics_interpolation()
+	slime.health.set_current(2)  # o golpe mata
 	await physics_frames(10)  # o cliente vê o slime no lugar novo
 	check(on_client.request_attack(Vector2.RIGHT), "o cliente golpeia")
 	check(await wait_until(func() -> bool: return on_host.skills.xp(SWORD_MASTERY.id) > 0, 60),
 		"o host deu experiência de Espada ao cliente")
 	var decided := on_host.skills.xp(SWORD_MASTERY.id)
-	check(decided == slime.health.max_health - slime.health.current, "pelo dano causado")
+	check(decided == SWORD_MASTERY.xp_for_damage(2), "pelo dano causado (a vida que restava)")
 	check(await wait_until(func() -> bool:
 		return (client.session as GameSession).get_skills(client_id).xp(SWORD_MASTERY.id) == decided,
 		60), "o cliente recebeu o valor do host")

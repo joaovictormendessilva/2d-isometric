@@ -75,7 +75,9 @@ func test_slime_evades_at_leash_immune_and_heals_at_home() -> void:
 	var brain: MonsterBrain = slime.get_node("Brain")
 	var leash := slime.data.leash_radius
 	var stop_x := leash + slime.data.aggro_radius * 0.5  # no eixo x, chão = tela
-	slime.health.apply_damage(DamageInfo.create(10, Vector2.RIGHT, 0, 0, 1))
+	player.skills = SkillProgress.new()
+	var sword := player.attacker.attack.mastery
+	player.strike(slime, DamageInfo.create(10, Vector2.RIGHT, 0, 0, 1), sword)
 
 	# Atrai o slime ficando um pouco à frente dele (fora do alcance) e para depois da coleira.
 	var frames := 0
@@ -98,6 +100,11 @@ func test_slime_evades_at_leash_immune_and_heals_at_home() -> void:
 		"está em casa")
 	check(slime.health.current == slime.health.max_health, "recuperou a vida toda")
 	check(not slime.health.is_immune(), "voltou a poder ser atingido")
+	# O dano de antes da retirada não vale mais: matar agora sem ferir paga nada (ADR-038).
+	slime.health.apply_damage(DamageInfo.create(999, Vector2.RIGHT, 0, 0, 1))
+	await physics_frames(2)
+	check(slime.health.is_dead() and player.skills.xp(sword.id) == 0,
+		"ferir e deixar voltar para casa não rende experiência")
 
 
 ## Segurar o ataque não pode travar o slime: o bote telegrafado sai mesmo apanhando, então
