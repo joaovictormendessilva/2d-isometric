@@ -94,13 +94,15 @@ func register_player(session: GameSession, character: Character, player_id: int)
 ## Uma instância do jogo em rede dentro do teste: cada uma num SubViewport (mundo físico
 ## próprio) com a própria API de rede, como se fosse outro computador. `in_window`: direto na
 ## janela (desenhada, com a API de rede dela), para benchmarks com uma instância por processo.
+## `match_code`: código da partida (no host, o exigido; no cliente, o digitado).
 func start_network_game(instance_name: String, role: Network.Role, port: int,
-		save_path: String = "", in_window: bool = false) -> Node:
+		save_path: String = "", in_window: bool = false, match_code: String = "") -> Node:
 	var game := _new_game(save_path)
 	game.configure_network_from_command_line = false
 	var network: Network = game.get_node("Network")
 	network.role = role
 	network.port = port
+	network.match_code = match_code
 	if in_window:
 		add_to_tree(game)
 	else:

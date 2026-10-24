@@ -6,7 +6,7 @@ extends Node
 ## RegionWorlds) e diz a cada cliente qual carregar; a janela mostra a do jogador local.
 ##
 ## Argumentos de linha de comando (depois de `--`):
-##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --port=<n>).
+##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --code=<c>, --port=<n>).
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
 ##   --open-inventory             abre o inventário antes da captura.
