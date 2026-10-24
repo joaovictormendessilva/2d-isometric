@@ -1060,7 +1060,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-036 — Evento de chefe errante
 
-- **Status**: Hipótese (J4a, aguardando validação do João)
+- **Status**: Aceita (J4a validada pelo João, 2026-10-24, com o evento adiantado; ir embora depois de 5 min conferido só pelo teste automático)
 - **Contexto**: J4, eventos de chefe aleatórios. Formato escolhido pelo João (2026-10-24):
   **chefe errante** (as outras opções eram invasão e aparição rara sem aviso). Ideia dele para
   depois: paredes que fecham a luta ("arena"); combinamos deixar para a J4b, depois de ele

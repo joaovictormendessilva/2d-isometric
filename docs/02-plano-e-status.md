@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) em validação |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) validada |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -434,7 +434,7 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   gosmas e 10 madeiras. Vestido, **R** (ou direcional para baixo) sobe: 1 s parado com barrinha;
   montado, +80% de velocidade, mas sem atacar, coletar ou lançar; apanhar derruba; R ou ataque
   descem. Continua montado ao passar entre regiões. 244 testes (7 novos); protocolo 19.
-- **J4a – Chefe errante** 🟡 (aguardando validação do João; branch `stage-j/boss-events`,
+- **J4a – Chefe errante** ✅ (validada pelo João, 2026-10-24; branch `stage-j/boss-events`,
   ADR-036). A cada 10–20 min de jogo, um **Rei Slime errante** surge na campina ou na floresta
   (onde houver jogador), com aviso no alto da tela para todos ("Rei Slime apareceu!" / "Região:
   Campina") e uma seta dourada na borda apontando para ele. Se ninguém o derrotar em 5 min (e
