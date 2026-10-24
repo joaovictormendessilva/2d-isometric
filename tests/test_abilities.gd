@@ -19,12 +19,14 @@ func test_ability_data_is_consistent() -> void:
 		check(ability.icon != null, "%s tem ícone" % ability.id)
 		check(ability.cooldown > 0.0 and ability.cooldown <= Cooldowns.MAX_SECONDS,
 			"%s: recarga dentro dos limites" % ability.id)
-		check(ability.max_range > 0.0 and ability.damage > 0, "%s: tem alcance e dano" % ability.id)
+		check(ability.damage > 0, "%s: tem dano" % ability.id)
 		match ability.shape:
 			AbilityData.Shape.PROJECTILE:
-				check(ability.speed > 0.0 and ability.hit_radius > 0.0, "%s: voa" % ability.id)
+				var flight := ability.projectile
+				check(flight != null and flight.speed > 0.0 and flight.hit_radius > 0.0
+					and flight.max_range > 0.0, "%s: voa" % ability.id)
 			AbilityData.Shape.AREA:
-				check(ability.area_radius > 0.0 and ability.area_delay > 0.0,
+				check(ability.max_range > 0.0 and ability.area_radius > 0.0 and ability.area_delay > 0.0,
 					"%s: área com aviso" % ability.id)
 		check(_tome_for(ability.id) != null, "%s: algum tomo à venda ensina" % ability.id)
 	var tome := ItemDatabase.load_all().get_item(TOME) as ConsumableData
@@ -108,10 +110,10 @@ func test_tome_teaches_and_bolt_hits_the_first_monster() -> void:
 	check(player.caster.is_casting(), "começou a preparar")
 	abilities.request_cast(1, 0, Vector2.RIGHT)
 	check(refusals.back() == AbilityRules.Check.COOLING_DOWN, "recarga: avisa")
-	var flight := roundi((bolt.cast_time + 60.0 / bolt.speed) * 60.0) + 6
+	var flight := roundi((bolt.cast_time + 60.0 / bolt.projectile.speed) * 60.0) + 6
 	check(await wait_until(func() -> bool: return near.health.current < near.health.max_health,
 		flight), "acertou o primeiro slime")
-	await physics_frames(roundi(60.0 / bolt.speed * 60.0) + 4)
+	await physics_frames(roundi(60.0 / bolt.projectile.speed * 60.0) + 4)
 	check(far.health.current == far.health.max_health, "o de trás não levou (parou no primeiro)")
 	check(near.health.max_health - near.health.current == bolt.damage, "dano do projétil")
 
@@ -131,7 +133,7 @@ func test_bolt_vanishes_at_max_range() -> void:
 			return n is Projectile and not n.is_queued_for_deletion()).size()
 	await physics_frames(roundi(bolt.cast_time * 60.0) + 2)
 	check(flying.call() == 1, "o projétil voa")
-	await physics_frames(roundi(bolt.max_range / bolt.speed * 60.0) + 4)
+	await physics_frames(roundi(bolt.projectile.max_range / bolt.projectile.speed * 60.0) + 4)
 	check(flying.call() == 0, "chegou ao alcance e sumiu")
 
 

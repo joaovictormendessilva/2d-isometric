@@ -63,6 +63,7 @@ func _release(ability: AbilityData) -> void:
 			region.ground_effects.add_child(blast)
 		_:
 			var projectile := Projectile.new()
-			projectile.setup(ability, _body, _aim)
+			projectile.setup(ability.projectile, _body, _aim, ability.damage, ability.knockback,
+				ability.hit_effects)
 			region.entities.add_child(projectile)
 	cast_released.emit(ability, _aim)

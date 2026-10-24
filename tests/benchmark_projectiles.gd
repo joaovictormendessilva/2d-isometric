@@ -71,7 +71,8 @@ func _measure(count: int, targets: int, label: String) -> void:
 
 	# Lançar todos de uma vez faria todos sumirem e renascerem juntos (ondas, não regime): o
 	# aquecimento enche aos poucos, uma leva por quadro ao longo de um voo inteiro.
-	var flight_frames := ceili(BOLT.max_range / BOLT.speed * Engine.physics_ticks_per_second)
+	var flight_frames := ceili(BOLT.projectile.max_range / BOLT.projectile.speed
+		* Engine.physics_ticks_per_second)
 	var per_frame := ceili(count / float(flight_frames))
 	var stats := FrameStats.new()
 	for frame in WARMUP_FRAMES + SAMPLE_FRAMES:
@@ -91,7 +92,8 @@ func _measure(count: int, targets: int, label: String) -> void:
 
 func _launch(arena: Node2D, caster: Character, rng: RandomNumberGenerator) -> void:
 	var projectile := Projectile.new()
-	projectile.setup(BOLT, caster, Vector2.from_angle(rng.randf() * TAU))
+	projectile.setup(BOLT.projectile, caster, Vector2.from_angle(rng.randf() * TAU), BOLT.damage,
+		BOLT.knockback, BOLT.hit_effects)
 	projectile.position = caster.position \
 		+ Iso.ground_to_screen(_random_ground_point(rng, 0.0, LAUNCH_RADIUS))
 	# Some ao acertar ou no fim do alcance (queue_free): o laço repõe no quadro seguinte.
