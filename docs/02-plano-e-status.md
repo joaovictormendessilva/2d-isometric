@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 🟡 (criptografia) · I3 ⬜ · I4 ⬜ |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ⬜ · I4 ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -367,7 +367,7 @@ João antes da próxima:
   mesmo endereço = 1 minuto bloqueado. O cliente recusado vê o motivo (código errado, bloqueio,
   versão diferente, perfil repetido). Protocolo 15. 208 testes; testado também com dois
   processos (código errado recusado, certo entra).
-- **I2 – Tráfego criptografado** 🟡 implementada, aguarda validação do João (branch
+- **I2 – Tráfego criptografado** ✅ (validado pelo João, 2026-10-24) (branch
   `stage-i/encryption`). Tudo trafega criptografado (DTLS), inclusive o segredo do perfil e a
   prova do código. Antes de conectar, o cliente pega o certificado do host na "porta da
   frente" (porta + 1), selado com o código; código errado já para ali ("Código da partida
