@@ -908,7 +908,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-031 — Dungeons temporárias (primeira: caverna dos slimes)
 
-- **Status**: Hipótese (J1a, aguarda validação do João)
+- **Status**: Aceita (J1a validada pelo João, 2026-10-24)
 - **Contexto**: Etapa J, primeira frente escolhida pelo João (2026-10-24): dungeon instanciada.
   A visão pede "mapas persistentes, instanciados e dungeons temporárias, sem complexidade antes
   da necessidade".

@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1a (dungeon temporária) |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1b (baú do chefe e saída rápida) |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -399,7 +399,7 @@ Frentes propostas (2026-10-24), núcleo genérico com conteúdo de teste, cada u
 João antes da próxima: **dungeon instanciada** (escolha do João para começar), eventos de chefe
 aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arco, cajado).
 
-- **J1a – Dungeon temporária** 🟡 implementada, aguarda validação do João (branch
+- **J1a – Dungeon temporária** ✅ (validada pelo João, 2026-10-24; branch
   `stage-j/dungeon`, ADR-031). Boca de caverna no meio da floresta (ao norte do caminho, entre a
   entrada e o Rei Slime): andar para dentro dela leva à **caverna dos slimes**, escura, com
   abismos, slimes comuns e venenosos, cobre e o Rei Slime no fundo (leste). A passagem a oeste
