@@ -241,6 +241,17 @@ const SWORD := [
 	"oho.o...",
 	"oo......",
 ]
+## Arco (J2): madeira em arco no canto de cima à esquerda, corda clara na diagonal.
+const BOW := [
+	"...oooo.",
+	"..owwwWo",
+	".owoo.lo",
+	"owo..lo.",
+	"owo.lo..",
+	"owolo...",
+	"oWlo....",
+	".oo.....",
+]
 const SHIELD := [
 	".oooooo.",
 	"owwWwwWo",
@@ -445,6 +456,7 @@ const ICONS := {
 	"workbench": [BENCH, {}],
 	"sword": [SWORD, {}],
 	"wooden_shield": [SHIELD, {}],
+	"bow": [BOW, {}],
 	"copper_helmet": [HELMET, {}],
 	"simple_backpack": [BACKPACK, {}],
 	"magnet_ring": [RING, {}],

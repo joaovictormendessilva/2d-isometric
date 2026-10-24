@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="WeaponData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://core/equipment/weapon_data.gd" id="1_weapon"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_bow.png" id="2_icon"]
+[ext_resource type="Resource" path="res://data/weapons/bow.tres" id="3_attack"]
+
+[resource]
+script = ExtResource("1_weapon")
+id = &"bow"
+sell_price = 10
+icon = ExtResource("2_icon")
+max_stack = 1
+grip = 1
+off_hand_kinds = Array[int]([2])
+attack = ExtResource("3_attack")

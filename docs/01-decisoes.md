@@ -969,3 +969,32 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   minérios de cobre e 50% de uma poção de rapidez.
 - **Limitações**: quem entrar depois do chefe morto também pode abrir o baú (uma instância por
   dungeon, ADR-031); a saída não tem rótulo (entrar nela já leva para fora).
+
+## ADR-033 — Armas à distância: o golpe da arma pode ser um projétil
+
+- **Status**: Hipótese (J2a, aguardando validação do João)
+- **Contexto**: J2, variedade de armas (escolha do João, 2026-10-24). As regras de mão (arco de 2
+  mãos com aljava, cajados) existem desde o E4 (ADR-018); faltava o comportamento.
+- **Decisões**:
+  - **Ataque genérico**: `MeleeAttackData`/`MeleeAttacker` viraram `AttackData`/`Attacker`. Um
+    ataque com `projectile` (dados) solta o projétil no instante do golpe, na direção da mira,
+    em vez de acertar quem está no arco; preparação, recuperação, segurar para repetir e
+    lentidão ao atacar continuam iguais. Serve também para criaturas que atiram, no futuro.
+  - **`ProjectileData`** (voo e aparência: velocidade, alcance, raio de acerto, aparência orbe
+    ou flecha, cores) saiu da `AbilityData`: o projétil arcano e as armas usam o mesmo
+    `Projectile`. Dano, recuo e efeitos vêm de quem soltou (habilidade ou arma).
+  - **Flecha** em pixel art sem girar sprite: uma imagem pintada pixel a pixel para cada uma de
+    16 direções na tela (guardada após a primeira vez, como o orbe). Projéteis nascem na borda da
+    pegada de quem solta (não atravessam o próprio corpo).
+  - **Sem munição** por enquanto: a aljava é só o item da mão secundária que o arco aceita.
+  - **Apresentação**: arma à distância não mostra o rastro da espada; na preparação o corpo recua
+    1 px (puxar a corda) e no disparo sai um sopro de faíscas na boca da arma.
+- **Rede e segurança (ADR-013)**: nenhuma mensagem nova. O ataque já é pedido ao host e
+  retransmitido (NetSync); cada computador sabe a arma de cada jogador (equipamento vindo do
+  host) e solta a flecha para mostrar; só a flecha do host fere. Protocolo **18** (catálogo de
+  itens novo: computadores de versões diferentes recusariam o equipamento um do outro).
+- **Conteúdo de teste**: arco (2 mãos, aceita aljava; feito na bancada com 10 madeiras e 3
+  gosmas): flecha de 7 de dano, alcance 190, preparação 0,12 s, recuperação 0,42 s (~13 de dano
+  por segundo à distância; a espada faz ~21 corpo a corpo).
+- **Limitações**: a flecha ainda atravessa árvores e pedras (pendência da ADR-026); o
+  personagem não mostra a arma na mão (vem com a arte definitiva).

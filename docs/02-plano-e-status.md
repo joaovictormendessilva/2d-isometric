@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) concluída |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) concluída; J2a (arco) em validação |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -414,12 +414,19 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   (poções de vida, cobre, às vezes poção de rapidez) salta em volta, só para ele. Entrar no
   círculo leva para a frente da boca da caverna, na floresta. O Rei Slime da floresta continua
   sem baú. 230 testes (6 novos); protocolo de rede 17.
+- **J2a – Arco** 🟡 (aguardando validação do João; branch `stage-j/weapons`, ADR-033). Novo item
+  **Arco** (2 mãos, aceita aljava), feito na bancada com 10 madeiras e 3 gosmas. Vestido, o
+  clique esquerdo solta uma flecha na direção do mouse: acerta o primeiro inimigo no caminho
+  (7 de dano) ou some no alcance. Na preparação o personagem recua 1 px e no disparo sai um
+  sopro de faíscas. Magias e armas agora usam o mesmo projétil. 234 testes (4 novos);
+  protocolo de rede 18.
 
 ## Funcionalidades
 
 - Dungeon (J1a): boca de caverna na floresta leva à caverna dos slimes (temporária).
 - Fim da dungeon (J1b): o chefe morto deixa um baú (E abre; recompensa de cada jogador) e uma
   saída rápida para a entrada.
+- Arco (J2a): feito na bancada; o golpe vira flecha na direção do mouse.
 - Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
   (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.

@@ -1,7 +1,8 @@
 class_name Attacker
 extends Node
-## Executa ataques corpo a corpo do Character pai: preparação (telegrafia) → golpe → recuperação.
-## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
+## Executa os ataques do Character pai: preparação (telegrafia) → golpe → recuperação. Ataque à
+## distância (`AttackData.projectile`): no golpe sai o projétil, que acerta sozinho. Corpo a corpo:
+## no instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
 ## investida (`lunge_hit_time`), continua acertando quem o avanço tocar, uma vez cada.
 ## Só o HOST aplica o dano (`multiplayer.is_server()`; offline também é host). Nos outros
 ## computadores o ataque roda igual, só para a apresentação e o bote.
@@ -81,6 +82,12 @@ func _physics_process(delta: float) -> void:
 func _strike() -> void:
 	_phase = Phase.RECOVERY
 	_time_left = attack.recovery
+	if attack.projectile:
+		# À distância: em todo computador a flecha voa (apresentação); só a do host fere.
+		Projectile.launch(attack.projectile, _body, _direction, attack.damage, attack.knockback,
+			_body.on_hit_effects)
+		attack_struck.emit(_direction, attack)
+		return
 	_body.add_ground_impulse(_direction * attack.lunge)
 	_hit.clear()
 	_hit_left = attack.lunge_hit_time

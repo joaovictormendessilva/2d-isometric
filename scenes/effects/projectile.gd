@@ -44,7 +44,18 @@ var _image: ImageTexture
 var _image_origin := Vector2.ZERO
 
 
-## `direction` no plano do chão. Dano, recuo e efeitos são de quem soltou (habilidade ou arma).
+## Solta um projétil de `caster` na região dele, na direção `direction` (chão). Dano, recuo e
+## efeitos são de quem soltou (habilidade ou arma).
+static func launch(data: ProjectileData, caster: Character, direction: Vector2, damage: int,
+		knockback: float, effects: Array[StatusEffectData]) -> void:
+	var region := Region.of(caster)
+	if region == null:
+		return
+	var projectile := Projectile.new()
+	projectile.setup(data, caster, direction, damage, knockback, effects)
+	region.entities.add_child(projectile)
+
+
 func setup(data: ProjectileData, caster: Character, direction: Vector2, damage: int,
 		knockback: float, effects: Array[StatusEffectData]) -> void:
 	_data = data
@@ -53,7 +64,8 @@ func setup(data: ProjectileData, caster: Character, direction: Vector2, damage: 
 	_effects = effects
 	_caster = weakref(caster)
 	_direction = direction.normalized()
-	position = caster.position
+	# Nasce na borda da pegada, à frente: não atravessa o corpo de quem soltou.
+	position = caster.position + Iso.ground_to_screen(_direction * caster.footprint_radius())
 
 
 func _ready() -> void:
