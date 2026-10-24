@@ -938,5 +938,34 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Conteúdo de teste** (troca sem mexer na regra): caverna com slimes comuns e venenosos,
   cobre e o Rei Slime no fundo; entrada no meio da floresta.
 - **Limitações**: a dungeon recomeça só quando fica vazia (quem fica dentro mantém o progresso
-  dos outros); sem recompensa de fim (baú) nem saída rápida depois do chefe; o caminho de
-  saída na caverna não tem marca no chão (mesmo piso).
+  dos outros); o caminho de saída na caverna não tem marca no chão (mesmo piso). Recompensa de
+  fim e saída rápida: ADR-032.
+
+## ADR-032 — Fim de dungeon: baú do chefe e saída rápida
+
+- **Status**: Hipótese (J1b, aguarda validação do João)
+- **Contexto**: J1b, continuação da ADR-031: a dungeon não tinha recompensa de fim nem como sair
+  depois do chefe sem voltar a pé.
+- **Decisões**:
+  - **Gatilho em dados**: a dungeon diz qual é o baú dela (`RegionData.reward_chest`, arquivo em
+    `data/chests/`). Quando um chefe (`MonsterData.is_boss`) morre numa região com baú, surgem o
+    baú (onde ele caiu) e a saída rápida (um pouco mais longe), depois que o corpo some. O mesmo
+    chefe fora de dungeon (Rei Slime da floresta) só deixa os drops de sempre.
+  - **Baú pessoal**: um baú só, e cada jogador da dungeon abre o seu uma vez (tecla de interagir,
+    rótulo "[E] Abrir o baú"). A tabela (`DropEntry`, como os drops) é sorteada só para quem
+    abriu e cai em volta do baú como drop pessoal. Cada computador mostra o baú como o jogador
+    local o deixou (aberto para quem já abriu). Prioridade da tecla: NPC, baú, coleta.
+  - **Saída rápida = passagem** (`ExitPortal` herda `Passage`): círculo mágico no chão que leva
+    a `exit_region`/`exit_passage` (frente da boca da caverna). A viagem é a mesma das outras
+    passagens (o Main decide).
+  - Baú e saída são entidades criadas pelo host (`EntitySpawner`, tipos novos), então quem
+    entra na dungeon depois também os recebe; somem quando a dungeon é esquecida.
+- **Rede e segurança (ADR-013)**: protocolo **17**. Mensagens novas: pedido "abrir baú" (sem
+  argumentos: o host escolhe o baú ao alcance e ainda não aberto por quem pediu, com o estado
+  dele; passa pela cota do `PeerGuard`) e "baú aberto" (host → só o dono). Dados de criação do
+  baú e da saída só levam id e posição (conferidos); tipo do baú e destino da saída vêm do
+  catálogo da região, nunca da rede.
+- **Conteúdo de teste** (troca sem mexer na regra): baú da caverna com 1–2 poções de vida, 4–8
+  minérios de cobre e 50% de uma poção de rapidez.
+- **Limitações**: quem entrar depois do chefe morto também pode abrir o baú (uma instância por
+  dungeon, ADR-031); a saída não tem rótulo (entrar nela já leva para fora).

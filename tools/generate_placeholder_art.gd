@@ -397,6 +397,42 @@ const CROWN := [
 	".ooooooo.",
 ]
 const CROWN_OUTLINE := Color("6a4a1a")
+## Baú de recompensa da dungeon (J1b), de frente: madeira com faixas de ouro e fechadura. Aberto, a
+## tampa cai para trás e aparece o tesouro. Contorno em madeira escura (cor do material).
+const CHEST_CLOSED := [
+	"..oooooooooooo..",
+	".orrrrrrrrrrrro.",
+	"owwwwwwwwwwwwwWo",
+	"owwwwwwwwwwwwwWo",
+	"oGyyyyyGGyyyyyYo",
+	"owwwwwwoowwwwwWo",
+	"owwwwwoGyowwwwWo",
+	"owwwwwoyYowwwwWo",
+	"owwwwwwoowwwwwWo",
+	"oGyyyyyyyyyyyyYo",
+	"oWWWWWWWWWWWWWWo",
+	".oooooooooooooo.",
+]
+const CHEST_OPEN := [
+	"..oooooooooooo..",
+	".oWWWWWWWWWWWWo.",
+	".okkkkkkkkkkkko.",
+	"oooooooooooooooo",
+	"okGgGGkGyGkGGyko",
+	"okkyGkkkGykkGkko",
+	"oGyyyyyyyyyyyyYo",
+	"owwwwwwoowwwwwWo",
+	"owwwwwoGyowwwwWo",
+	"owwwwwoyYowwwwWo",
+	"owwwwwwoowwwwwWo",
+	"oGyyyyyyyyyyyyYo",
+	"oWWWWWWWWWWWWWWo",
+	".oooooooooooooo.",
+]
+const CHEST_OUTLINE := Color("2a1a10")
+## Saída da dungeon (J1b): círculo mágico arcano no chão, com o meio translúcido.
+const PORTAL := [ICON_PALETTE["A"], ICON_PALETTE["Z"], ICON_PALETTE["a"]]
+const PORTAL_INSIDE := Color(0.29, 0.16, 0.6, 0.55)
 const COPPER_SWAP := {"l": "C", "s": "c", "S": "d"}
 const ICONS := {
 	"wood": [LOG, {}],
@@ -438,6 +474,10 @@ func _initialize() -> void:
 	_save(_rock(COPPER), OUT_DIR + "copper_vein.png")
 	_save(_rubble(), OUT_DIR + "rubble.png")
 	_save(_cave_entrance(), OUT_DIR + "cave_entrance.png")
+	var chest_palette := ICON_PALETTE.merged({"o": CHEST_OUTLINE}, true)
+	_save(_sprite(CHEST_CLOSED, chest_palette), OUT_DIR + "chest_closed.png")
+	_save(_sprite(CHEST_OPEN, chest_palette), OUT_DIR + "chest_open.png")
+	_save(_exit_portal(), OUT_DIR + "exit_portal.png")
 	_save(_workbench(), OUT_DIR + "workbench.png")
 	_save(_sprite(MERCHANT, MERCHANT_PALETTE), OUT_DIR + "merchant.png")
 	for icon: String in ICONS:
@@ -728,6 +768,25 @@ func _cave_entrance() -> Image:
 				# Por dentro: a parede direita da boca pega a luz da esquerda.
 				img.set_pixel(x, y, CHASM[2] if x >= 25 and y >= 19 else CHASM[0])
 	outline(img, STONE_OUTLINE)
+	return img
+
+
+## Círculo mágico da saída (26x14), deitado no chão: anel com luz de cima/esquerda, runas
+## claras nos quatro pontos e o meio translúcido. Centro: (13, 7).
+func _exit_portal() -> Image:
+	var img := Image.create(26, 14, false, Image.FORMAT_RGBA8)
+	var center := Vector2(13, 7)
+	for y in img.get_height():
+		for x in img.get_width():
+			if not in_ellipse(x, y, center, Vector2(13, 7)):
+				continue
+			if in_ellipse(x, y, center, Vector2(10, 5)):
+				img.set_pixel(x, y, PORTAL_INSIDE)
+			else:
+				var v := (x - center.x) * 0.3 + (y - center.y) * 0.9
+				img.set_pixel(x, y, shade(PORTAL, v, 2.5, x, y))
+	for rune: Vector2i in [Vector2i(1, 6), Vector2i(24, 7), Vector2i(12, 1), Vector2i(13, 12)]:
+		img.set_pixelv(rune, Color.WHITE)
 	return img
 
 

@@ -6,10 +6,10 @@ extends HostRequests
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
 ## estrutura, vestir e tirar equipamento, comprar, vender e aprender receitas com um NPC, usar um
-## item como a poção, escolher a aparência de um espaço); o host confere e aplica. Esperas
-## (poções) começadas no host, receitas aprendidas e aparências colecionadas também vão ao dono;
-## as aparências escolhidas vão a todos, junto com o equipamento. Offline, os pedidos são
-## aplicados na hora.
+## item como a poção, escolher a aparência de um espaço, abrir um baú de dungeon); o host confere
+## e aplica. Esperas (poções) começadas no host, receitas aprendidas e aparências colecionadas
+## também vão ao dono; as aparências escolhidas vão a todos, junto com o equipamento. Offline,
+## os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
 ## quantidades vindos da rede são conferidos.
@@ -150,6 +150,11 @@ func request_learn(recipe_id: StringName) -> void:
 	_request(&"_learn_requested", [recipe_id])
 
 
+## Jogador local quer abrir o baú de dungeon perto dele (o host escolhe qual e sorteia).
+func request_open_chest() -> void:
+	_request(&"_open_chest_requested", [])
+
+
 ## Jogador local quer usar o item do espaço `index` (menu "Usar"). Se já se sabe que não dá,
 ## avisa (`use_refused`) em vez de pedir.
 func request_use(index: int) -> void:
@@ -197,9 +202,24 @@ func stations_of(player_id: int) -> Array[RecipeData.Station]:
 
 ## NPC mais próximo ao alcance do jogador (para negociar), ou null.
 func npc_near(player_id: int) -> Npc:
+	return _nearest(_in_reach(Npc.GROUP, player_id), player_id) as Npc
+
+
+## Baú de dungeon mais próximo ao alcance do jogador que ele ainda não abriu, ou null. No host,
+## quem já abriu é o oficial; num cliente, o que ele sabe do próprio jogador (prévia).
+func chest_near(player_id: int) -> RewardChest:
+	var closed := _in_reach(RewardChest.GROUP, player_id).filter(func(node: Node2D) -> bool:
+		var chest := node as RewardChest
+		return not (chest.was_opened_by(player_id) if multiplayer.is_server()
+			else chest.is_open_here()))
+	return _nearest(closed, player_id) as RewardChest
+
+
+## O nó de `nodes` mais perto dos pés do jogador (null se não houver).
+func _nearest(nodes: Array, player_id: int) -> Node2D:
 	var character := session.get_player_entity(player_id) as Character
-	var best: Npc
-	for node in _in_reach(Npc.GROUP, player_id):
+	var best: Node2D
+	for node: Node2D in nodes:
 		if best == null or Iso.ground_distance(node.position, character.position) \
 				< Iso.ground_distance(best.position, character.position):
 			best = node
@@ -373,6 +393,17 @@ func _learn_requested(recipe_id: StringName) -> void:
 	if npc and recipe:  # confere receita ensinada, ainda não sabida e moedas
 		TradeRules.learn(npc.data, recipe, session.get_recipe_book(player_id),
 			session.get_wallet(player_id))
+
+
+## Baú ao alcance e ainda não aberto por quem pediu, pelo estado do host: a recompensa é sorteada
+## só para ele e cai em volta do baú (drop pessoal).
+@rpc("any_peer", "call_remote", "reliable")
+func _open_chest_requested() -> void:
+	var player_id := _requester()
+	var chest := chest_near(player_id) if _requester_inventory() else null
+	if chest:
+		chest.open_for(player_id)
+		spawner.spawn_loot(Region.of(chest), chest.data.drops, chest.position, player_id)
 
 
 @rpc("any_peer", "call_remote", "reliable")

@@ -1,6 +1,7 @@
 class_name InteractionPrompt
 extends Node2D
-## Rótulo sobre o NPC ("[E] Mercador") ou o ponto de coleta ao alcance do jogador LOCAL:
+## Rótulo sobre o NPC ("[E] Mercador"), o baú de dungeon ("[E] Abrir o baú") ou o ponto de
+## coleta ao alcance do jogador LOCAL:
 ## "[E] Árvore de lenha", ou o que falta para coletar ("Carvalho antigo: precisa de ferramenta
 ## nível 2"). Assim tudo com que se interage se identifica quando o jogador chega perto. Só
 ## apresentação.
@@ -42,11 +43,16 @@ func _physics_process(delta: float) -> void:
 	visible = false
 	if not is_instance_valid(_character):
 		return
-	# Mesma prioridade da tecla de interagir (LocalPlayerInput): NPC antes da coleta.
+	# Mesma prioridade da tecla de interagir (LocalPlayerInput): NPC, baú e por fim a coleta.
 	var npc := player_state.npc_near(_character.player_id) if player_state else null
 	if npc:
 		_show_over(npc, Texts.format(&"PROMPT_TALK",
 			[Texts.action_key(&"interact"), npc.data.get_display_name()]), READY_COLOR)
+		return
+	var chest := player_state.chest_near(_character.player_id) if player_state else null
+	if chest:
+		_show_over(chest, Texts.format(&"PROMPT_OPEN_CHEST", [Texts.action_key(&"interact")]),
+			READY_COLOR)
 		return
 	var gatherer := _character.gatherer
 	var node := gatherer.find_node() if gatherer and not gatherer.is_gathering() else null

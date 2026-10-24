@@ -407,11 +407,19 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   ficar vazia; lá dentro as criaturas não renascem e não dá para construir; quem sai do jogo lá
   dentro volta para a frente da boca. 224 testes (7 novos); campina e floresta continuam iguais
   (save vale).
-- **J1b** ⬜ (proposta): recompensa no fim (baú do chefe) e saída rápida depois dele.
+- **J1b – Baú do chefe e saída rápida** 🟡 implementada, aguarda validação do João (branch
+  `stage-j/dungeon`, ADR-032). Quando o Rei Slime morre na caverna, depois que o corpo some,
+  surgem um baú (com faíscas) onde ele caiu e um círculo mágico roxo no chão um pouco mais
+  longe. Perto do baú aparece "[E] Abrir o baú": cada jogador abre o seu uma vez e a recompensa
+  (poções de vida, cobre, às vezes poção de rapidez) salta em volta, só para ele. Entrar no
+  círculo leva para a frente da boca da caverna, na floresta. O Rei Slime da floresta continua
+  sem baú. 230 testes (6 novos); protocolo de rede 17.
 
 ## Funcionalidades
 
 - Dungeon (J1a): boca de caverna na floresta leva à caverna dos slimes (temporária).
+- Fim da dungeon (J1b): o chefe morto deixa um baú (E abre; recompensa de cada jogador) e uma
+  saída rápida para a entrada.
 - Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
   (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
