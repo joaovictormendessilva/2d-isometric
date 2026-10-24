@@ -32,7 +32,7 @@ PROMPT_GATHER,[%s] %s,[%s] %s
 PROMPT_BLOCKED,%s: %s,%s: %s
 NET_CONNECTING,Conectando a %s:%d...,Connecting to %s:%d...
 NET_HOSTING_LOCAL,Host (só este PC) na porta %d,Host (this PC only) on port %d
-NET_HOSTING_LAN,Host (rede local) na porta %d,Host (local network) on port %d
+NET_HOSTING_LAN,Host (rede local) %s · porta %d · código %s,Host (local network) %s · port %d · code %s
 NET_CONNECTED,Conectado ao host,Connected to host
 NET_CONNECT_FAILED,Não foi possível conectar,Could not connect
 NET_HOST_LOST,Conexão com o host perdida,Lost connection to host
@@ -41,6 +41,10 @@ NET_PING,%s · ping %d ms,%s · ping %d ms
 NET_BAD_PORT,Porta inválida: %d,Invalid port: %d
 NET_BAD_ADDRESS,Endereço inválido: %s,Invalid address: %s
 NET_OPEN_FAILED,Não foi possível abrir a rede (porta %d em uso?),Could not open the network (is port %d in use?)
+NET_REFUSED_VERSION,O host usa outra versão do jogo,The host runs a different game version
+NET_REFUSED_CODE,Código da partida errado,Wrong match code
+NET_REFUSED_LOCKED,Muitos códigos errados: espere 1 minuto,Too many wrong codes: wait 1 minute
+NET_REFUSED_SAME_PLAYER,Este perfil já está na partida,This profile is already in the match
 GATHER_INVENTORY_FULL,Inventário cheio,Inventory full
 INVENTORY_TITLE,Inventário,Inventory
 INVENTORY_HINT,Clique: pegar e pôr · clique fora: jogar no chão · botão direito: opções,Click: pick up and place · click outside: throw away · right click: options

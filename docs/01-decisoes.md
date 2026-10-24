@@ -256,8 +256,18 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     Cada cliente só recebe a própria região. Custo aceito: o host simula até uma região por
     jogador (medido na F2b).
 - **Pendências registradas** (antes do coop pela internet — não aceitar sem resolver):
-  - **Criptografia** (DTLS do ENet) e **código/senha da partida** — hoje desnecessários no
-    127.0.0.1, obrigatórios antes de LAN aberta (código) e internet (ambos).
+  - ✅ **Código da partida** (I1, `MatchCode`): o host da rede local sorteia 6 letras (sem
+    0/O, 1/I/L) e as mostra na tela; só entra quem as digitar. O código nunca trafega: o host
+    manda um desafio aleatório de 16 bytes e o cliente responde com HMAC-SHA256 do desafio,
+    tendo o código como chave (comparação em tempo constante). 5 erros seguidos do mesmo
+    endereço bloqueiam esse endereço por 1 minuto (adivinhar ~900 milhões de códigos fica
+    inviável). O cliente só conclui o aperto de mão quando o host diz "aceito"; recusado, o host
+    diz o motivo (versão, código, bloqueio, perfil repetido) e desconecta 0,25 s depois. O host
+    só deste computador (`--host`) não pede código. Limite: sem criptografia, quem já está no
+    meio da rede (intermediário ativo) poderia repassar o aperto de mão; resolve junto com a
+    criptografia.
+  - **Criptografia** (DTLS do ENet) — obrigatória antes da internet; na LAN, protege o segredo
+    do perfil (abaixo). Próximo incremento (I2).
   - ✅ Detecção de atravessar paredes (H4): o host refaz o caminho desde a última posição aceita
     deslizando nas paredes como o `move_and_slide` do dono (mesma pegada, 4 deslizes); parou a
     mais de 3 px do ponto recebido = parede no caminho, e o dono volta para onde o deslize parou

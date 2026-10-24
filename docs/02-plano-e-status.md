@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | ⬜ |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ⬜ · I3 ⬜ · I4 ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -354,6 +354,25 @@ João antes da próxima:
   também protege o segredo do perfil. Fica para depois: compensação de atraso (só online); vida
   das criaturas recalculada quando alguém entra no meio da luta; espera da poção no save.
 - Em aberto: medir num computador fraco de verdade (o alvo "modesto" ainda é hipótese).
+
+## Etapa I — incrementos
+
+Divisão proposta (2026-10-23), a partir das pendências da ADR-013; cada parte validada pelo
+João antes da próxima:
+
+- **I1 – Código da partida** ✅ (validado pelo João, 2026-10-23: três janelas, só o código certo entra) (branch
+  `stage-i/match-code`). `--host-lan` mostra no canto da tela os IPs da rede local, a porta e
+  um código de 6 letras sorteado; quem entra usa `--join=<ip> --code=<código>` (minúsculas,
+  espaços e hífen aceitos). O código não trafega (desafio e resposta, ADR-013); 5 erros do
+  mesmo endereço = 1 minuto bloqueado. O cliente recusado vê o motivo (código errado, bloqueio,
+  versão diferente, perfil repetido). Protocolo 15. 208 testes; testado também com dois
+  processos (código errado recusado, certo entra).
+- **I2 – Identidade e tráfego protegidos** ⬜: criptografia (DTLS) para o segredo do perfil não
+  trafegar aberto.
+- **I3 – Tela de partida** ⬜: jogar sozinho, hospedar ou entrar (IP e código) sem linha de
+  comando.
+- **I4 – Teste em dois computadores** ⬜: firewall do Windows e partida de verdade na rede local.
+  Fica para o fim da Etapa I (João, 2026-10-23): I1–I3 se validam no mesmo PC, com duas janelas.
 
 ## Funcionalidades
 
