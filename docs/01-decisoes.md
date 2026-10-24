@@ -972,7 +972,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-033 — Armas à distância: o golpe da arma pode ser um projétil
 
-- **Status**: Hipótese (J2a, aguardando validação do João)
+- **Status**: Aceita (J2a validada pelo João, 2026-10-24)
 - **Contexto**: J2, variedade de armas (escolha do João, 2026-10-24). As regras de mão (arco de 2
   mãos com aljava, cajados) existem desde o E4 (ADR-018); faltava o comportamento.
 - **Decisões**:
