@@ -445,7 +445,8 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   boca da caverna). Perto de um, **E ativa** (a runa acende, só para você, e fica no save); numa
   pedra acesa, **E abre a lista** das outras que você ativou; escolher **canaliza 1 s** (barrinha;
   apanhar ou andar interrompem) e leva até a frente da pedra escolhida. 256 testes (6 novos);
-  protocolo 21.
+  protocolo 21. Correção após o teste do João: montado também dá para viajar (chega montado).
+  257 testes.
 
 ## Funcionalidades
 

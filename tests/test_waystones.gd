@@ -63,6 +63,33 @@ func test_traveling_channels_then_arrives_at_the_other_waystone() -> void:
 		"na frente da pedra de destino")
 
 
+## Montado também viaja (achado do João na J5a) e chega montado; subindo na montaria, não.
+func test_traveling_while_mounted() -> void:
+	var game := start_game()
+	calm_monsters(game)
+	var session := game.session as GameSession
+	var inventory := session.get_inventory(1)
+	inventory.add(&"riding_slime", 1)
+	EquipmentRules.equip_from_inventory(inventory, session.get_equipment(1),
+		slot_of(inventory, &"riding_slime"))
+	var state: PlayerStateSync = game.player_state
+	_known(game).activate(CAMP)
+	_known(game).activate(FOREST_EDGE)
+	var player := _player(game)
+	_stand_at(player, _stone(game, CAMP))
+	state.request_toggle_mount()
+	state.request_waystone_travel(FOREST_EDGE)
+	check(not player.channel.is_channeling(), "subindo na montaria: não canaliza")
+	await physics_frames(roundi(player.mount.mount_time * 60.0) + 2)
+	check(player.rider.is_mounted(), "montou")
+	state.request_waystone_travel(FOREST_EDGE)
+	check(player.channel.is_channeling(), "montado: canaliza")
+	await physics_frames(roundi(Waystone.CHANNEL_TIME * 60.0) + 4)
+	var arrived := _player(game)
+	check(Region.of(arrived).region_id == &"forest" and arrived.rider.is_mounted(),
+		"chegou à floresta, montado")
+
+
 func test_damage_or_walking_interrupts_the_channel() -> void:
 	var game := start_game()
 	calm_monsters(game)

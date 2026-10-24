@@ -39,9 +39,9 @@ func seconds() -> float:
 
 
 ## Host: começa a canalizar por `seconds`; `done` é chamada ao completar. Retorna se começou
-## (vivo, livre para agir e sem outra canalização).
+## (vivo, livre para agir, a pé ou já montado, e sem outra canalização).
 func start(seconds: float, done: Callable) -> bool:
-	if is_channeling() or seconds <= 0.0 or not _body.can_act():
+	if is_channeling() or seconds <= 0.0 or not _body.can_act(true):
 		return false
 	_done = done
 	_from = _body.position

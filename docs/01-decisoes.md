@@ -1111,7 +1111,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     controle: a primeira opção já em foco); escolher pede a viagem ao host. **Canalização de
     1 s** (componente genérico `Channel`, barrinha acima da cabeça); dano, morte ou andar
     interrompem. Completa, o personagem chega na frente da pedra escolhida (outra região ou a
-    mesma). Montado, continua montado.
+    mesma). Montado também viaja e chega montado (achado do João: antes a canalização exigia
+    estar a pé); subindo na montaria, não.
 - **Rede e segurança (ADR-013)**: protocolo **21**. Tipo de entidade "pedra de portal" (id
   conferido entre as pedras da própria região, posição conferida). Pedidos "ativar" (sem
   argumentos: o host escolhe a pedra ao alcance pela posição dele) e "viajar" (id do destino:

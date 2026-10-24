@@ -162,11 +162,11 @@ func set_move_intent(direction: Vector2) -> void:
 
 
 ## Livre para agir: vivo, sem atordoamento, a pé e sem outro ataque, salto ou lançamento em
-## andamento.
-func can_act() -> bool:
+## andamento. `mounted_ok`: já montado também serve (canalizar numa pedra de portal); subindo, não.
+func can_act(mounted_ok: bool = false) -> bool:
 	return is_alive() and _stun_left == 0.0 and not (attacker and attacker.is_attacking()) \
 		and not (slammer and slammer.is_slamming()) and not (caster and caster.is_casting()) \
-		and not _riding()
+		and not (_riding() and not (mounted_ok and rider.is_mounted()))
 
 
 ## Subindo na montaria ou montado: não ataca, não coleta nem lança habilidades (ADR-035).
