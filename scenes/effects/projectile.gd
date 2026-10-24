@@ -44,6 +44,7 @@ var _data: ProjectileData
 var _damage := 0
 var _knockback := 0.0
 var _effects: Array[StatusEffectData] = []
+var _mastery: MasteryData
 var _caster: WeakRef
 var _direction := Vector2.RIGHT
 ## Direção do voo NA TELA (unitária): o projétil anda igual em todas as direções na tela.
@@ -54,23 +55,24 @@ var _image_origin := Vector2.ZERO
 
 
 ## Solta um projétil de `caster` na região dele, na direção `direction` (chão). Dano, recuo e
-## efeitos são de quem soltou (habilidade ou arma).
+## efeitos são de quem soltou (habilidade ou arma), assim como a maestria que o acerto treina.
 static func launch(data: ProjectileData, caster: Character, direction: Vector2, damage: int,
-		knockback: float, effects: Array[StatusEffectData]) -> void:
+		knockback: float, effects: Array[StatusEffectData], mastery: MasteryData = null) -> void:
 	var region := Region.of(caster)
 	if region == null:
 		return
 	var projectile := Projectile.new()
-	projectile.setup(data, caster, direction, damage, knockback, effects)
+	projectile.setup(data, caster, direction, damage, knockback, effects, mastery)
 	region.entities.add_child(projectile)
 
 
 func setup(data: ProjectileData, caster: Character, direction: Vector2, damage: int,
-		knockback: float, effects: Array[StatusEffectData]) -> void:
+		knockback: float, effects: Array[StatusEffectData], mastery: MasteryData = null) -> void:
 	_data = data
 	_damage = damage
 	_knockback = knockback
 	_effects = effects
+	_mastery = mastery
 	_caster = weakref(caster)
 	_direction = direction.normalized()
 	_screen_direction = Iso.ground_to_screen(_direction).normalized()
@@ -121,12 +123,12 @@ func _hit(caster: Character, target: Character) -> void:
 		if _data.splash_radius > 0.0:
 			# Explosão: o tocado está no raio (ele foi achado pelo raio de acerto, menor).
 			for hurt in AreaStrike.hit(caster, position, maxf(_data.splash_radius, _data.hit_radius),
-					_damage, _knockback):
+					_damage, _knockback, _mastery):
 				caster.apply_effects(hurt, _effects)
 		else:
 			var info := DamageInfo.create(_damage, _direction, _knockback, caster.entity_id,
 				caster.player_id)
-			if target.health.apply_damage(info):
+			if caster.strike(target, info, _mastery):
 				caster.apply_effects(target, _effects)
 	if _data.splash_radius > 0.0:
 		_show_splash()

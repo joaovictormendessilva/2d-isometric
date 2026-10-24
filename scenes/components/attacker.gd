@@ -84,8 +84,9 @@ func _strike() -> void:
 	_time_left = attack.recovery
 	if attack.projectile:
 		# À distância: em todo computador a flecha voa (apresentação); só a do host fere.
-		Projectile.launch(attack.projectile, _body, _direction, attack.damage, attack.knockback,
-			_body.on_hit_effects)
+		Projectile.launch(attack.projectile, _body, _direction,
+			_body.mastery_damage(attack.damage, attack.mastery), attack.knockback,
+			_body.on_hit_effects, attack.mastery)
 		attack_struck.emit(_direction, attack)
 		return
 	_body.add_ground_impulse(_direction * attack.lunge)
@@ -104,8 +105,9 @@ func _hit_targets() -> void:
 		if is_instance_valid(target) and not _hit.has(target) and ActorQuery.is_hit(_body, target, _body.global_position,
 				_body.footprint_radius(), attack.reach) and _in_arc(target):
 			_hit[target] = true
-			if target.health.apply_damage(DamageInfo.create(attack.damage, _direction,
-					attack.knockback, _body.entity_id, _body.player_id)):
+			var info := DamageInfo.create(_body.mastery_damage(attack.damage, attack.mastery),
+				_direction, attack.knockback, _body.entity_id, _body.player_id)
+			if _body.strike(target, info, attack.mastery):
 				_body.apply_hit_effects(target)
 
 

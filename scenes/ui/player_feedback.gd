@@ -55,7 +55,7 @@ func setup(inventory: Inventory, wallet: Wallet, book: RecipeBook, recipes: Reci
 		if is_new:
 			_show(Texts.format(&"FEEDBACK_RECIPE_LEARNED",
 				[recipes.get_recipe(recipe_id).result.get_display_name()]), LEVEL_COLOR))
-	for skill: GatheringSkillData in skills.entries():
+	for skill: SkillData in skills.entries():
 		_levels[skill.id] = progress.level(skill)
 	progress.changed.connect(_on_xp_changed.bind(progress).unbind(1))
 
@@ -122,12 +122,18 @@ func _on_item_added(item_id: StringName, amount: int) -> void:
 
 
 func _on_xp_changed(skill_id: StringName, progress: SkillProgress) -> void:
-	var skill := _skills.get_entry(skill_id) as GatheringSkillData
+	var skill := _skills.get_entry(skill_id) as SkillData
 	if skill == null:
 		return
 	var level := progress.level(skill)
 	if level > _levels.get(skill_id, 1):
-		_show(Texts.format(&"FEEDBACK_LEVEL_UP", [skill.get_display_name(), level]), LEVEL_COLOR)
+		var mastery := skill as MasteryData
+		if mastery:  # maestria: diz o ganho, senão o nível novo não se percebe
+			_show(Texts.format(&"FEEDBACK_MASTERY_LEVEL_UP", [skill.get_display_name(), level,
+				mastery.damage_bonus_percent(level)]), LEVEL_COLOR)
+		else:
+			_show(Texts.format(&"FEEDBACK_LEVEL_UP", [skill.get_display_name(), level]),
+				LEVEL_COLOR)
 	_levels[skill_id] = level
 
 

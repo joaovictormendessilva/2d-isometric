@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="AbilityData" load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://core/abilities/ability_data.gd" id="1_ability"]
+[ext_resource type="Resource" path="res://data/skills/arcane_mastery.tres" id="9_mastery"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_arcane_blast.png" id="2_icon"]
 
 [resource]
@@ -12,6 +13,7 @@ cooldown = 6.0
 cast_time = 0.25
 cast_move_multiplier = 0.5
 damage = 20
+mastery = ExtResource("9_mastery")
 knockback = 120.0
 max_range = 140.0
 area_radius = 26.0

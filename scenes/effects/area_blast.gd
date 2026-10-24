@@ -49,8 +49,9 @@ func _physics_process(delta: float) -> void:
 func _detonate(caster: Character) -> void:
 	set_physics_process(false)
 	if multiplayer.is_server():
-		for target in AreaStrike.hit(caster, position, _ability.area_radius, _ability.damage,
-				_ability.knockback):
+		for target in AreaStrike.hit(caster, position, _ability.area_radius,
+				caster.mastery_damage(_ability.damage, _ability.mastery), _ability.knockback,
+				_ability.mastery):
 			caster.apply_effects(target, _ability.hit_effects)
 	# Faíscas na camada das entidades (o aviso fica embaixo de todos; elas, não).
 	var region := Region.of(self)

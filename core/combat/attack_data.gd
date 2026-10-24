@@ -5,6 +5,9 @@ extends Resource
 ## recuperação. Valores em `data/`.
 
 @export var damage: int = 10
+## Maestria que este golpe treina e que aumenta o dano dele (armas do jogador; null = nenhuma,
+## como as criaturas e o soco).
+@export var mastery: MasteryData
 ## À distância: no golpe sai este projétil na direção do ataque, em vez de acertar quem está no
 ## arco (`reach` e `arc_degrees` não valem). Null = corpo a corpo.
 @export var projectile: ProjectileData

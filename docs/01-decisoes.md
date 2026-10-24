@@ -1095,7 +1095,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 
 ## ADR-037 — Pedras de portal (viagem rápida)
 
-- **Status**: Hipótese (J5a, aguardando validação do João)
+- **Status**: Aceita (J5a validada pelo João em 2026-10-24)
 - **Contexto**: J5, portais/atalhos. Formato escolhido pelo João (2026-10-24): **pedras de
   portal** (as outras opções eram atalhos de mapa estilo Dark Souls, ou os dois).
 - **Decisões**:
@@ -1125,3 +1125,38 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Conteúdo de teste**: três pedras: "Campina: acampamento" (perto da entrada), "Floresta:
   entrada" e "Floresta: caverna" (perto da boca da caverna).
 - **Limitações**: viajar não custa nada; dungeons não têm pedras.
+
+## ADR-038 — Maestria por arma (progressão de combate)
+
+- **Status**: Hipótese (J6a, aguardando validação do João)
+- **Contexto**: frente "progressão" da Etapa J. O João escolheu (2026-10-24) a **maestria por
+  arma, estilo Albion**, entre: nível geral com atributos (Hero Siege) e os dois juntos.
+- **Decisões**:
+  - **Base comum `SkillData`** (`core/skills/`): curva de experiência (`base_xp * N ^
+    xp_growth`), nível máximo e nome (`SKILL_<ID>`). A coleta (`GatheringSkillData`, ADR-014)
+    e a maestria (`MasteryData`) herdam dela; a experiência continua num só `SkillProgress` por
+    jogador (`core/skills/`, antes em `core/gathering/`). Save, rede e avisos de nível servem
+    os dois tipos sem código novo.
+  - **Maestrias em dados** (`data/skills/*_mastery.tres`): Espada, Arco, Cajado e Arcano. Cada
+    golpe (`AttackData.mastery`) e cada habilidade (`AbilityData.mastery`) diz qual treina; o
+    soco e as criaturas não têm. Sem classe e sem nível geral: trocar de arma é treinar outra
+    trilha.
+  - **Experiência = dano causado de fato** (`xp_per_damage`; o que passa da vida que restava não
+    conta, então matar com um golpe forte não rende mais que a vida do alvo). Vale no coop: cada
+    um ganha pelo próprio dano.
+  - **Bônus**: +3% de dano por nível acima do 1 (`damage_bonus_per_level`), até o nível 20
+    (+57%). O dano é calculado com o nível de quem golpeia na hora do golpe (o projétil leva o
+    dele) e arredondado; nunca fica abaixo do dano da arma. Números provisórios.
+  - **Um ponto só para o golpe do jogador**: `Character.strike` (aplica o dano e dá a
+    experiência) e `Character.mastery_damage`, usados pelo corpo a corpo, pelos projéteis e
+    pelas áreas (`AreaStrike`).
+  - **Interface**: linha no HUD, acima da coleta, com as maestrias **em uso** (arma vestida e
+    habilidades nas teclas, sem repetir): "Espada 3 (40%)  Arcano 1 (5%)". Ao subir: "Espada
+    nível 3! (+6% de dano)".
+- **Rede e segurança (ADR-013)**: protocolo **22** (novos ids no catálogo de experiência). Nenhuma
+  mensagem nova: só o host calcula dano e experiência; o dono recebe o valor oficial pela
+  mensagem de experiência que já existia (id conferido no catálogo, valor não negativo). O cliente
+  não tem como pedir experiência.
+- **Limitações e próximos passos possíveis**: maestria não libera nada ainda (ex.: armas melhores
+  exigindo nível, estilo Albion); não há tela com todas as maestrias (só as em uso no HUD e os
+  avisos); dano de efeitos ao longo do tempo (veneno, queimadura) não dá experiência.

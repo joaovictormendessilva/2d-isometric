@@ -18,6 +18,10 @@ ITEM_SIMPLE_BACKPACK,Mochila simples,Simple backpack
 ITEM_MAGNET_RING,Anel magnético,Magnet ring
 SKILL_WOODCUTTING,Lenhador,Woodcutting
 SKILL_MINING,Minerador,Mining
+SKILL_SWORD_MASTERY,Espada,Sword
+SKILL_BOW_MASTERY,Arco,Bow
+SKILL_STAFF_MASTERY,Cajado,Staff
+SKILL_ARCANE_MASTERY,Arcano,Arcane
 NODE_LUMBER_TREE,Árvore de lenha,Lumber tree
 NODE_COPPER_VEIN,Veio de cobre,Copper vein
 NODE_OLD_OAK,Carvalho antigo,Old oak
@@ -29,6 +33,7 @@ HUD_HEALTH,%d / %d,%d / %d
 HUD_SKILL_LEVEL,%s %d (%d%%),%s %d (%d%%)
 FEEDBACK_ITEM_GAINED,+%d %s,+%d %s
 FEEDBACK_LEVEL_UP,%s nível %d!,%s level %d!
+FEEDBACK_MASTERY_LEVEL_UP,%s nível %d! (+%d%% de dano),%s level %d! (+%d%% damage)
 GATHER_NEEDS_TOOL,Precisa de ferramenta nível %d,Needs a tier %d tool
 GATHER_NEEDS_LEVEL,Precisa de %s nível %d,Needs %s level %d
 PROMPT_GATHER,[%s] %s,[%s] %s

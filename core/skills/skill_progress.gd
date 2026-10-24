@@ -1,7 +1,7 @@
 class_name SkillProgress
 extends RefCounted
-## Experiência de coleta de UM jogador, por tipo. Só o host altera (`add_xp`); na rede, o dono
-## recebe o valor oficial (`replicate_xp`). Mesmo padrão do Inventory.
+## Experiência de UM jogador em cada `SkillData` (coleta e maestrias). Só o host altera
+## (`add_xp`); na rede, o dono recebe o valor oficial (`replicate_xp`). Mesmo padrão do Inventory.
 
 signal changed(skill_id: StringName, xp: int)
 
@@ -19,7 +19,7 @@ func all_xp() -> Array[StringName]:
 	return ids
 
 
-func level(skill: GatheringSkillData) -> int:
+func level(skill: SkillData) -> int:
 	return skill.level_for_xp(xp(skill.id))
 
 

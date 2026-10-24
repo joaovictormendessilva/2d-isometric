@@ -41,6 +41,8 @@ var on_hit_effects: Array[StatusEffectData] = []
 var auras: Array[AuraData] = []
 ## Montaria vestida (jogadores; ver `apply_equipment` e Rider), ou null.
 var mount: MountData
+## Experiência do jogador (coleta e maestrias; ver `strike`). Null em criaturas.
+var skills: SkillProgress
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -270,6 +272,24 @@ func play_remote_attack(direction: Vector2, tolerance: float) -> void:
 
 
 ## Host: um ataque deste ator acertou `target` (dano já aplicado): aplica os efeitos do golpe.
+## Dano de um golpe de `base` com o bônus do nível deste ator na maestria do golpe (ADR-038).
+func mastery_damage(base: int, mastery: MasteryData) -> int:
+	if mastery == null or skills == null:
+		return base
+	return mastery.scaled_damage(base, skills.level(mastery))
+
+
+## Host: aplica um golpe deste ator em `target`. Jogadores ganham experiência na maestria do
+## golpe pelo dano causado de fato (o que passa da vida que restava não conta). Retorna se feriu.
+func strike(target: Character, info: DamageInfo, mastery: MasteryData = null) -> bool:
+	var before := target.health.current
+	if not target.health.apply_damage(info):
+		return false
+	if mastery and skills:
+		skills.add_xp(mastery.id, mastery.xp_for_damage(before - target.health.current))
+	return true
+
+
 func apply_hit_effects(target: Character) -> void:
 	apply_effects(target, on_hit_effects)
 

@@ -5,14 +5,15 @@ extends RefCounted
 ## (AreaBlast). Retorna quem levou dano de fato, para quem chamou aplicar os efeitos do golpe.
 
 
-## `center` na tela; `radius` no plano do chão (a pegada do alvo conta).
+## `center` na tela; `radius` no plano do chão (a pegada do alvo conta). `mastery`: a que o golpe
+## treina (ver `Character.strike`).
 static func hit(attacker: Character, center: Vector2, radius: float, damage: int,
-		knockback: float) -> Array[Character]:
+		knockback: float, mastery: MasteryData = null) -> Array[Character]:
 	var hurt: Array[Character] = []
 	for target in ActorQuery.hostiles_near(attacker, center, 0.0, radius):
 		var away := Iso.screen_to_ground(target.global_position - center)
 		var direction := away.normalized() if not away.is_zero_approx() else attacker.facing
-		if target.health.apply_damage(DamageInfo.create(damage, direction, knockback,
-				attacker.entity_id, attacker.player_id)):
+		if attacker.strike(target, DamageInfo.create(damage, direction, knockback,
+				attacker.entity_id, attacker.player_id), mastery):
 			hurt.append(target)
 	return hurt

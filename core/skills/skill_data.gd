@@ -1,0 +1,40 @@
+class_name SkillData
+extends Resource
+## Algo que sobe de nível pelo uso, com experiência própria por jogador (`SkillProgress`): tipos
+## de coleta (`GatheringSkillData`) e maestrias de combate (`MasteryData`). Aqui só a curva de
+## experiência e o nome; o que o nível faz é de cada tipo. Valores em `data/skills/`.
+
+@export var id: StringName
+@export var max_level: int = 50
+@export_group("Experiência")
+## Experiência para ir do nível N ao N+1: `base_xp * N ^ xp_growth`.
+@export var base_xp: float = 20.0
+@export var xp_growth: float = 1.5
+
+
+func xp_to_next(level: int) -> int:
+	return roundi(base_xp * pow(level, xp_growth))
+
+
+## Nível alcançado com `xp` de experiência total.
+func level_for_xp(xp: int) -> int:
+	var level := 1
+	var needed := xp_to_next(level)
+	while level < max_level and xp >= needed:
+		xp -= needed
+		level += 1
+		needed = xp_to_next(level)
+	return level
+
+
+## Experiência total necessária para chegar ao início de `level`.
+func xp_for_level(level: int) -> int:
+	var total := 0
+	for l in range(1, mini(level, max_level)):
+		total += xp_to_next(l)
+	return total
+
+
+## Nome no idioma atual (chave `SKILL_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("SKILL", id)

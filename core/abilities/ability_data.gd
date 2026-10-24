@@ -17,6 +17,8 @@ enum Shape { PROJECTILE, AREA }
 
 @export_group("Golpe")
 @export var damage: int = 10
+## Maestria que esta habilidade treina e que aumenta o dano dela (null = nenhuma).
+@export var mastery: MasteryData
 @export var knockback: float = 60.0
 ## Área: até onde o ponto de queda alcança (o projétil tem o próprio alcance).
 @export var max_range: float = 160.0

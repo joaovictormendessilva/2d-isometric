@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) validada; J5a (pedras de portal) validada |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas; J3a (montaria) validada; J4a (chefe errante) validada; J5a (pedras de portal) validada; J6a (maestria por arma) em validação |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -449,6 +449,12 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   Também: canalizando, atacar, lançar, coletar, montar e reabrir o menu ficam bloqueados (andar
   continua possível e cancela a viagem)
   e aparece uma aura de teleporte roxa em volta do personagem. 259 testes.
+- **J6a – Maestria por arma** 🟡 (aguardando validação do João; branch `stage-j/weapon-mastery`,
+  ADR-038). Progressão de combate estilo Albion, escolha do João: Espada, Arco, Cajado e Arcano
+  (as magias) têm nível próprio, que sobe ferindo inimigos com elas (experiência = dano causado).
+  Cada nível dá +3% de dano àquela arma ou magia (até o nível 20). No HUD, acima da coleta,
+  aparece a maestria do que está em uso ("Espada 3 (40%)"); ao subir, "Espada nível 3! (+6% de
+  dano)". Fica no save; no coop o host decide. 269 testes (10 novos); protocolo 22.
 
 ## Funcionalidades
 
@@ -461,6 +467,8 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   lutar; dano derruba.
 - Chefe errante (J4a): de tempos em tempos um chefe surge com aviso e seta; baú para quem o feriu.
 - Pedras de portal (J5a): E ativa; numa pedra acesa, E escolhe para qual outra viajar (1 s).
+- Maestria por arma (J6a): ferir com espada, arco, cajado ou magias sobe o nível delas (+dano);
+  o HUD mostra a do que está em uso.
 - Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
   (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.

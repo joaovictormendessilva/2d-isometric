@@ -1,6 +1,7 @@
-[gd_resource type="Resource" script_class="AbilityData" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="AbilityData" load_steps=6 format=3]
 
 [ext_resource type="Script" path="res://core/abilities/ability_data.gd" id="1_ability"]
+[ext_resource type="Resource" path="res://data/skills/arcane_mastery.tres" id="9_mastery"]
 [ext_resource type="Texture2D" path="res://assets/sprites/placeholder/icon_arcane_bolt.png" id="2_icon"]
 [ext_resource type="Script" path="res://core/combat/projectile_data.gd" id="3_projectile"]
 
@@ -21,5 +22,6 @@ cooldown = 2.5
 cast_time = 0.15
 cast_move_multiplier = 0.5
 damage = 14
+mastery = ExtResource("9_mastery")
 knockback = 60.0
 projectile = SubResource("Projectile")

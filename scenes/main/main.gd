@@ -349,7 +349,8 @@ func _on_local_player_spawned(character: Character) -> void:
 	var progress := session.get_skills(local_player_id())
 	var wallet := session.get_wallet(local_player_id())
 	_hud.setup(progress, skills, inventory, items, session.get_cooldowns(local_player_id()),
-		session.get_effects(local_player_id()))
+		session.get_effects(local_player_id()), session.get_equipment(local_player_id()),
+		session.get_ability_book(local_player_id()))
 	_player_feedback.setup(inventory, wallet, session.get_recipe_book(local_player_id()), recipes,
 		progress, items, skills, _damage_numbers)
 	player_state.use_refused.connect(_player_feedback.show_use_refusal)

@@ -127,6 +127,10 @@ layout_mode = 2
 modulate = Color(1, 1, 1, 0.7)
 layout_mode = 2
 
+[node name="Masteries" type="Label" parent="UI/Hud"]
+visible = false
+layout_mode = 2
+
 [node name="Skills" type="Label" parent="UI/Hud"]
 layout_mode = 2
 

@@ -352,6 +352,7 @@ func _instantiate_player(data: Dictionary) -> Character:
 	character.position = data["position"]
 	_register(character, data["entity_id"])
 	session.add_player(character.player_id, character.entity_id, character.stats.inventory_slots)
+	character.skills = session.get_skills(character.player_id)
 	var gatherer: Gatherer = character.get_node("Gatherer")
 	gatherer.session = session
 	gatherer.items = items
