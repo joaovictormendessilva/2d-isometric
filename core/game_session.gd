@@ -18,6 +18,7 @@ var _effects: Dictionary[int, ActiveEffects] = {}  # player_id -> buffs e debuff
 var _ability_books: Dictionary[int, AbilityBook] = {}  # player_id -> habilidades
 var _appearances: Dictionary[int, AppearanceCollection] = {}  # player_id -> aparências colecionadas
 var _rides: Dictionary[int, RideState] = {}  # player_id -> a pé, subindo ou montado
+var _waystones: Dictionary[int, WaystoneLog] = {}  # player_id -> pedras de portal ativadas
 var _items: ItemDatabase
 var _equipment_layout: EquipmentLayout
 
@@ -63,6 +64,7 @@ func add_player(player_id: int, entity_id: int,
 		_appearances[player_id] = AppearanceCollection.new()
 		_appearances[player_id].watch(_inventories[player_id], _equipment[player_id])
 		_rides[player_id] = RideState.new()
+		_waystones[player_id] = WaystoneLog.new()
 
 
 func get_inventory(player_id: int) -> Inventory:
@@ -105,6 +107,10 @@ func get_ride(player_id: int) -> RideState:
 	return _rides.get(player_id)
 
 
+func get_waystones(player_id: int) -> WaystoneLog:
+	return _waystones.get(player_id)
+
+
 func get_player_entity(player_id: int) -> Node:
 	return get_entity(_player_entities.get(player_id, 0))
 
@@ -123,6 +129,7 @@ func remove_player(player_id: int) -> void:
 	_ability_books.erase(player_id)
 	_appearances.erase(player_id)
 	_rides.erase(player_id)
+	_waystones.erase(player_id)
 
 
 func get_player_ids() -> Array[int]:

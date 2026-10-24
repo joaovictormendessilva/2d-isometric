@@ -28,6 +28,8 @@ var _items: ItemDatabase
 var _skills: DataCatalog
 var _recipes: RecipeDatabase
 var _structures: DataCatalog
+## Pedras de portal do mundo (confere as ativadas lidas do save; ver Main).
+var waystones: WaystoneAtlas
 
 
 ## Host: abre o mundo. Sem `path`, o save fica só na memória (regiões deixadas e quem sai e
@@ -123,6 +125,8 @@ func restore_player(character: Character) -> bool:
 		_session.get_effects(player_id).replicate(record.get("effects"), EffectDatabase.shared())
 		_session.get_ability_book(player_id).replicate(record.get("abilities"),
 			AbilityDatabase.shared())
+		if waystones:
+			_session.get_waystones(player_id).replicate(record.get("waystones"), waystones.has)
 		EquipmentRules.restore_looks(record.get("looks"), _session.get_equipment(player_id),
 			appearances)
 	return true
@@ -163,6 +167,7 @@ func _remember(player_id: int) -> void:
 	record["abilities"] = _session.get_ability_book(player_id).snapshot()
 	record["appearances"] = Array(_session.get_appearances(player_id).snapshot())
 	record["looks"] = Array(_session.get_equipment(player_id).looks())
+	record["waystones"] = Array(_session.get_waystones(player_id).snapshot())
 	var region := Region.of(character)
 	if region and region.is_temporary():  # quem sai dentro da dungeon volta para a entrada
 		record["region"] = String(region.data.exit_region)

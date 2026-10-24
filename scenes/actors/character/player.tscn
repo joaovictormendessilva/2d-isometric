@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/actors/actor.tscn" id="1_actor"]
 [ext_resource type="Resource" path="res://data/actors/player.tres" id="2_stats"]
@@ -9,6 +9,7 @@
 [ext_resource type="Script" path="res://scenes/ui/gather_bar.gd" id="8_bar"]
 [ext_resource type="Script" path="res://scenes/components/ability_caster.gd" id="9_caster"]
 [ext_resource type="Script" path="res://scenes/components/rider.gd" id="10_rider"]
+[ext_resource type="Script" path="res://scenes/components/channel.gd" id="11_channel"]
 
 [node name="Player" instance=ExtResource("1_actor")]
 stats = ExtResource("2_stats")
@@ -41,8 +42,12 @@ script = ExtResource("9_caster")
 [node name="Rider" type="Node" parent="."]
 script = ExtResource("10_rider")
 
-[node name="GatherBar" type="Node2D" parent="." node_paths=PackedStringArray("gatherer", "rider")]
+[node name="Channel" type="Node" parent="."]
+script = ExtResource("11_channel")
+
+[node name="GatherBar" type="Node2D" parent="." node_paths=PackedStringArray("gatherer", "rider", "channel")]
 z_index = 20
 script = ExtResource("8_bar")
 gatherer = NodePath("../Gatherer")
 rider = NodePath("../Rider")
+channel = NodePath("../Channel")

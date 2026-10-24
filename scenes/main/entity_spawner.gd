@@ -9,19 +9,21 @@ extends Node
 ## sem propriedades) cuja visibilidade, decidida no host, controla a quem ela é enviada.
 ## Em todos os computadores: registro na sessão e apresentação (números de dano).
 ## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes, IA das criaturas e o fim
-## das dungeons (baú e saída rápida, ADR-032) e os chefes de evento (ADR-036).
+## das dungeons (baú e saída rápida, ADR-032), os chefes de evento (ADR-036) e as pedras de
+## portal de cada região (ADR-037).
 
 signal local_player_spawned(character: Character)
 ## Host: o jogador local chegou ao mundo com o save (ou o equipamento inicial) já aplicado.
 signal local_player_prepared
 
-enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION, CHEST, EXIT_PORTAL, EVENT_BOSS }
+enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION, CHEST, EXIT_PORTAL, EVENT_BOSS, WAYSTONE }
 
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
 const STRUCTURE_SCENE := preload("res://scenes/building/structure.tscn")
 const CHEST_SCENE := preload("res://scenes/dungeon/reward_chest.tscn")
 const EXIT_PORTAL_SCENE := preload("res://scenes/dungeon/exit_portal.tscn")
+const WAYSTONE_SCENE := preload("res://scenes/waystones/waystone.tscn")
 const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
 const BOSS_EVENTS_DIR := "res://data/boss_events/"
 const PLAYER_RESPAWN_TIME := 2.5
@@ -44,6 +46,9 @@ const CHEST_DISTANCE_MAX := 12.0
 const EXIT_PORTAL_DISTANCE_MIN := 36.0
 const EXIT_PORTAL_DISTANCE_MAX := 56.0
 const REWARD_CLEARANCE := 10.0
+## Pedras de portal (ADR-037): até esta distância (chão) do ponto dos dados, com este raio livre.
+const WAYSTONE_DISTANCE_MAX := 24.0
+const WAYSTONE_CLEARANCE := 10.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
 const IMMUNE_COLOR := Color("a0a0b4")
@@ -163,6 +168,23 @@ func despawn_player(player_id: int) -> void:
 func spawn_region_monsters(region: Region) -> void:
 	for index in region.get_monster_spawn_points().size():
 		spawn_monster(region, index)
+
+
+## Pedras de portal da região (ADR-037), cada uma num ponto livre perto do ponto dos dados dela
+## (uma passagem ou a entrada, mais o deslocamento). O sorteio do ponto usa o id da pedra como
+## semente: ela fica sempre no mesmo lugar, a cada vez que a região carrega.
+func spawn_region_waystones(region: Region) -> void:
+	if region.data == null:
+		return
+	var space := region.get_world_2d().direct_space_state
+	for stone in region.data.waystones:
+		var passage := region.get_passage(stone.anchor) if not stone.anchor.is_empty() else null
+		var anchor := passage.arrival_position() if passage else region.get_spawn_position()
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash(stone.id)
+		_replicator(region).spawn({"kind": Kind.WAYSTONE, "waystone": String(stone.id),
+			"position": GroundQuery.find_drop_spot(space, anchor + stone.offset, rng, 0.0,
+				WAYSTONE_DISTANCE_MAX, WAYSTONE_CLEARANCE)})
 
 
 func spawn_monster(region: Region, point_index: int) -> Monster:
@@ -296,6 +318,8 @@ func _instantiate(data: Variant, region: Region) -> Node:
 			node = _instantiate_exit_portal(data, region)
 		Kind.EVENT_BOSS:
 			node = _instantiate_event_boss(data, region)
+		Kind.WAYSTONE:
+			node = _instantiate_waystone(data, region)
 		_:
 			push_warning("[spawner] dados de criação inválidos recebidos")
 			var inert := Node.new()  # o Replicator exige um nó; este não faz nada
@@ -507,6 +531,17 @@ func _instantiate_chest(data: Dictionary, region: Region) -> RewardChest:
 	return chest
 
 
+## Pedra de portal: os dados vêm do catálogo da região, nunca da rede. Acende para o jogador LOCAL
+## (a lista dele pode chegar depois da pedra; ver Waystone).
+func _instantiate_waystone(data: Dictionary, region: Region) -> Waystone:
+	var waystone: Waystone = WAYSTONE_SCENE.instantiate()
+	waystone.data = _waystone_of(data, region)
+	waystone.name = "W_%s" % waystone.data.id
+	waystone.position = data["position"]
+	waystone.local_log = session.get_waystones.bind(local_player_id)
+	return waystone
+
+
 ## Saída rápida da dungeon: leva à entrada dela (destino do catálogo da região). No host, entrar
 ## nela é uma viagem como a de qualquer passagem da região.
 func _instantiate_exit_portal(data: Dictionary, region: Region) -> ExitPortal:
@@ -582,7 +617,21 @@ func _valid_kind(data: Variant, region: Region) -> int:
 					and multiplier is float and is_finite(multiplier) and multiplier > 0.0 \
 					and multiplier <= MAX_HEALTH_MULTIPLIER:
 				return Kind.EVENT_BOSS
+		Kind.WAYSTONE:
+			if _is_position(d, "position") and _waystone_of(d, region) != null:
+				return Kind.WAYSTONE
 	return -1
+
+
+## Pedra desta região nomeada nos dados de criação, ou null.
+static func _waystone_of(data: Dictionary, region: Region) -> WaystoneData:
+	var waystone_id: Variant = data.get("waystone")
+	if not waystone_id is String or region.data == null:
+		return null
+	for stone in region.data.waystones:
+		if stone.id == StringName(waystone_id):
+			return stone
+	return null
 
 
 ## Evento do catálogo nomeado nos dados de criação, ou null.

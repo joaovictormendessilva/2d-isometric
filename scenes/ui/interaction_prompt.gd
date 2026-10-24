@@ -43,7 +43,8 @@ func _physics_process(delta: float) -> void:
 	visible = false
 	if not is_instance_valid(_character):
 		return
-	# Mesma prioridade da tecla de interagir (LocalPlayerInput): NPC, baú e por fim a coleta.
+	# Mesma prioridade da tecla de interagir (LocalPlayerInput): NPC, baú, pedra de portal e por fim
+	# a coleta.
 	var npc := player_state.npc_near(_character.player_id) if player_state else null
 	if npc:
 		_show_over(npc, Texts.format(&"PROMPT_TALK",
@@ -53,6 +54,11 @@ func _physics_process(delta: float) -> void:
 	if chest:
 		_show_over(chest, Texts.format(&"PROMPT_OPEN_CHEST", [Texts.action_key(&"interact")]),
 			READY_COLOR)
+		return
+	var stone := player_state.waystone_near(_character.player_id) if player_state else null
+	if stone:
+		var key := &"PROMPT_USE_WAYSTONE" if stone.is_lit() else &"PROMPT_ACTIVATE_WAYSTONE"
+		_show_over(stone, Texts.format(key, [Texts.action_key(&"interact")]), READY_COLOR)
 		return
 	var gatherer := _character.gatherer
 	var node := gatherer.find_node() if gatherer and not gatherer.is_gathering() else null

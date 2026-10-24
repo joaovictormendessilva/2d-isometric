@@ -165,8 +165,10 @@ func test_wandering_client_is_never_corrected() -> void:
 	client_player.net.corrected.connect(func() -> void: corrections[0] += 1)
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 2026
+	# Árvores e pedras do cenário (a pedra de portal fica num ponto dos dados, não do cenário).
 	var obstacles: Array[Node] = (games[0].region as Region).entities.get_children().filter(
-		func(n: Node) -> bool: return n is StaticBody2D and n.has_node("Footprint"))
+		func(n: Node) -> bool: return n is StaticBody2D and n.has_node("Footprint") \
+			and not n is Waystone)
 	obstacles.sort_custom(func(a: Node2D, b: Node2D) -> bool:
 		return a.position.distance_to(client_player.position) < b.position.distance_to(client_player.position))
 	obstacles.resize(mini(obstacles.size(), 8))

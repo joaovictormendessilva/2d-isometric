@@ -156,3 +156,10 @@ EVENT_BOSS_APPEARED,%s apareceu!,%s has appeared!
 EVENT_BOSS_LEFT,%s foi embora.,%s has left.
 EVENT_BOSS_DEFEATED,%s foi derrotado!,%s was defeated!
 EVENT_WHERE,Região: %s,Region: %s
+WAYSTONE_MEADOW_CAMP,Campina: acampamento,Meadow: camp
+WAYSTONE_FOREST_EDGE,Floresta: entrada,Forest: edge
+WAYSTONE_FOREST_CAVE,Floresta: caverna,Forest: cave
+PROMPT_ACTIVATE_WAYSTONE,[%s] Ativar a pedra de portal,[%s] Activate the waystone
+PROMPT_USE_WAYSTONE,[%s] Viajar,[%s] Travel
+FEEDBACK_WAYSTONE_ACTIVATED,Pedra de portal ativada: %s,Waystone activated: %s
+WAYSTONE_NO_DESTINATION,Ative outras pedras de portal para viajar,Activate other waystones to travel

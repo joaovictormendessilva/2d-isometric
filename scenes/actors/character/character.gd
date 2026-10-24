@@ -4,7 +4,7 @@ extends CharacterBody2D
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
 ## Componentes opcionais (filhos): Footprint, Health, Attacker, SlamAttacker, Gatherer,
-## StatusEffects, AbilityCaster, Rider, NetSync ("Net").
+## StatusEffects, AbilityCaster, Rider, Channel, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
@@ -50,6 +50,7 @@ var gatherer: Gatherer
 var status_effects: StatusEffects
 var caster: AbilityCaster
 var rider: Rider
+var channel: Channel
 var net: NetSync
 
 var _footprint: Footprint
@@ -69,6 +70,7 @@ func _enter_tree() -> void:
 	status_effects = get_node_or_null("StatusEffects")
 	caster = get_node_or_null("AbilityCaster")
 	rider = get_node_or_null("Rider")
+	channel = get_node_or_null("Channel")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 

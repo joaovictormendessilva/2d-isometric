@@ -284,6 +284,37 @@ const RIDING_SLIME_ICON := [
 	".oNNNNo.",
 	"..oooo..",
 ]
+## Pedra de portal (J5): obelisco de pedra com runa no meio ("1" e "2"): entalhada (apagada) ou
+## acesa em arcano para quem a ativou. Luz de cima à esquerda; pés no meio da base.
+const WAYSTONE := [
+	"......oo......",
+	".....ollo.....",
+	"....ollsSo....",
+	"....olssSo....",
+	"...ollssSSo...",
+	"...olssssSo...",
+	"...ols1ssSo...",
+	"...ol121sSo...",
+	"...ols1ssSo...",
+	"...olss1sSo...",
+	"...ols121So...",
+	"...olss1sSo...",
+	"...ols1ssSo...",
+	"...ol121sSo...",
+	"...ols1ssSo...",
+	"...olssssSo...",
+	"...olssssSo...",
+	"...olssssSo...",
+	"...olssssSo...",
+	"..oollsssSSo..",
+	".ollllssssSSo.",
+	".olssssssSSSo.",
+	"oollssssssSSSo",
+	"olsssssssSSSSo",
+	".oooooooooooo.",
+]
+const WAYSTONE_DORMANT := {"1": "S", "2": "S"}
+const WAYSTONE_LIT := {"1": "A", "2": "a"}
 const SHIELD := [
 	".oooooo.",
 	"owwWwwWo",
@@ -533,6 +564,8 @@ func _initialize() -> void:
 	_save(_slime(POISON_SLIME, POISON_SLIME_OUTLINE), OUT_DIR + "poison_slime.png")
 	_save(_king_slime(), OUT_DIR + "king_slime.png")
 	_save(_riding_slime(), OUT_DIR + "riding_slime.png")
+	_save(_icon(WAYSTONE, WAYSTONE_DORMANT), OUT_DIR + "waystone.png")
+	_save(_icon(WAYSTONE, WAYSTONE_LIT), OUT_DIR + "waystone_lit.png")
 	_save(_shadow(Vector2i(26, 8)), OUT_DIR + "shadow_large.png")
 	_save(_gel(), OUT_DIR + "gel.png")
 	_save(_slash(), OUT_DIR + "slash.png")

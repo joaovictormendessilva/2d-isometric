@@ -1,7 +1,7 @@
 class_name PlayerFeedback
 extends Node
 ## Avisos flutuantes do jogador LOCAL: itens e moedas ganhos ("+1 Madeira"), receita aprendida,
-## nível de coleta subindo, por que não dá para coletar ("Precisa de ferramenta nível 2") ou beber
+## nível de coleta subindo, pedra de portal ativada, por que não dá para coletar ("Precisa de ferramenta nível 2") ou beber
 ## uma poção ("Vida cheia"), efeitos ganhos ("Veneno", "Rapidez") e aparências colecionadas.
 ## Avisos que chegam juntos (ex.: minério e pedra da mesma coleta) saem um de cada vez, sem se
 ## sobrepor. Só apresentação.
@@ -78,6 +78,19 @@ func watch_appearances(collection: AppearanceCollection, items: ItemDatabase) ->
 	collection.collected.connect(func(item_id: StringName) -> void:
 		_show(Texts.format(&"FEEDBACK_LOOK_COLLECTED", [items.get_item(item_id).get_display_name()]),
 			LEVEL_COLOR))
+
+
+## Uma vez: pedra de portal ativada agora vira aviso (as do save ou do host, não).
+func watch_waystones(known: WaystoneLog, atlas: WaystoneAtlas) -> void:
+	known.activated.connect(func(waystone_id: StringName, is_new: bool) -> void:
+		if is_new:
+			_show(Texts.format(&"FEEDBACK_WAYSTONE_ACTIVATED",
+				[atlas.get_stone(waystone_id).get_display_name()]), LEVEL_COLOR))
+
+
+## Sem outra pedra ativada para viajar: diz o que falta.
+func show_no_destination() -> void:
+	_show_refusal(Texts.get_text(&"WAYSTONE_NO_DESTINATION"))
 
 
 ## Uma vez: efeitos novos no jogador viram aviso (debuff em vermelho, buff em verde).

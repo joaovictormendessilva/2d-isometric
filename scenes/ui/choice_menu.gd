@@ -11,8 +11,9 @@ func _ready() -> void:
 	add_child(_column)
 
 
-## `choices`: [[texto, Callable], ...], na ordem da tela.
-func open(choices: Array, at: Vector2) -> void:
+## `choices`: [[texto, Callable], ...], na ordem da tela. `focus_first`: aberto pelo teclado ou
+## controle (ex.: tecla de interagir), a primeira escolha já fica em foco.
+func open(choices: Array, at: Vector2, focus_first: bool = false) -> void:
 	for child in _column.get_children():
 		child.free()
 	for choice: Array in choices:
@@ -23,6 +24,8 @@ func open(choices: Array, at: Vector2) -> void:
 			(choice[1] as Callable).call())
 		_column.add_child(button)
 	_show_at(at)
+	if focus_first and _column.get_child_count() > 0:
+		(_column.get_child(0) as Button).grab_focus()
 
 
 ## Quantas escolhas o menu mostra (testes).

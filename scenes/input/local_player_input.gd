@@ -4,7 +4,8 @@ extends Node
 ## Movimento: direções da tela viram direções no plano do chão (cima na tela = "norte"),
 ## então as diagonais andam alinhadas às bordas dos tiles.
 ## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main); sem NPC, abrir o
-## baú de dungeon ao alcance; sem nenhum dos dois, coletar o ponto de coleta mais próximo.
+## baú de recompensa ao alcance; depois, a pedra de portal (ativar ou, já ativada, escolher para
+## onde viajar); sem nada disso, coletar o ponto de coleta mais próximo.
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
 ## Montaria (R / direcional para baixo): sobe na montaria vestida ou desce (o host decide).
 ## Montado, apertar o ataque desce em vez de atacar.
@@ -17,6 +18,8 @@ extends Node
 
 ## Interagiu com um NPC ao alcance (quem abre a loja é o Main).
 signal talk_requested(npc: Npc)
+## Interagiu com uma pedra de portal já ativada (quem mostra os destinos é o Main).
+signal waystone_menu_requested(waystone: Waystone)
 
 ## Grupo de nós da interface que podem estar usando o mouse (método `captures_mouse()`),
 ## ex.: janela sendo arrastada, item na mão. Enquanto usam, o clique não é ataque.
@@ -64,10 +67,15 @@ func _physics_process(_delta: float) -> void:
 	target.set_move_intent(Input.get_vector(&"move_left", &"move_right", &"move_up", &"move_down"))
 	if Input.is_action_just_pressed(&"interact"):
 		var npc := player_state.npc_near(player_id) if player_state else null
+		var stone := player_state.waystone_near(player_id) if player_state else null
 		if npc:
 			talk_requested.emit(npc)
 		elif player_state and player_state.chest_near(player_id):
 			player_state.request_open_chest()
+		elif stone and stone.is_lit():
+			waystone_menu_requested.emit(stone)
+		elif stone:
+			player_state.request_activate_waystone()
 		else:
 			target.request_gather()
 	if Input.is_action_just_pressed(&"use_potion") and player_state:

@@ -7,7 +7,7 @@ extends RefCounted
 ## Identifica o jogo e a versão do protocolo no aperto de mão. Mudou o formato de alguma
 ## mensagem? Aumente a versão: computadores com versões diferentes não se conectam.
 const PROTOCOL_ID := "2d-isometric"
-const PROTOCOL_VERSION := 20
+const PROTOCOL_VERSION := 21
 const DEFAULT_PORT := 24680
 ## Porta da frente (DoorProtocol) = porta do jogo + isto.
 const DOOR_PORT_OFFSET := 1

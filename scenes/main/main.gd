@@ -56,6 +56,8 @@ var skills := DataCatalog.new(SKILLS_DIR)
 var recipes := RecipeDatabase.load_all()
 var session := GameSession.new(items)
 var regions := DataCatalog.new(REGIONS_DIR)
+## Pedras de portal de todas as regiões (ADR-037).
+var waystones := WaystoneAtlas.new(regions)
 ## Região que a janela mostra (a do jogador local; null no cliente até o host dizer qual).
 var region: Region
 
@@ -69,6 +71,8 @@ var _boss_bar: BossBar
 var _ability_bar: AbilityBar
 var _event_banner := EventBanner.new()
 var _event_arrow := EventArrow.new()
+## Destinos da pedra de portal (abre com a tecla de interagir numa pedra ativada).
+var _waystone_menu := ChoiceMenu.new()
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
@@ -119,6 +123,7 @@ func _ready() -> void:
 	player_state.skills = skills
 	player_state.recipes = recipes
 	player_state.spawner = _spawner
+	player_state.waystones = waystones
 	abilities.session = session
 	_spawner.abilities = abilities
 	_local_input.player_state = player_state
@@ -142,6 +147,8 @@ func _ready() -> void:
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():
 		_spawner.saves = saves
+		saves.waystones = waystones
+		player_state.waystone_travel.connect(_on_waystone_travel)
 		_arrive(local_player_id())
 		network.player_joined.connect(_arrive)
 		network.player_left.connect(_on_player_left)
@@ -181,20 +188,49 @@ func _start_region(player_id: int) -> StringName:
 	return chosen if regions.get_entry(chosen) else START_REGION
 
 
-## Põe o jogador na região: chegando no mundo, ou viajando (o personagem é recriado lá, na
-## chegada da passagem `passage_id`, com a vida que tinha). O cliente dele é avisado antes de
-## o personagem nascer, para já ter a região carregada.
-func _place_player(player_id: int, region_id: StringName, passage_id: StringName = &"") -> void:
+## Põe o jogador na região: chegando no mundo, ou viajando (o personagem é recriado lá, com a vida
+## que tinha, na chegada da passagem `passage_id` ou na frente da pedra de portal `waystone_id`).
+## O cliente dele é avisado antes de o personagem nascer, para já ter a região carregada.
+func _place_player(player_id: int, region_id: StringName, passage_id: StringName = &"",
+		waystone_id: StringName = &"") -> void:
 	var target := _ensure_region(region_id)
 	var old := _spawner.region_of_player(player_id)
 	var health := _spawner.leave_region(player_id)
 	if player_id != local_player_id():
 		_enter_region.rpc_id(player_id, region_id)
+	var arrival := target.get_spawn_position()
 	var passage := target.get_passage(passage_id)
-	_spawner.enter_region(player_id, target,
-		passage.arrival_position() if passage else target.get_spawn_position(), health)
+	var stone := target.entities.get_node_or_null("W_%s" % waystone_id) as Waystone \
+		if not waystone_id.is_empty() else null
+	if stone:
+		arrival = stone.arrival_position()
+	elif passage:
+		arrival = passage.arrival_position()
+	_spawner.enter_region(player_id, target, arrival, health)
 	if old and old != target:
 		_release_when_empty(old)
+
+
+## Host: o jogador canalizou numa pedra de portal; vai para a frente da pedra `waystone_id`.
+func _on_waystone_travel(player_id: int, waystone_id: StringName) -> void:
+	if session.get_player_entity(player_id) != null:
+		_place_player(player_id, waystones.region_of(waystone_id), &"", waystone_id)
+
+
+## Jogador local usou uma pedra ativada: menu com as outras pedras ativadas (escolher pede a
+## viagem ao host). Sem nenhuma, o aviso diz o que falta.
+func _open_waystone_menu(from: Waystone) -> void:
+	var destinations := player_state.waystone_destinations(local_player_id(), from)
+	if destinations.is_empty():
+		_player_feedback.show_no_destination()
+		return
+	var choices := []
+	for waystone_id in destinations:
+		choices.append([waystones.get_stone(waystone_id).get_display_name(),
+			player_state.request_waystone_travel.bind(waystone_id)])
+	var character := session.get_player_entity(local_player_id()) as Character
+	_waystone_menu.open(choices, get_viewport().get_canvas_transform() * character.global_position,
+		true)
 
 
 ## Carrega a região se ainda não estiver: estado do save, criaturas e passagens.
@@ -206,6 +242,7 @@ func _ensure_region(region_id: StringName) -> Region:
 	loaded.passage_entered.connect(_on_passage_entered)
 	saves.region_loaded(loaded)
 	_spawner.spawn_region_monsters(loaded)
+	_spawner.spawn_region_waystones(loaded)
 	return loaded
 
 
@@ -314,6 +351,9 @@ func _on_local_player_spawned(character: Character) -> void:
 	_player_feedback.watch_abilities(session.get_ability_book(local_player_id()))
 	_player_feedback.watch_effects(session.get_effects(local_player_id()))
 	_player_feedback.watch_appearances(session.get_appearances(local_player_id()), items)
+	_player_feedback.watch_waystones(session.get_waystones(local_player_id()), waystones)
+	$UI.add_child(_waystone_menu)
+	_local_input.waystone_menu_requested.connect(_open_waystone_menu)
 	_inventory_panel.placement = _placement_preview
 	_inventory_panel.setup(inventory, items, player_state, local_player_id())
 	_setup_shop(inventory, wallet)

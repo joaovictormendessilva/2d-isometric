@@ -1,0 +1,11 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/props/prop.tscn" id="1_prop"]
+[ext_resource type="Script" path="res://scenes/waystones/waystone.gd" id="2_waystone"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/waystone.png" id="3_dormant"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/waystone_lit.png" id="4_lit"]
+
+[node name="Waystone" instance=ExtResource("1_prop")]
+script = ExtResource("2_waystone")
+dormant_texture = ExtResource("3_dormant")
+lit_texture = ExtResource("4_lit")

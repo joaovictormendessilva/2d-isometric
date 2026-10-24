@@ -40,6 +40,8 @@ const MIN_STATE_INTERVAL := SEND_INTERVAL * 0.5
 ## recebido? Uma parede estava no caminho.
 const MAX_SLIDES := 4
 const WALL_SLACK := 3.0
+## Canalização mais longa que isto vinda da rede é lixo (as legítimas levam poucos segundos).
+const MAX_CHANNEL_TIME := 60.0
 
 var _send_left := 0.0
 # Último estado enviado e o último instante em que o corpo seguia parado nele sem enviar.
@@ -92,6 +94,8 @@ func _ready() -> void:
 		_body.status_effects.effects.changed.connect(_on_effects_changed)
 	if _body.rider:
 		_body.rider.state.changed.connect(_on_ride_changed)
+	if _body.channel:
+		_body.channel.changed.connect(_on_channel_changed)
 	if _body.gatherer:
 		_body.gatherer.started.connect(_on_gather_started.unbind(1))
 		_body.gatherer.stopped.connect(_on_gather_stopped)
@@ -431,6 +435,11 @@ func _ride_phase() -> int:
 	return _body.rider.state.phase if _body.rider else RideState.Phase.ON_FOOT
 
 
+func _on_channel_changed() -> void:
+	if multiplayer.is_server():
+		_send_to_clients(&"_channel", [_body.channel.seconds()], true)
+
+
 func _on_revived() -> void:
 	_snapshots.clear()
 	_accepted_position = _body.position
@@ -481,6 +490,13 @@ func _effects(state: Dictionary) -> void:
 func _ride(phase: int) -> void:
 	if _body.rider and phase >= 0 and phase < RideState.Phase.size():
 		_body.rider.state.replicate(phase, _body.mount.mount_time if _body.mount else 0.0)
+
+
+## Host → clientes: começou a canalizar por `seconds` (0 = acabou), só para a barra.
+@rpc("authority", "call_remote", "reliable")
+func _channel(seconds: float) -> void:
+	if _body.channel and is_finite(seconds) and seconds >= 0.0 and seconds <= MAX_CHANNEL_TIME:
+		_body.channel.replicate(seconds)
 
 
 @rpc("authority", "call_remote", "reliable")

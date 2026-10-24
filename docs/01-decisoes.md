@@ -1092,3 +1092,32 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   `-- --boss-event-in=<s>` adianta o primeiro evento (testes).
 - **Limitações**: quem entra na partida durante um evento não vê o aviso (vê o chefe e a seta);
   um evento só de cada vez.
+
+## ADR-037 — Pedras de portal (viagem rápida)
+
+- **Status**: Hipótese (J5a, aguardando validação do João)
+- **Contexto**: J5, portais/atalhos. Formato escolhido pelo João (2026-10-24): **pedras de
+  portal** (as outras opções eram atalhos de mapa estilo Dark Souls, ou os dois).
+- **Decisões**:
+  - **Pedras em dados**: cada região aberta lista as suas (`RegionData.waystones`,
+    `WaystoneData`: id, passagem de referência ou a entrada, deslocamento). O host as cria ao
+    carregar a região, num ponto livre perto do ponto dos dados, sorteado com o id da pedra como
+    semente (sempre no mesmo lugar). Os mapas gerados não mudam (o save depende deles).
+  - **Ativar**: tecla de interagir perto de uma pedra apagada (prioridade: NPC, baú, pedra,
+    coleta). Fica ativada para aquele personagem (`WaystoneLog` na sessão, vai no save); cada
+    computador mostra a pedra acesa só se o jogador LOCAL a ativou. Aviso "Pedra de portal
+    ativada: ...".
+  - **Viajar**: na pedra acesa, a tecla abre um menu com as outras pedras ativadas (teclado e
+    controle: a primeira opção já em foco); escolher pede a viagem ao host. **Canalização de
+    1 s** (componente genérico `Channel`, barrinha acima da cabeça); dano, morte ou andar
+    interrompem. Completa, o personagem chega na frente da pedra escolhida (outra região ou a
+    mesma). Montado, continua montado.
+- **Rede e segurança (ADR-013)**: protocolo **21**. Tipo de entidade "pedra de portal" (id
+  conferido entre as pedras da própria região, posição conferida). Pedidos "ativar" (sem
+  argumentos: o host escolhe a pedra ao alcance pela posição dele) e "viajar" (id do destino:
+  o host confere que quem pediu está numa pedra que ele ativou e que o destino é outra pedra
+  ativada por ele). Host → dono: pedras ativadas (conferidas contra o atlas de pedras). Host →
+  todos: começo e fim da canalização (só a barra; limite de tempo conferido).
+- **Conteúdo de teste**: três pedras: "Campina: acampamento" (perto da entrada), "Floresta:
+  entrada" e "Floresta: caverna" (perto da boca da caverna).
+- **Limitações**: viajar não custa nada; dungeons não têm pedras.

@@ -6,10 +6,10 @@ extends HostRequests
 ## jogador a todos. Dono: pede ao host para mexer no inventário (clicar num espaço,
 ## dividir, soltar um espaço, jogar fora o que está na mão, devolver a mão, fabricar, colocar uma
 ## estrutura, vestir e tirar equipamento, comprar, vender e aprender receitas com um NPC, usar um
-## item como a poção, escolher a aparência de um espaço, abrir um baú de dungeon, montar e
-## desmontar); o host confere
-## e aplica. Esperas (poções) começadas no host, receitas aprendidas e aparências colecionadas
-## também vão ao dono; as aparências escolhidas vão a todos, junto com o equipamento. Offline,
+## item como a poção, escolher a aparência de um espaço, abrir um baú de recompensa, montar e
+## desmontar, ativar e usar pedras de portal); o host confere e aplica. Esperas (poções)
+## começadas no host, receitas aprendidas, aparências colecionadas e pedras ativadas também vão
+## ao dono; as aparências escolhidas vão a todos, junto com o equipamento. Offline,
 ## os pedidos são aplicados na hora.
 ##
 ## Segurança (ADR-013): pedidos só mexem no inventário de quem pediu; índices, ids e
@@ -18,6 +18,8 @@ extends HostRequests
 ## O jogador local tentou usar um item e não dá (vida cheia, esperando...): só o aviso, nada
 ## foi pedido ao host.
 signal use_refused(reason: ConsumableRules.Check)
+## Host: o jogador terminou de canalizar numa pedra de portal; quem leva até `waystone_id` é o Main.
+signal waystone_travel(player_id: int, waystone_id: StringName)
 
 ## Distâncias (chão) do item jogado fora até os pés do jogador, e folga exigida no ponto.
 const DROP_DISTANCE := Vector2(8.0, 18.0)
@@ -28,6 +30,8 @@ var items: ItemDatabase
 var skills: DataCatalog
 var recipes: RecipeDatabase
 var spawner: EntitySpawner
+## Todas as pedras de portal do mundo (confere ids vindos da rede).
+var waystones: WaystoneAtlas
 
 var _rng := RandomNumberGenerator.new()
 ## Host: inventário de cada jogador já ligado aos envios (ver `track_player`).
@@ -68,6 +72,9 @@ func track_player(player_id: int) -> void:
 		func(recipe_id: StringName, is_new: bool) -> void:
 			_send(player_id, &"_recipe_learned", [recipe_id, is_new]))
 	session.get_appearances(player_id).collected.connect(_send_collection.bind(player_id).unbind(1))
+	session.get_waystones(player_id).activated.connect(
+		func(waystone_id: StringName, is_new: bool) -> void:
+			_send(player_id, &"_waystone_activated", [String(waystone_id), is_new]))
 
 
 ## Cliente: um jogador (qualquer um) apareceu aqui; pede ao host o equipamento dele. Assim não
@@ -156,6 +163,16 @@ func request_open_chest() -> void:
 	_request(&"_open_chest_requested", [])
 
 
+## Jogador local apertou E perto de uma pedra de portal que ainda não ativou (ADR-037).
+func request_activate_waystone() -> void:
+	_request(&"_activate_waystone_requested", [])
+
+
+## Jogador local escolheu viajar até a pedra `waystone_id` (ele está numa pedra ativada).
+func request_waystone_travel(waystone_id: StringName) -> void:
+	_request(&"_waystone_travel_requested", [String(waystone_id)])
+
+
 ## Jogador local apertou a tecla de montar (ADR-035): a pé, sobe; subindo ou montado, desce.
 func request_toggle_mount() -> void:
 	_request(&"_toggle_mount_requested", [])
@@ -220,6 +237,22 @@ func chest_near(player_id: int) -> RewardChest:
 			else chest.is_open_here()
 		return chest.can_open(player_id) and not opened)
 	return _nearest(closed, player_id) as RewardChest
+
+
+## Pedra de portal mais próxima ao alcance do jogador, ou null.
+func waystone_near(player_id: int) -> Waystone:
+	return _nearest(_in_reach(Waystone.GROUP, player_id), player_id) as Waystone
+
+
+## Para onde o jogador pode ir a partir de `from`: as pedras que ele ativou, menos ela, em ordem.
+func waystone_destinations(player_id: int, from: Waystone) -> Array[StringName]:
+	var destinations: Array[StringName] = []
+	var known := session.get_waystones(player_id)
+	if known and from and known.knows(from.data.id):
+		for waystone_id in known.snapshot():
+			if StringName(waystone_id) != from.data.id:
+				destinations.append(StringName(waystone_id))
+	return destinations
 
 
 ## O nó de `nodes` mais perto dos pés do jogador (null se não houver).
@@ -413,6 +446,32 @@ func _open_chest_requested() -> void:
 		spawner.spawn_loot(Region.of(chest), chest.data.drops, chest.position, player_id)
 
 
+## Sem argumentos: o host escolhe a pedra ao alcance de quem pediu, com a posição DELE.
+@rpc("any_peer", "call_remote", "reliable")
+func _activate_waystone_requested() -> void:
+	if not _accepts_request():
+		return
+	var stone := waystone_near(_requester())
+	if stone:
+		session.get_waystones(_requester()).activate(stone.data.id)
+
+
+## Viajar: quem pediu está numa pedra que ativou, e o destino é outra pedra que ele ativou (tudo
+## conferido no host). Começa a canalizar; completa, o Main leva o jogador (`waystone_travel`).
+@rpc("any_peer", "call_remote", "reliable")
+func _waystone_travel_requested(target: String) -> void:
+	if not _accepts_request():
+		return
+	var player_id := _requester()
+	var target_id := StringName(target)
+	if not target_id in waystone_destinations(player_id, waystone_near(player_id)):
+		return
+	var character := session.get_player_entity(player_id) as Character
+	if character.channel:
+		character.channel.start(Waystone.CHANNEL_TIME,
+			waystone_travel.emit.bind(player_id, target_id))
+
+
 ## Sem argumentos: o host olha a montaria vestida e o estado DELE do personagem de quem pediu.
 @rpc("any_peer", "call_remote", "reliable")
 func _toggle_mount_requested() -> void:
@@ -471,6 +530,8 @@ func _full_state_requested() -> void:
 	for recipe_id in session.get_recipe_book(player_id).all_learned():
 		_send(player_id, &"_recipe_learned", [recipe_id, false])
 	_send_collection(player_id)
+	for waystone_id in session.get_waystones(player_id).snapshot():
+		_send(player_id, &"_waystone_activated", [waystone_id, false])
 
 
 @rpc("authority", "call_remote", "reliable")
@@ -542,6 +603,14 @@ func _equipment_requested(player_id: int) -> void:
 
 
 ## Coleção de aparências do jogador local vinda do host (conferida contra o catálogo local).
+## Host → dono: uma pedra de portal ativada (`is_new`: agora; senão, do estado completo).
+@rpc("authority", "call_remote", "reliable")
+func _waystone_activated(waystone_id: String, is_new: bool) -> void:
+	var known := session.get_waystones(multiplayer.get_unique_id())
+	if known:
+		known.replicate([waystone_id], waystones.has, is_new)
+
+
 @rpc("authority", "call_remote", "reliable")
 func _collection(ids: PackedStringArray) -> void:
 	var collection := session.get_appearances(multiplayer.get_unique_id())

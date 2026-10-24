@@ -1,9 +1,16 @@
-[gd_resource type="Resource" script_class="RegionData" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RegionData" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://core/world/region_data.gd" id="1_region"]
 [ext_resource type="PackedScene" path="res://scenes/regions/meadow/meadow.tscn" id="2_scene"]
+[ext_resource type="Script" path="res://core/waystones/waystone_data.gd" id="3_waystone"]
+
+[sub_resource type="Resource" id="Waystone_camp"]
+script = ExtResource("3_waystone")
+id = &"meadow_camp"
+offset = Vector2(56, -28)
 
 [resource]
 script = ExtResource("1_region")
 id = &"meadow"
 scene = ExtResource("2_scene")
+waystones = Array[ExtResource("3_waystone")]([SubResource("Waystone_camp")])
