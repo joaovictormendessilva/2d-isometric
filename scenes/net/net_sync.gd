@@ -11,6 +11,9 @@ extends Node
 ## velocidade antes de aceitar e repassar. Vida, dano, morte, renascimento e efeitos (buffs e
 ## debuffs) são decididos só pelo host.
 
+## Dono: o host recusou uma posição e devolveu o corpo (cada vez é um tranco para quem joga).
+signal corrected
+
 ## Estados por segundo enviados por quem simula (20 Hz).
 const SEND_INTERVAL := 0.05
 ## Corpo parado (mesma posição e direção) manda só um estado a cada tanto, para manter o relógio
@@ -32,6 +35,11 @@ const MAX_SPEED_FACTOR := 3.0
 const MOVE_BUDGET_TIME := 0.5
 ## Estados de um dono chegando mais rápido que isto são descartados (contra inundação).
 const MIN_STATE_INTERVAL := SEND_INTERVAL * 0.5
+## Paredes no host (H4): o caminho até a posição recebida é refeito deslizando nas paredes, como
+## o `move_and_slide` do dono (mesmo número de deslizes). Chegou a mais que a folga do ponto
+## recebido? Uma parede estava no caminho.
+const MAX_SLIDES := 4
+const WALL_SLACK := 3.0
 
 var _send_left := 0.0
 # Último estado enviado e o último instante em que o corpo seguia parado nele sem enviar.
@@ -46,6 +54,7 @@ var _last_sender_time := -INF
 var _accepted_position := Vector2.ZERO
 var _move_budget := 0.0
 var _last_accept_time := -INF
+var _wall_hit: KinematicCollision2D
 var _broadcast: HostBroadcast
 # Coleta pela rede: cada coleta do dono tem um número, para uma ordem de parar atrasada não
 # derrubar uma coleta mais nova.
@@ -157,6 +166,14 @@ func _owner_state(t: float, position: Vector2, facing: Vector2) -> void:
 	if not _within_move_budget(position, now):
 		_correct.rpc_id(owner_peer(), _accepted_position)
 		return
+	var reached := _slide_from_accepted(position)
+	if reached.distance_to(position) > WALL_SLACK:
+		# Volta para onde o deslize parou (encostado na parede), não para o início: um engano
+		# raro do host vira um ajuste pequeno, e quem trapaceia não passa.
+		_accepted_position = reached
+		_correct.rpc_id(owner_peer(), reached)
+		return
+	_accepted_position = position
 	facing = NetRules.clean_direction(facing)
 	if facing == Vector2.ZERO:
 		facing = _body.facing
@@ -182,8 +199,26 @@ func _within_move_budget(position: Vector2, now: float) -> bool:
 	if distance > _move_budget:
 		return false
 	_move_budget -= distance
-	_accepted_position = position
 	return true
+
+
+## Onde o corpo para indo da última posição aceita até `target`, deslizando nas paredes da
+## camada "world" (pegada do próprio corpo; personagens não bloqueiam).
+func _slide_from_accepted(target: Vector2) -> Vector2:
+	if _wall_hit == null:
+		_wall_hit = KinematicCollision2D.new()
+	var parent := _body.get_parent() as Node2D
+	var at := _accepted_position
+	var motion := target - at
+	for i in MAX_SLIDES:
+		if motion.is_zero_approx():
+			break
+		if not _body.test_move(parent.global_transform * Transform2D(0.0, at), motion, _wall_hit,
+				_body.safe_margin):
+			return at + motion
+		at += _wall_hit.get_travel()
+		motion = _wall_hit.get_remainder().slide(_wall_hit.get_normal())
+	return at
 
 
 func _receive_state(t: float, position: Vector2, facing: Vector2) -> void:
@@ -436,6 +471,7 @@ func _correct(position: Vector2) -> void:
 	if NetRules.is_valid_vector(position):
 		_teleport(position)
 		_body.ground_velocity = Vector2.ZERO
+		corrected.emit()
 
 
 ## Cliente que acabou de receber esta entidade pede o estado atual (ex.: entrou com a

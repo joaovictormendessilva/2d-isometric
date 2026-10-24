@@ -103,6 +103,90 @@ func test_host_rejects_client_teleport() -> void:
 	check(client_player.position.distance_to(start) < 4.0, "cliente foi corrigido de volta")
 
 
+## Atravessar uma árvore cabe na velocidade, mas não no caminho (H4): o host recusa e devolve o
+## cliente para o lado de onde veio.
+func test_host_blocks_client_walking_through_walls() -> void:
+	var games := await _start_pair()
+	var client_player := _local_player(games[1])
+	var on_host := _replica(games[0], client_player)
+	var obstacle := _open_obstacle(games[0], client_player)
+	check(obstacle != null, "há uma árvore ou pedra livre em volta")
+	if obstacle == null:
+		return
+	var gap := _gap(obstacle, client_player)
+	on_host.revive(obstacle.position + Iso.ground_to_screen(Vector2.LEFT * gap))
+	await physics_frames(10)
+	client_player.position = obstacle.position + Iso.ground_to_screen(Vector2.RIGHT * gap)
+	await physics_frames(30)
+	check(on_host.position.x < obstacle.position.x, "host não aceitou o outro lado")
+	check(client_player.position.x < obstacle.position.x, "cliente devolvido para o lado de cá")
+
+
+## Quem desliza de verdade numa árvore (por todos os lados) nunca é corrigido: cada correção
+## seria um tranco para quem joga.
+func test_sliding_along_walls_is_never_corrected() -> void:
+	var games := await _start_pair()
+	var client_player := _local_player(games[1])
+	var on_host := _replica(games[0], client_player)
+	var obstacle := _open_obstacle(games[0], client_player)
+	check(obstacle != null, "há uma árvore ou pedra livre em volta")
+	if obstacle == null:
+		return
+	var corrections := [0]
+	client_player.net.corrected.connect(func() -> void: corrections[0] += 1)
+	var slid := 0.0
+	var while_walking := 0
+	for i in 8:
+		var side := Vector2.from_angle(TAU * i / 8.0)
+		on_host.revive(obstacle.position + Iso.ground_to_screen(side * (_gap(obstacle, client_player) + 6.0)))
+		await physics_frames(15)
+		corrections[0] = 0  # só conta andando (não o renascer)
+		var start := client_player.position
+		client_player.set_move_intent((-side).rotated(0.3))  # quase no centro: encosta e desliza
+		await physics_frames(45)
+		client_player.set_move_intent(Vector2.ZERO)
+		await physics_frames(15)
+		slid += client_player.position.distance_to(start)
+		while_walking += corrections[0]
+	check(while_walking == 0, "nenhuma correção deslizando (%d)" % while_walking)
+	check(slid > 8 * 20.0, "deslizou em volta (%.0f px no total)" % slid)
+	check(on_host.position.distance_to(client_player.position) < 1.0, "host vê o cliente no mesmo lugar")
+
+
+## Passeio longo e aleatório (sempre o mesmo) pela campina: cantos, beira de água, várias
+## árvores. Nenhuma correção.
+func test_wandering_client_is_never_corrected() -> void:
+	var games := await _start_pair()
+	var client_player := _local_player(games[1])
+	var corrections := [0]
+	client_player.net.corrected.connect(func() -> void: corrections[0] += 1)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 2026
+	var obstacles: Array[Node] = (games[0].region as Region).entities.get_children().filter(
+		func(n: Node) -> bool: return n is StaticBody2D and n.has_node("Footprint"))
+	obstacles.sort_custom(func(a: Node2D, b: Node2D) -> bool:
+		return a.position.distance_to(client_player.position) < b.position.distance_to(client_player.position))
+	obstacles.resize(mini(obstacles.size(), 8))
+	var travelled := 0.0
+	var touching := 0
+	for i in 900:
+		if i % 60 == 0:  # rumo a uma árvore/pedra próxima, torto: encosta, desliza, contorna
+			var toward: Vector2 = obstacles[rng.randi() % obstacles.size()].position - client_player.position
+			client_player.set_move_intent(Iso.screen_to_ground(toward).normalized().rotated(
+				rng.randf_range(-0.6, 0.6)))
+		var last := client_player.position
+		await tree.physics_frame
+		travelled += client_player.position.distance_to(last)
+		touching += 1 if client_player.get_slide_collision_count() > 0 else 0
+	client_player.set_move_intent(Vector2.ZERO)
+	await physics_frames(15)
+	check(corrections[0] == 0, "nenhuma correção passeando (%d)" % corrections[0])
+	check(travelled > 300.0 and touching > 40, "passeou %.0f px, %d quadros encostado em algo" % [
+		travelled, touching])
+	check(_replica(games[0], client_player).position.distance_to(client_player.position) < 1.0,
+		"host vê o cliente no mesmo lugar")
+
+
 ## O cliente não decide dano nem move o que não é dele.
 func test_client_cannot_damage_or_move_others() -> void:
 	var games := await _start_pair()
@@ -457,6 +541,34 @@ func _replica(game: Node, entity: Character) -> Character:
 
 func _spawn(game: Node) -> Vector2:
 	return (game.region as Region).get_spawn_position()
+
+
+## Árvore ou pedra (pegada redonda) com chão livre em volta, a mais perto do início: dá para
+## encostar nela por qualquer lado sem bater em outra coisa.
+func _open_obstacle(game: Node, walker: Character) -> StaticBody2D:
+	var region := game.region as Region
+	var space := region.get_world_2d().direct_space_state
+	var best: StaticBody2D
+	for node in region.entities.get_children():
+		var footprint := node.get_node_or_null("Footprint") as Footprint
+		if not node is StaticBody2D or footprint == null:
+			continue
+		if best and node.position.distance_to(_spawn(game)) > best.position.distance_to(_spawn(game)):
+			continue
+		var free := true
+		for i in 16:
+			for extra in [2.0, 12.0, 24.0]:
+				var at: Vector2 = node.position + Iso.ground_to_screen(Vector2.from_angle(TAU * i / 16.0)
+					* (footprint.radius + walker.footprint_radius() + extra))
+				free = free and GroundQuery.is_walkable(space, at, walker.footprint_radius())
+		if free:
+			best = node
+	return best
+
+
+## Distância (no chão) do centro do obstáculo em que o andarilho fica quase encostado.
+func _gap(obstacle: StaticBody2D, walker: Character) -> float:
+	return (obstacle.get_node("Footprint") as Footprint).radius + walker.footprint_radius() + 2.0
 
 
 ## Criatura com a IA desligada: o teste a posiciona onde quiser (longe de casa ela evadiria).
