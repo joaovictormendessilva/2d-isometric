@@ -372,6 +372,7 @@ João antes da próxima:
 - **I3 – Tela de partida** ⬜: jogar sozinho, hospedar ou entrar (IP e código) sem linha de
   comando.
 - **I4 – Teste em dois computadores** ⬜: firewall do Windows e partida de verdade na rede local.
+  Fica para o fim da Etapa I (João, 2026-10-23): I1–I3 se validam no mesmo PC, com duas janelas.
 
 ## Funcionalidades
 
