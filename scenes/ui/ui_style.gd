@@ -10,6 +10,8 @@ extends RefCounted
 const PANEL_BACK := Color(0.06, 0.05, 0.09, 0.9)
 ## Fundo de elementos dentro das janelas (espaços, linhas de receita, barras, botões).
 const SLOT_BACK := Color(0.1, 0.08, 0.14, 0.92)
+## Fundo de telas inteiras (tela de partida), por cima do jogo que ainda está abrindo.
+const SCREEN_BACK := Color(0.03, 0.025, 0.05)
 const BORDER := Color(0.32, 0.28, 0.42)
 const BORDER_HOVER := Color(0.62, 0.56, 0.78)
 

@@ -21,6 +21,13 @@ extends Node
 ##   --look=<ids>                 coleciona esses equipamentos e os mostra como aparência
 ##                                (transmog) no primeiro espaço do tipo de cada um.
 
+## O jogador local chegou ao mundo (primeira vez nesta partida).
+signal match_started
+## A partida não abriu (porta em uso, host não encontrado, código errado...) ou o cliente
+## perdeu o host; `reason` é o aviso para o jogador. Quem criou o jogo decide o que fazer
+## (GameStart volta à tela de partida).
+signal match_ended(reason: String)
+
 const REGIONS_DIR := "res://data/regions/"
 const START_REGION := &"meadow"
 const SKILLS_DIR := "res://data/skills/"
@@ -83,13 +90,15 @@ func _ready() -> void:
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
 	_net_status.network = network
-	# O cliente espera a porta da frente do host; sem conseguir entrar, fica só o aviso na
-	# tela (nunca um mundo próprio no lugar do mundo do host).
-	if await network.start() != OK and network.role == Network.Role.CLIENT:
+	# O cliente espera a porta da frente do host. Sem conseguir abrir a partida, nenhum mundo
+	# é montado (o cliente nunca tem um mundo próprio no lugar do do host): fica o aviso.
+	if await network.start() != OK:
 		if _is_screenshot_run():
 			await get_tree().create_timer(NetStatus.REFRESH_INTERVAL * 2).timeout  # aviso na tela
-			_capture_and_quit(_screenshot_path())
+			Screenshot.capture_and_quit(self, Screenshot.path())
+		match_ended.emit(network.status_text())
 		return
+	network.connection_ended.connect(func() -> void: match_ended.emit(network.status_text()))
 	worlds.catalog = regions
 
 	_spawner.structures = DataCatalog.new(STRUCTURES_DIR)
@@ -282,6 +291,7 @@ func _on_local_player_spawned(character: Character) -> void:
 	_setup_shop(inventory, wallet)
 	player_state.request_full_state()
 	abilities.request_full_state()
+	match_started.emit()
 
 
 ## Loja dos NPCs: a tecla de interagir perto de um abre; o inventário abre e fecha junto (vender
@@ -306,25 +316,11 @@ func detach_local_input() -> void:
 
 
 static func _is_screenshot_run() -> bool:
-	return not _screenshot_path().is_empty()
-
-
-static func _screenshot_path() -> String:
-	for arg in OS.get_cmdline_user_args():
-		if arg.begins_with("--screenshot="):
-			return arg.trim_prefix("--screenshot=")
-	return ""
-
-
-func _capture_and_quit(path: String) -> void:
-	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png(path)
-	print("[main] screenshot: %s" % path)
-	get_tree().quit()
+	return not Screenshot.path().is_empty()
 
 
 func _handle_command_line() -> void:
-	var screenshot_path := _screenshot_path()
+	var screenshot_path := Screenshot.path()
 	var move := Vector2.ZERO
 	var open_inventory := false
 	var open_shop := false
@@ -367,7 +363,7 @@ func _handle_command_line() -> void:
 		_inventory_panel.set_open(true)
 	if open_shop:
 		_talk_to_first_npc(shop_npc)
-	_capture_and_quit(screenshot_path)
+	Screenshot.capture_and_quit(self, screenshot_path)
 
 
 ## Capturas (tela e folha de quadros): veste itens novos de `ids` (separados por vírgula) direto

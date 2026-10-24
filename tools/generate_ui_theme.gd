@@ -16,6 +16,7 @@ func _initialize() -> void:
 		_box(UiStyle.PANEL_BACK, UiStyle.BORDER, UiStyle.WINDOW_MARGIN))
 	_button(theme)
 	_scroll_bar(theme)
+	_line_edit(theme)
 	var error := ResourceSaver.save(theme, THEME_PATH)
 	print("[ui-theme] %s: %s" % [THEME_PATH, error_string(error)])
 	quit(error)
@@ -53,6 +54,23 @@ func _scroll_bar(theme: Theme) -> void:
 	theme.set_stylebox(&"grabber_highlight", &"VScrollBar",
 		_box(UiStyle.BORDER_HOVER, UiStyle.BORDER_HOVER, thin))
 	theme.set_stylebox(&"grabber_pressed", &"VScrollBar", _box(UiStyle.ACCENT, UiStyle.ACCENT, thin))
+
+
+## Campo de texto como os botões: borda clara ao passar o mouse e dourada ao digitar; dica
+## (placeholder) apagada.
+func _line_edit(theme: Theme) -> void:
+	var margin := UiStyle.BUTTON_MARGIN
+	theme.set_stylebox(&"normal", &"LineEdit", _box(UiStyle.SLOT_BACK, UiStyle.BORDER, margin))
+	theme.set_stylebox(&"hover", &"LineEdit", _box(UiStyle.SLOT_BACK, UiStyle.BORDER_HOVER, margin))
+	var focus := _box(Color.TRANSPARENT, UiStyle.ACCENT, margin)
+	focus.draw_center = false
+	theme.set_stylebox(&"focus", &"LineEdit", focus)
+	theme.set_color(&"font_color", &"LineEdit", UiStyle.TEXT)
+	theme.set_color(&"font_placeholder_color", &"LineEdit", Color(UiStyle.TEXT, UiStyle.HINT_ALPHA * 0.6))
+	theme.set_color(&"caret_color", &"LineEdit", UiStyle.ACCENT)
+	theme.set_color(&"selection_color", &"LineEdit", Color(UiStyle.ACCENT, 0.35))
+	theme.set_color(&"font_outline_color", &"LineEdit", UiStyle.TEXT_OUTLINE)
+	theme.set_constant(&"outline_size", &"LineEdit", UiStyle.TEXT_OUTLINE_SIZE)
 
 
 static func _box(back: Color, border: Color, margin: Vector2) -> StyleBoxFlat:

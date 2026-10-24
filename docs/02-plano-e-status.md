@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ⬜ · I4 ⬜ |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -377,13 +377,26 @@ João antes da próxima:
   (4 jogadores): CPU do host +0,1–0,25 ms, andando 3,7 → 6,3 KB/s por cliente; entrar leva
   ~0,6 s. Protocolo 16. 212 testes (com conexão sem criptografia recusada e certificado
   adulterado recusado); testado também com processos (errado, certo, sem host).
-- **I3 – Tela de partida** ⬜: jogar sozinho, hospedar ou entrar (IP e código) sem linha de
-  comando.
+- **I3 – Tela de partida** ✅ (validado pelo João, 2026-10-24) (branch
+  `stage-i/match-screen`, feita a partir da da I2, que ainda não foi para a main). A janela abre
+  em "Escolha a partida": Jogar sozinho, Hospedar na rede local (IP, porta e código no canto da
+  tela, como na I1) ou Entrar numa partida (IP + código; Entrar fica apagado com o motivo até os
+  dois estarem certos; o IP é lembrado, o código não). A tela fica por cima mostrando
+  "Conectando..." até o personagem chegar; código errado, host não encontrado, porta em uso ou
+  host que cai no meio do jogo fecham a partida e voltam à tela com o motivo. Argumentos de rede
+  ou captura pulam a tela (testes, `coop-local.bat`). Host que não consegue abrir a porta agora
+  volta à tela (antes seguia sozinho sem avisar direito). 217 testes; benchmark de coop com
+  clientes em processos continua entrando.
 - **I4 – Teste em dois computadores** ⬜: firewall do Windows e partida de verdade na rede local.
   Fica para o fim da Etapa I (João, 2026-10-23): I1–I3 se validam no mesmo PC, com duas janelas.
+  Adiada (João, 2026-10-24): ainda não há o segundo computador; fica para o final, e será feita
+  com o **jogo exportado** (.exe copiado para o outro PC, sem Godot nem repositório lá). Até
+  lá o projeto segue para as próximas etapas.
 
 ## Funcionalidades
 
+- Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
+  (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
 - Árvores (e futuros prédios) ficam semitransparentes quando o personagem está atrás delas.
 - Combate com espada (clique esquerdo, J ou botão X do controle; segurar repete) contra slimes;

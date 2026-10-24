@@ -46,6 +46,20 @@ NET_REFUSED_VERSION,O host usa outra versão do jogo,The host runs a different g
 NET_REFUSED_CODE,Código da partida errado,Wrong match code
 NET_REFUSED_LOCKED,Muitos códigos errados: espere 1 minuto,Too many wrong codes: wait 1 minute
 NET_REFUSED_SAME_PLAYER,Este perfil já está na partida,This profile is already in the match
+MENU_TITLE,Escolha a partida,Choose a match
+MENU_SOLO,Jogar sozinho,Play solo
+MENU_HOST,Hospedar na rede local,Host on local network
+MENU_JOIN,Entrar numa partida,Join a match
+MENU_QUIT,Sair,Quit
+MENU_ADDRESS,IP do host,Host IP
+MENU_ADDRESS_EXAMPLE,192.168.0.10,192.168.0.10
+MENU_CODE,Código da partida,Match code
+MENU_CODE_EXAMPLE,ABCD-2345,ABCD-2345
+MENU_JOIN_CONFIRM,Entrar,Join
+MENU_BACK,Voltar,Back
+MENU_NEED_ADDRESS,Digite o IP que aparece na tela do host,Type the IP shown on the host's screen
+MENU_NEED_CODE,O código tem %d letras,The code has %d letters
+MENU_STARTING,Abrindo o mundo...,Opening the world...
 GATHER_INVENTORY_FULL,Inventário cheio,Inventory full
 INVENTORY_TITLE,Inventário,Inventory
 INVENTORY_HINT,Clique: pegar e pôr · clique fora: jogar no chão · botão direito: opções,Click: pick up and place · click outside: throw away · right click: options

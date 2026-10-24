@@ -134,6 +134,7 @@ Leia `docs/00-visao.md` para a visão completa (é o texto original do diretor c
       `G --path . -- --host` e `G --path . -- --join=127.0.0.1`. Rede local: `-- --host-lan`
       (mostra IP e código da partida) e `-- --join=<ip> --code=<código>`.
     - Captura de tela: `G --path . -- --screenshot=<arquivo.png> [--move=x,y] [--open-inventory] [--region=forest] [--effect=poison]`
+    - Captura da tela de partida: `G --path . -- --match-screen[=join] --screenshot=<arquivo.png>`
     - Regerar arte e região provisórias: `G --headless --path . -s res://tools/generate_placeholder_art.gd`,
       importar, `G --headless --path . -s res://tools/generate_regions.gd`, importar.
     - Folha de quadros (animação): `G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<png> --scenario=attack`
