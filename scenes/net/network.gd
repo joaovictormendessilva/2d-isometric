@@ -25,6 +25,9 @@ extends Node
 
 signal player_joined(player_id: int)
 signal player_left(player_id: int)
+## Cliente: a partida acabou para este computador (não conectou, foi recusado ou perdeu o
+## host). O motivo fica em status_text().
+signal connection_ended
 
 enum Role { OFFLINE, HOST, HOST_LAN, CLIENT }
 
@@ -51,6 +54,7 @@ var match_code := ""
 
 var _status := ""
 var _refused := false  # cliente: o host disse por que recusou; mantém esse aviso
+var _ended := false  # cliente: connection_ended já avisado
 var _local_id := 1
 var _hello := ("%s:%d" % [NetRules.PROTOCOL_ID, NetRules.PROTOCOL_VERSION]).to_utf8_buffer()
 var _keys: Dictionary[int, String] = {}  # host: peer -> chave do personagem
@@ -99,8 +103,8 @@ func start() -> Error:
 	multiplayer.peer_connected.connect(_on_peer_connected)
 	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
 	multiplayer.connected_to_server.connect(_set_status.bind(&"NET_CONNECTED"))
-	multiplayer.connection_failed.connect(_set_status.bind(&"NET_CONNECT_FAILED"))
-	multiplayer.server_disconnected.connect(_set_status.bind(&"NET_HOST_LOST"))
+	multiplayer.connection_failed.connect(_end_connection.bind(&"NET_CONNECT_FAILED"))
+	multiplayer.server_disconnected.connect(_end_connection.bind(&"NET_HOST_LOST"))
 	return OK
 
 
@@ -211,7 +215,7 @@ func status_text() -> String:
 	if multiplayer.is_server():
 		return Texts.format(&"NET_PLAYERS", [_status, multiplayer.get_peers().size() + 1])
 	var host := enet.get_peer(1)
-	if host == null:
+	if host == null or not host.is_active():  # caindo: a Godot ainda diz "conectado"
 		return _status
 	var ping := host.get_statistic(ENetPacketPeer.PEER_ROUND_TRIP_TIME)
 	return Texts.format(&"NET_PING", [_status, ping])
@@ -307,6 +311,9 @@ func _address_of(peer_id: int) -> String:
 
 
 func _on_peer_authentication_failed(peer_id: int) -> void:
+	if not multiplayer.is_server():  # recusado ou host sumiu no meio do aperto de mão
+		_end_connection(&"NET_CONNECT_FAILED")
+		return
 	_keys.erase(peer_id)
 	_challenges.erase(peer_id)
 	_refusing.erase(peer_id)
@@ -331,6 +338,14 @@ func _set_status(key: StringName) -> void:
 		_status = Texts.get_text(key)
 
 
+## Cliente: a conexão acabou (avisa uma vez só; a Godot pode dar mais de um sinal na queda).
+func _end_connection(key: StringName) -> void:
+	_set_status(key)
+	if not _ended:
+		_ended = true
+		connection_ended.emit()
+
+
 ## Situação que o jogador resolve (endereço, código, porta em uso): aviso na tela e no log,
 ## não erro do programa.
 func _fail(error: Error, message: String) -> Error:
@@ -344,3 +359,6 @@ func _exit_tree() -> void:
 		_door.close()
 	if is_online():
 		multiplayer.multiplayer_peer.close()
+	# A próxima partida desta janela (de volta à tela de partida) começa offline, sem a conexão
+	# fechada desta.
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()

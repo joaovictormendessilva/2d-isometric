@@ -44,6 +44,13 @@ entidades remotas desde o início), para não quebrar quando formos para o onlin
 Testar no PC (duas janelas): dê dois cliques em `tools/coop-local.bat`. Pela linha de
 comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 
+Jogar sem linha de comando (Etapa I3): a janela abre na tela de partida (`GameStart` +
+`MatchMenu`): **Jogar sozinho**, **Hospedar na rede local** (o canto da tela mostra IP, porta e
+código) ou **Entrar numa partida** (IP + código; o último IP fica lembrado, o código nunca). Se a
+partida não abrir, o código for recusado ou o host cair, o jogo é fechado e a tela volta com o
+motivo. Argumentos de rede ou de captura pulam a tela (testes, `coop-local.bat`). O jogo fica em
+`/root/Main` dos dois jeitos: as mensagens de rede apontam nós pelo caminho.
+
 ## Riscos testados cedo (Etapa D+)
 
 1. ✅ Duas instâncias conectadas: movimento replicado e suave (validado pelo João; teste mede o passo
