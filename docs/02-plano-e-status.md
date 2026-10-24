@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 🟡 (tela de partida) · I4 ⬜ |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -377,7 +377,7 @@ João antes da próxima:
   (4 jogadores): CPU do host +0,1–0,25 ms, andando 3,7 → 6,3 KB/s por cliente; entrar leva
   ~0,6 s. Protocolo 16. 212 testes (com conexão sem criptografia recusada e certificado
   adulterado recusado); testado também com processos (errado, certo, sem host).
-- **I3 – Tela de partida** 🟡 implementada, aguarda validação do João (branch
+- **I3 – Tela de partida** ✅ (validado pelo João, 2026-10-24) (branch
   `stage-i/match-screen`, feita a partir da da I2, que ainda não foi para a main). A janela abre
   em "Escolha a partida": Jogar sozinho, Hospedar na rede local (IP, porta e código no canto da
   tela, como na I1) ou Entrar numa partida (IP + código; Entrar fica apagado com o motivo até os
