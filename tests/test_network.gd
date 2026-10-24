@@ -291,6 +291,27 @@ func test_host_keeps_running_when_client_leaves() -> void:
 	check(host_player.position.distance_to(start) > 10.0, "host continua jogando")
 
 
+## Um cliente adulterado que inunda o host de pedidos é desconectado (H4); um jogador normal,
+## com rajadas de cliques, não.
+func test_host_disconnects_a_flooding_client() -> void:
+	var games := await _start_pair()
+	var host_session: GameSession = games[0].session
+	var state: PlayerStateSync = games[1].player_state
+	for i in 40:  # rajada de cliques de verdade no inventário
+		state.request_click(0)
+	await physics_frames(30)
+	check(host_session.get_player_count() == 2, "rajada normal não desconecta")
+	for i in 1000:
+		state._request(&"_click_requested", [0])
+	var expelled := await wait_until(func() -> bool: return host_session.get_player_count() == 1)
+	check(expelled, "host desconectou quem inundou")
+	var host_player := _local_player(games[0])
+	var start := host_player.position
+	host_player.set_move_intent(Vector2.RIGHT)
+	await physics_frames(30)
+	check(host_player.position.distance_to(start) > 10.0, "host continua jogando")
+
+
 func test_client_survives_host_leaving() -> void:
 	var games := await _start_pair()
 	var client: Node = games[1]

@@ -15,7 +15,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | E | Coleta, inventário, equipamentos, crafting | ✅ |
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
-| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ · H3 ✅ · H4 🟡 (riscos de rede) |
+| H | Testes de desempenho e riscos da arquitetura multiplayer | 🟡 H1 ✅ · H2 ✅ · H3 ✅ · H4 🟡 (paredes e inundação) |
 | I | Primeiro coop LAN | ⬜ |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
@@ -342,8 +342,17 @@ João antes da próxima:
   (20 por segundo, ~0,9 KB/s cada). Corrigido: corpo parado repete só a cada 0,5 s, e ao voltar
   a andar manda primeiro o estado parado com o instante certo (sem "largar" antes da hora).
   4 jogadores: por cliente 10,8 → 3,7 KB/s andando e 13,8 → 10,2 em combate. 198 testes.
-- H4 – Riscos da arquitetura de rede antes da Etapa I: revisar as pendências da ADR-013 e as
-  limitações conhecidas (ex.: host não confere paredes no movimento) e decidir o que resolver já.
+- **H4 – Riscos da arquitetura de rede antes da Etapa I** 🟡 implementada, aguarda validação do
+  João (branch `stage-h/network-risk-review`). Revisão: todas as RPCs que o cliente pode chamar
+  conferem remetente e valores. Resolvido já (ADR-013):
+  - **Paredes**: o host refaz o deslize do dono nas paredes; atravessar árvore é recusado, deslizar
+    de verdade nunca é corrigido (testes: 8 lados de uma árvore, passeio de 1 min entre obstáculos).
+  - **Inundação**: cota de pedidos por cliente (`PeerGuard`, 60/s, folga 120); quem esgota é
+    desconectado. Combate com 4 jogadores fica bem abaixo.
+  - Custo no host igual (4 jogadores em combate ~3,2 ms). 202 testes.
+  Fica para a Etapa I (antes de abrir para a LAN): código da partida e criptografia (DTLS), que
+  também protege o segredo do perfil. Fica para depois: compensação de atraso (só online); vida
+  das criaturas recalculada quando alguém entra no meio da luta; espera da poção no save.
 - Em aberto: medir num computador fraco de verdade (o alvo "modesto" ainda é hipótese).
 
 ## Funcionalidades

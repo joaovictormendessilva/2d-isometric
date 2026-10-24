@@ -47,7 +47,7 @@ func request_full_state() -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _full_state_requested() -> void:
 	var player_id := multiplayer.get_remote_sender_id()
-	var book := session.get_ability_book(player_id) if multiplayer.is_server() else null
+	var book := session.get_ability_book(player_id) if _accepts_request() else null
 	if book:
 		_send(player_id, &"_full_book", [book.snapshot()])
 
@@ -76,7 +76,7 @@ func request_set_slot(index: int, ability_id: StringName) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _cast_requested(index: int, aim: Vector2) -> void:
-	if not multiplayer.is_server():
+	if not _accepts_request():
 		return
 	var player_id := _requester()
 	var book := session.get_ability_book(player_id)
@@ -99,7 +99,7 @@ func _cast_requested(index: int, aim: Vector2) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _set_slot_requested(index: int, ability_id: StringName) -> void:
-	if not multiplayer.is_server():
+	if not _accepts_request():
 		return
 	var book := session.get_ability_book(_requester())
 	if book:  # confere índice e se a habilidade foi aprendida

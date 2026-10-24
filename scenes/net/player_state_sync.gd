@@ -248,7 +248,7 @@ func _send_collection(player_id: int) -> void:
 
 ## Host: inventário de quem pediu (o próprio host, numa chamada local, ou o cliente remetente).
 func _requester_inventory() -> Inventory:
-	if not multiplayer.is_server():
+	if not _accepts_request():
 		return null
 	return session.get_inventory(_requester())
 
@@ -411,7 +411,7 @@ func _use_slot(player_id: int, index: int) -> void:
 @rpc("any_peer", "call_remote", "reliable")
 func _full_state_requested() -> void:
 	var player_id := multiplayer.get_remote_sender_id()
-	var inventory := session.get_inventory(player_id) if multiplayer.is_server() else null
+	var inventory := session.get_inventory(player_id) if _accepts_request() else null
 	if inventory == null:
 		return
 	for index in inventory.capacity():
@@ -490,7 +490,7 @@ func _recipe_learned(recipe_id: StringName, is_new: bool) -> void:
 ## Host: alguém pediu o equipamento de um jogador (público no coop). Uma resposta por pedido.
 @rpc("any_peer", "call_remote", "reliable")
 func _equipment_requested(player_id: int) -> void:
-	if multiplayer.is_server() and session.get_equipment(player_id) != null:
+	if _accepts_request() and session.get_equipment(player_id) != null:
 		_send_equipment(multiplayer.get_remote_sender_id(), player_id)
 
 

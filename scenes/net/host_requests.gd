@@ -18,6 +18,11 @@ func _send(player_id: int, method: StringName, args: Array) -> void:
 		callv(&"rpc_id", [player_id, method] + args)
 
 
+## Este computador é o host e o pedido sendo atendido cabe na cota de quem o fez (PeerGuard)?
+func _accepts_request() -> bool:
+	return multiplayer.is_server() and PeerGuard.allow(multiplayer)
+
+
 ## Quem fez o pedido que está sendo atendido (no host, sem rede, é ele mesmo).
 func _requester() -> int:
 	var sender := multiplayer.get_remote_sender_id()

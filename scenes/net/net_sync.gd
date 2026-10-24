@@ -153,10 +153,16 @@ func _send_state(t: float, position: Vector2, facing: Vector2) -> void:
 		_owner_state.rpc_id(1, t, position, facing)
 
 
+## Host: o pedido sendo atendido veio do dono deste corpo (não aposentado) e cabe na cota dele?
+func _from_owner() -> bool:
+	return not _retired and multiplayer.is_server() \
+		and multiplayer.get_remote_sender_id() == owner_peer() and PeerGuard.allow(multiplayer)
+
+
 ## Dono → host: posição do personagem do jogador, validada antes de valer.
 @rpc("any_peer", "call_remote", "unreliable_ordered")
 func _owner_state(t: float, position: Vector2, facing: Vector2) -> void:
-	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if not _from_owner():
 		return
 	if not is_finite(t) or not NetRules.is_valid_vector(position) or not facing.is_finite():
 		return
@@ -283,7 +289,7 @@ func _on_attack_started(direction: Vector2) -> void:
 ## Dono → host. O host aplica as próprias regras (vivo, ritmo do ataque) antes de aceitar.
 @rpc("any_peer", "call_remote", "reliable")
 func _request_attack(direction: Vector2) -> void:
-	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if not _from_owner():
 		return
 	direction = NetRules.clean_direction(direction)
 	if direction != Vector2.ZERO:
@@ -345,7 +351,7 @@ func _on_gather_stopped() -> void:
 ## Dono → host. O host confere tudo de novo (alcance, ferramenta, nível) antes de aceitar.
 @rpc("any_peer", "call_remote", "reliable")
 func _request_gather(node_name: String, seq: int) -> void:
-	if _retired or not multiplayer.is_server() or multiplayer.get_remote_sender_id() != owner_peer():
+	if not _from_owner():
 		return
 	_stop_silently()  # a coleta anterior acabou a pedido do dono: não avisar de volta
 	_gather_seq = seq
@@ -356,8 +362,7 @@ func _request_gather(node_name: String, seq: int) -> void:
 
 @rpc("any_peer", "call_remote", "reliable")
 func _stop_gather(seq: int) -> void:
-	if not _retired and multiplayer.is_server() and multiplayer.get_remote_sender_id() == owner_peer() \
-			and seq == _gather_seq:
+	if _from_owner() and seq == _gather_seq:
 		_stop_silently()
 
 
