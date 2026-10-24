@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="RewardChestData" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://core/world/reward_chest_data.gd" id="1_chest"]
+[ext_resource type="Script" path="res://core/items/drop_entry.gd" id="2_drop"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/chest_closed.png" id="3_closed"]
+[ext_resource type="Texture2D" path="res://assets/sprites/placeholder/chest_open.png" id="4_open"]
+[ext_resource type="Resource" path="res://data/items/health_potion.tres" id="5_potion"]
+[ext_resource type="Resource" path="res://data/items/copper_ore.tres" id="6_copper"]
+[ext_resource type="Resource" path="res://data/items/swiftness_potion.tres" id="7_swift"]
+
+[sub_resource type="Resource" id="Resource_potion"]
+script = ExtResource("2_drop")
+item = ExtResource("5_potion")
+chance = 1.0
+min_amount = 1
+max_amount = 2
+
+[sub_resource type="Resource" id="Resource_copper"]
+script = ExtResource("2_drop")
+item = ExtResource("6_copper")
+chance = 1.0
+min_amount = 4
+max_amount = 8
+
+[sub_resource type="Resource" id="Resource_swift"]
+script = ExtResource("2_drop")
+item = ExtResource("7_swift")
+chance = 0.5
+min_amount = 1
+max_amount = 1
+
+[resource]
+script = ExtResource("1_chest")
+id = &"slime_cave_chest"
+interact_range = 28.0
+footprint_radius = 7.0
+closed_texture = ExtResource("3_closed")
+open_texture = ExtResource("4_open")
+drops = Array[ExtResource("2_drop")]([SubResource("Resource_potion"), SubResource("Resource_copper"), SubResource("Resource_swift")])

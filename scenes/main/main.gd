@@ -9,6 +9,7 @@ extends Node
 ##   rede: ver `scenes/net/network.gd` (--host, --host-lan, --join=<ip>, --code=<c>, --port=<n>).
 ##   --screenshot=<caminho.png>   salva uma captura após alguns quadros e fecha o jogo.
 ##   --move=<x>,<y>               segura essa intenção de movimento antes da captura.
+##   --at=<x>,<y>                 põe o jogador nesse ponto da região antes da captura.
 ##   --open-inventory             abre o inventário antes da captura.
 ##   --open-shop[=<npc>]          leva o jogador até o NPC da região (ou o de id <npc>) e abre a
 ##                                loja dele.
@@ -129,9 +130,8 @@ func _ready() -> void:
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():
 		_spawner.saves = saves
-		_place_player(local_player_id(), _start_region(local_player_id()))
-		network.player_joined.connect(func(player_id: int) -> void:
-			_place_player(player_id, _start_region(player_id)))
+		_arrive(local_player_id())
+		network.player_joined.connect(_arrive)
 		network.player_left.connect(_on_player_left)
 
 	_handle_command_line()
@@ -142,6 +142,12 @@ func local_player_id() -> int:
 
 
 # --- Host: quem está em que região -------------------------------------------------------------
+
+## Jogador chegando ao mundo: na região e passagem onde estava ao sair (save; quem saiu dentro
+## de uma dungeon volta para a entrada dela).
+func _arrive(player_id: int) -> void:
+	_place_player(player_id, _start_region(player_id), saves.passage_of(player_id))
+
 
 ## Onde o jogador começa: a região onde estava ao sair (save) ou a inicial. O jogador do host
 ## pode escolher com `--region=` (testes e capturas).
@@ -322,6 +328,7 @@ static func _is_screenshot_run() -> bool:
 func _handle_command_line() -> void:
 	var screenshot_path := Screenshot.path()
 	var move := Vector2.ZERO
+	var at := Vector2.INF
 	var open_inventory := false
 	var open_shop := false
 	var shop_npc := &""
@@ -333,9 +340,10 @@ func _handle_command_line() -> void:
 			equip = arg.trim_prefix("--equip=")
 		elif arg.begins_with("--look="):
 			looks = arg.trim_prefix("--look=")
+		elif arg.begins_with("--at="):
+			at = _vector_arg(arg.trim_prefix("--at="))
 		elif arg.begins_with("--move="):
-			var parts := arg.trim_prefix("--move=").split(",")
-			move = Vector2(parts[0].to_float(), parts[1].to_float())
+			move = _vector_arg(arg.trim_prefix("--move="))
 		elif arg == "--open-shop" or arg.begins_with("--open-shop="):
 			open_shop = true
 			shop_npc = StringName(arg.trim_prefix("--open-shop").trim_prefix("="))
@@ -349,6 +357,10 @@ func _handle_command_line() -> void:
 		return
 	dev_equip(local_player_id(), equip)
 	_dev_look(local_player_id(), looks)
+	var player := session.get_player_entity(local_player_id()) as Character
+	if player and at.is_finite():
+		player.position = at
+		player.reset_physics_interpolation()
 	for i in SCREENSHOT_FRAMES:
 		await get_tree().physics_frame
 		var character := session.get_player_entity(local_player_id()) as Character
@@ -400,3 +412,9 @@ func _talk_to_first_npc(npc_id: StringName = &"") -> void:
 			character.reset_physics_interpolation()
 			_shop_panel.talk_to(npc)
 			return
+
+
+## "x,y" da linha de comando (capturas).
+static func _vector_arg(text: String) -> Vector2:
+	var parts := text.split(",")
+	return Vector2(parts[0].to_float(), parts[1].to_float()) if parts.size() == 2 else Vector2.ZERO

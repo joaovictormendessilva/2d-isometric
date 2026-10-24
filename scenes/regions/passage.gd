@@ -5,6 +5,8 @@ extends Area2D
 ## do gatilho, para não voltar na hora). Uma parede invisível atrás do gatilho impede sair do
 ## mapa quando a viagem não acontece. A passagem só avisa; quem decide a viagem é o Main.
 ## Para a borda oeste, o gerador gira a cena em 180° (gatilho, parede e chegada giram juntos).
+## `doorway.tscn` é a mesma passagem sem parede, no meio do mapa (entrada de dungeon): só o
+## gatilho, na frente de um objeto do cenário (a boca da caverna), e a chegada logo abaixo.
 
 signal entered_by(player_id: int, passage: Passage)
 

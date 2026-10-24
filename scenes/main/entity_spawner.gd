@@ -8,17 +8,20 @@ extends Node
 ## região onde o jogador dele está. Toda entidade criada tem um "portão" (MultiplayerSynchronizer
 ## sem propriedades) cuja visibilidade, decidida no host, controla a quem ela é enviada.
 ## Em todos os computadores: registro na sessão e apresentação (números de dano).
-## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes e IA das criaturas.
+## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes, IA das criaturas e o fim
+## das dungeons (baú e saída rápida, ADR-032).
 
 signal local_player_spawned(character: Character)
 ## Host: o jogador local chegou ao mundo com o save (ou o equipamento inicial) já aplicado.
 signal local_player_prepared
 
-enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION }
+enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION, CHEST, EXIT_PORTAL }
 
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
 const STRUCTURE_SCENE := preload("res://scenes/building/structure.tscn")
+const CHEST_SCENE := preload("res://scenes/dungeon/reward_chest.tscn")
+const EXIT_PORTAL_SCENE := preload("res://scenes/dungeon/exit_portal.tscn")
 const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
 const PLAYER_RESPAWN_TIME := 2.5
 ## Tempo que o corpo da criatura fica sumindo antes de ser removido.
@@ -34,6 +37,12 @@ const DROP_CLEARANCE := 4.0
 const MINION_DISTANCE_MIN := 22.0
 const MINION_DISTANCE_MAX := 40.0
 const MINION_CLEARANCE := 6.0
+## Fim da dungeon (ADR-032): o baú surge perto de onde o chefe caiu e a saída um pouco mais longe
+## (distâncias no chão e raio livre exigido em cada ponto).
+const CHEST_DISTANCE_MAX := 12.0
+const EXIT_PORTAL_DISTANCE_MIN := 36.0
+const EXIT_PORTAL_DISTANCE_MAX := 56.0
+const REWARD_CLEARANCE := 10.0
 const DAMAGE_TO_PLAYER_COLOR := Color("ff6b6b")
 const DAMAGE_TO_MONSTER_COLOR := Color.WHITE
 const IMMUNE_COLOR := Color("a0a0b4")
@@ -64,6 +73,7 @@ var saves: SaveService
 
 var _next_pickup_id := 1
 var _next_structure_id := 1
+var _next_reward_id := 1
 var _rng := RandomNumberGenerator.new()
 ## Equipamento de cada jogador já ligado ao tamanho do inventário (uma vez: o personagem é
 ## recriado a cada viagem, o equipamento continua).
@@ -182,6 +192,37 @@ func spawn_structure(region: Region, structure: StructureData, at: Vector2) -> S
 		"structure": String(structure.id), "position": at})
 
 
+## Fim da dungeon (ADR-032): o chefe caiu em `at`; surgem o baú dela e a saída rápida (se a
+## região tiver para onde sair). Pontos andáveis e alcançáveis a partir do chefe.
+func spawn_dungeon_reward(region: Region, at: Vector2) -> void:
+	var space := region.get_world_2d().direct_space_state
+	_replicator(region).spawn({"kind": Kind.CHEST, "reward_id": _allocate_reward_id(),
+		"position": GroundQuery.find_drop_spot(space, at, _rng, 0.0, CHEST_DISTANCE_MAX,
+			REWARD_CLEARANCE)})
+	if not region.data.exit_region.is_empty():
+		_replicator(region).spawn({"kind": Kind.EXIT_PORTAL, "reward_id": _allocate_reward_id(),
+			"position": GroundQuery.find_drop_spot(space, at, _rng, EXIT_PORTAL_DISTANCE_MIN,
+				EXIT_PORTAL_DISTANCE_MAX, REWARD_CLEARANCE)})
+
+
+## Recompensa pessoal de `player_id`: a tabela é sorteada só para ele, e cada item pousa num ponto
+## andável e alcançável perto de `from` (nunca na água ou dentro de objetos). Drops de criaturas
+## e baús de dungeon.
+func spawn_loot(region: Region, drops: Array[DropEntry], from: Vector2, player_id: int) -> void:
+	var space := region.get_world_2d().direct_space_state
+	for entry in drops:
+		var amount := entry.roll(_rng)
+		if amount > 0:
+			var spot := GroundQuery.find_drop_spot(space, from, _rng, DROP_DISTANCE_MIN,
+				DROP_DISTANCE_MAX, DROP_CLEARANCE)
+			spawn_pickup(region, entry.item, amount, player_id, from, spot)
+
+
+func _allocate_reward_id() -> int:
+	_next_reward_id += 1
+	return _next_reward_id - 1
+
+
 func _replicator(region: Region) -> MultiplayerSpawner:
 	return region.get_node(REPLICATOR_NAME)
 
@@ -226,6 +267,10 @@ func _instantiate(data: Variant, region: Region) -> Node:
 			node = _instantiate_pickup(data)
 		Kind.STRUCTURE:
 			node = _instantiate_structure(data)
+		Kind.CHEST:
+			node = _instantiate_chest(data, region)
+		Kind.EXIT_PORTAL:
+			node = _instantiate_exit_portal(data, region)
 		_:
 			push_warning("[spawner] dados de criação inválidos recebidos")
 			var inert := Node.new()  # o Replicator exige um nó; este não faz nada
@@ -408,6 +453,29 @@ func _instantiate_structure(data: Dictionary) -> Structure:
 	return structure
 
 
+## Baú da dungeon: o tipo vem do catálogo da região, nunca da rede.
+func _instantiate_chest(data: Dictionary, region: Region) -> RewardChest:
+	var chest: RewardChest = CHEST_SCENE.instantiate()
+	chest.name = "R%d" % data["reward_id"]
+	chest.data = region.data.reward_chest
+	chest.position = data["position"]
+	return chest
+
+
+## Saída rápida da dungeon: leva à entrada dela (destino do catálogo da região). No host, entrar
+## nela é uma viagem como a de qualquer passagem da região.
+func _instantiate_exit_portal(data: Dictionary, region: Region) -> ExitPortal:
+	var portal: ExitPortal = EXIT_PORTAL_SCENE.instantiate()
+	portal.name = "R%d" % data["reward_id"]
+	portal.passage_id = &"exit_portal"
+	portal.target_region = region.data.exit_region
+	portal.target_passage = region.data.exit_passage
+	portal.position = data["position"]
+	if multiplayer.is_server():
+		portal.entered_by.connect(region.passage_entered.emit)
+	return portal
+
+
 func _register(entity: Character, entity_id: int) -> void:
 	entity.name = "E%d" % entity_id  # nomes iguais em todos os computadores (caminho das RPCs)
 	entity.entity_id = entity_id
@@ -454,6 +522,14 @@ func _valid_kind(data: Variant, region: Region) -> int:
 			if _is_id(d, "structure_id") and _is_position(d, "position") and structure is String \
 					and structures.get_entry(StringName(structure)) is StructureData:
 				return Kind.STRUCTURE
+		Kind.CHEST:
+			if _is_id(d, "reward_id") and _is_position(d, "position") and region.data \
+					and region.data.reward_chest:
+				return Kind.CHEST
+		Kind.EXIT_PORTAL:
+			if _is_id(d, "reward_id") and _is_position(d, "position") and region.data \
+					and not region.data.exit_region.is_empty():
+				return Kind.EXIT_PORTAL
 	return -1
 
 
@@ -521,7 +597,7 @@ func _revive_player(player_id: int) -> void:
 
 
 ## Em todos os computadores a criatura morta sai do registro; no host, ela também deixa
-## drops, some e agenda o renascimento.
+## drops, some e agenda o renascimento (menos em dungeon).
 func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef) -> void:
 	session.unregister_entity(monster.entity_id)
 	var region := region_ref.get_ref() as Region
@@ -529,6 +605,12 @@ func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef)
 		return
 	_spawn_drops(monster as Monster, region)
 	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
+	if (monster as Monster).data.is_boss and region.data and region.data.reward_chest:
+		# Depois que o corpo some: o baú surge onde o chefe caiu, não em cima dele.
+		get_tree().create_timer(CORPSE_TIME).timeout.connect(
+			_spawn_dungeon_reward_if_loaded.bind(region_ref, monster.position))
+	if region.is_temporary():  # dungeon: limpa fica limpa até ser esquecida
+		return
 	get_tree().create_timer(region.get_monster_spawn_points()[point_index].respawn_time) \
 		.timeout.connect(_respawn_monster.bind(point_index, region_ref))
 
@@ -540,17 +622,16 @@ func _on_minion_died(minion: Character) -> void:
 		get_tree().create_timer(CORPSE_TIME).timeout.connect(minion.queue_free)
 
 
-## Drops pessoais: a tabela é sorteada separadamente para cada jogador da região. Cada item
-## pousa num ponto andável e alcançável perto da criatura (nunca na água ou dentro de objetos).
+## Drops pessoais: a tabela é sorteada separadamente para cada jogador da região.
 func _spawn_drops(monster: Monster, region: Region) -> void:
-	var space := region.get_world_2d().direct_space_state
 	for player_id in region.player_ids():
-		for entry in monster.data.drops:
-			var amount := entry.roll(_rng)
-			if amount > 0:
-				var spot := GroundQuery.find_drop_spot(space, monster.position, _rng,
-					DROP_DISTANCE_MIN, DROP_DISTANCE_MAX, DROP_CLEARANCE)
-				spawn_pickup(region, entry.item, amount, player_id, monster.position, spot)
+		spawn_loot(region, monster.data.drops, monster.position, player_id)
+
+
+func _spawn_dungeon_reward_if_loaded(region_ref: WeakRef, at: Vector2) -> void:
+	var region := region_ref.get_ref() as Region
+	if region and not region.is_queued_for_deletion():
+		spawn_dungeon_reward(region, at)
 
 
 ## Só se a região ainda estiver carregada (sem ninguém lá, ela é liberada e o renascimento

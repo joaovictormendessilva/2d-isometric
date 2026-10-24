@@ -7,8 +7,10 @@ extends SceneTree
 ## Rodar (com janela; `--fixed-fps 60` = 1 passo de física por quadro, tempo exato):
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
-##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop
+##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop | chest
 ##                      (padrão: attack)
+##                      chest: na caverna dos slimes, o chefe morre; o jogador abre o baú
+##                      (a saída rápida aparece perto); use um recorte maior (ex.: 160x100)
 ##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
 ##                      drop: a criatura à frente morre; os itens saltam e balançam no chão
@@ -33,8 +35,11 @@ const TARGET_DISTANCE := 22.0
 const BOSS_DISTANCE := Vector2(100, 0)
 ## Cenário "cast": distância (chão) do alvo, onde a habilidade mira (a área cai nele).
 const CAST_DISTANCE := 70.0
+## Cenário "chest": onde o jogador fica em relação ao baú (tela), ao lado dele e ao alcance.
+const CHEST_OFFSET := Vector2(22, 4)
 
 var _abilities: AbilitySync
+var _player_state: PlayerStateSync
 
 var _options := {
 	"scenario": "attack", "frames": "16", "every": "2", "crop": "96x72", "scale": "3",
@@ -121,6 +126,25 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 				target.position = character.position + Iso.ground_to_screen(
 					ATTACK_DIRECTION * CAST_DISTANCE)
 				target.reset_physics_interpolation()
+		"chest":
+			game._travel(game.local_player_id(), &"slime_cave", &"to_forest")
+			await physics_frame
+			await physics_frame
+			character = (game.session as GameSession).get_player_entity(game.local_player_id())
+			for node in (game.region as Region).entities.get_children():
+				if node is Monster:
+					node.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+			var boss := _nearest(game, character, func(n: Node) -> bool:
+				return n is Monster and n.data.is_boss) as Monster
+			boss.health.apply_damage(DamageInfo.create(boss.health.current, ATTACK_DIRECTION,
+				0, 0, character.player_id))
+			for i in roundi(EntitySpawner.CORPSE_TIME * 60) + 2:  # o baú surge depois do corpo sumir
+				await physics_frame
+			var chest := _nearest(game, character, func(n: Node) -> bool:
+				return n is RewardChest)
+			character.position = chest.position + CHEST_OFFSET
+			character.reset_physics_interpolation()
+			_player_state = game.player_state
 		"boss":
 			game._travel(game.local_player_id(), &"forest", &"to_meadow")
 			await physics_frame
@@ -142,6 +166,8 @@ func _act(character: Character, scenario: String) -> void:
 			character.request_attack(Iso.screen_to_ground(ATTACK_DIRECTION))
 		"gather":
 			character.request_gather()
+		"chest":
+			_player_state.request_open_chest()  # depois de aberto, o host não faz nada
 		"cast":
 			_abilities.request_cast(character.player_id, 0, ATTACK_DIRECTION * CAST_DISTANCE)
 

@@ -16,6 +16,8 @@ signal player_exited(player_id: int)
 ## Luz ambiente (multiplica as cores do mundo; a interface não muda). Branco = sem mudança.
 @export var ambient := Color.WHITE
 
+## Dados do catálogo (posto por RegionWorlds ao carregar; null em regiões avulsas de teste).
+var data: RegionData
 ## Efeitos desenhados no chão, por baixo de tudo que está em `entities` (aviso do salto do chefe).
 ## Só apresentação: criada aqui em cada computador, nunca replicada. Nasce no _ready (já dentro da
 ## região): uma região liberada sem entrar na árvore não deixa o nó solto.
@@ -59,6 +61,18 @@ func player_ids() -> Array[int]:
 	var ids: Array[int] = []
 	ids.assign(_players.keys())
 	return ids
+
+
+## Dungeon (ADR-031): começa do zero, não vai para o save, criaturas não renascem.
+func is_temporary() -> bool:
+	return data != null and data.temporary
+
+
+## Dá para pôr `structure` em `at` (jogador em `player_position`)? Mesma regra no host e na
+## prévia: a de PlacementRules, e nada em dungeon (sumiria quando ela fosse esquecida).
+func can_place(structure: StructureData, player_position: Vector2, at: Vector2) -> bool:
+	return not is_temporary() and PlacementRules.can_place(get_world_2d().direct_space_state,
+		structure, player_position, at)
 
 
 func get_spawn_position() -> Vector2:

@@ -43,6 +43,7 @@ func load_region(region_id: StringName) -> Region:
 	world.gui_disable_input = true
 	add_child(world)
 	var region: Region = data.scene.instantiate()
+	region.data = data
 	world.add_child(region)
 	return region
 

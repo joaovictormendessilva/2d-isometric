@@ -142,3 +142,4 @@ EFFECT_POISON,Veneno,Poison
 MONSTER_POISON_SLIME,Slime venenoso,Poison slime
 EFFECT_SWIFTNESS,Rapidez,Swiftness
 BOSS_ENRAGED,%s se enfurece!,%s is enraged!
+PROMPT_OPEN_CHEST,[%s] Abrir o baú,[%s] Open the chest

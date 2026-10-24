@@ -905,3 +905,67 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   Itens puramente cosméticos (sem atributos) já cabem: são equipamentos com bônus vazios.
   Pendente: escolher a aparência só com teclado/controle (como a troca de tecla das
   habilidades).
+
+## ADR-031 — Dungeons temporárias (primeira: caverna dos slimes)
+
+- **Status**: Aceita (J1a validada pelo João, 2026-10-24)
+- **Contexto**: Etapa J, primeira frente escolhida pelo João (2026-10-24): dungeon instanciada.
+  A visão pede "mapas persistentes, instanciados e dungeons temporárias, sem complexidade antes
+  da necessidade".
+- **Decisões**:
+  - **Dungeon = região** (ADR-020) marcada `temporary` no catálogo (`RegionData`), com
+    `exit_region`/`exit_passage` (a entrada, do lado de fora). Reaproveita carregamento, viagem,
+    replicação por região e coop.
+  - **Temporária**: nunca vai para o save; quando fica vazia, é liberada como qualquer região e
+    esquecida; ao entrar de novo, começa do zero (criaturas, pontos de coleta). Criaturas mortas
+    lá **não renascem** (a dungeon limpa fica limpa enquanto houver alguém dentro). Não se
+    constrói nela (a bancada sumiria): `Region.can_place`, a mesma regra no host e na prévia.
+  - **Quem sai do jogo lá dentro** volta para a entrada: o save guarda `exit_region` e a
+    passagem `exit_passage` (campo `passage` do personagem, só procurado entre as passagens da
+    região).
+  - **Uma instância por dungeon no host**: todos os jogadores que entram na mesma dungeon ficam
+    na mesma cópia (coop LAN de até 4 amigos). Instâncias por grupo ficam para quando houver
+    grupos (o nome do mundo da região é o id, usado nos caminhos de rede).
+  - **Entrada**: objeto do cenário (monte com a boca, com colisão e Y-sort) + passagem sem
+    parede (`doorway.tscn`) na frente da boca; chega-se logo abaixo dela. Gerada pela receita
+    (`entrances`), numa clareira, depois de todo o resto (a floresta continua idêntica: mesmos
+    nós, posições e chão; o save dela vale).
+  - **Mapa**: mesmo gerador, com terreno por receita (piso, caminho e borda): a caverna usa piso
+    de pedra e abismos (bloqueiam como a água). O gerador agora confere que do ponto de entrada
+    se anda até cada passagem e até o chefe (falha se um abismo fechar o caminho).
+- **Rede e segurança (ADR-013)**: nenhuma mensagem nova (protocolo continua 16). Ids de região
+  e passagem do save só são procurados no catálogo e nas passagens da região.
+- **Conteúdo de teste** (troca sem mexer na regra): caverna com slimes comuns e venenosos,
+  cobre e o Rei Slime no fundo; entrada no meio da floresta.
+- **Limitações**: a dungeon recomeça só quando fica vazia (quem fica dentro mantém o progresso
+  dos outros); o caminho de saída na caverna não tem marca no chão (mesmo piso). Recompensa de
+  fim e saída rápida: ADR-032.
+
+## ADR-032 — Fim de dungeon: baú do chefe e saída rápida
+
+- **Status**: Aceita (J1b validada pelo João, 2026-10-24)
+- **Contexto**: J1b, continuação da ADR-031: a dungeon não tinha recompensa de fim nem como sair
+  depois do chefe sem voltar a pé.
+- **Decisões**:
+  - **Gatilho em dados**: a dungeon diz qual é o baú dela (`RegionData.reward_chest`, arquivo em
+    `data/chests/`). Quando um chefe (`MonsterData.is_boss`) morre numa região com baú, surgem o
+    baú (onde ele caiu) e a saída rápida (um pouco mais longe), depois que o corpo some. O mesmo
+    chefe fora de dungeon (Rei Slime da floresta) só deixa os drops de sempre.
+  - **Baú pessoal**: um baú só, e cada jogador da dungeon abre o seu uma vez (tecla de interagir,
+    rótulo "[E] Abrir o baú"). A tabela (`DropEntry`, como os drops) é sorteada só para quem
+    abriu e cai em volta do baú como drop pessoal. Cada computador mostra o baú como o jogador
+    local o deixou (aberto para quem já abriu). Prioridade da tecla: NPC, baú, coleta.
+  - **Saída rápida = passagem** (`ExitPortal` herda `Passage`): círculo mágico no chão que leva
+    a `exit_region`/`exit_passage` (frente da boca da caverna). A viagem é a mesma das outras
+    passagens (o Main decide).
+  - Baú e saída são entidades criadas pelo host (`EntitySpawner`, tipos novos), então quem
+    entra na dungeon depois também os recebe; somem quando a dungeon é esquecida.
+- **Rede e segurança (ADR-013)**: protocolo **17**. Mensagens novas: pedido "abrir baú" (sem
+  argumentos: o host escolhe o baú ao alcance e ainda não aberto por quem pediu, com o estado
+  dele; passa pela cota do `PeerGuard`) e "baú aberto" (host → só o dono). Dados de criação do
+  baú e da saída só levam id e posição (conferidos); tipo do baú e destino da saída vêm do
+  catálogo da região, nunca da rede.
+- **Conteúdo de teste** (troca sem mexer na regra): baú da caverna com 1–2 poções de vida, 4–8
+  minérios de cobre e 50% de uma poção de rapidez.
+- **Limitações**: quem entrar depois do chefe morto também pode abrir o baú (uma instância por
+  dungeon, ADR-031); a saída não tem rótulo (entrar nela já leva para fora).

@@ -3,8 +3,8 @@ extends Node
 ## Lê teclado/mouse/controle do jogador LOCAL e entrega INTENÇÕES ao personagem dele.
 ## Movimento: direções da tela viram direções no plano do chão (cima na tela = "norte"),
 ## então as diagonais andam alinhadas às bordas dos tiles.
-## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main) ou, sem NPC,
-## coletar o ponto de coleta mais próximo.
+## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main); sem NPC, abrir o
+## baú de dungeon ao alcance; sem nenhum dos dois, coletar o ponto de coleta mais próximo.
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
 ## Habilidades (1–4 / RB, B, direcional): lança a do espaço, com a mesma mira do ataque.
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
@@ -64,6 +64,8 @@ func _physics_process(_delta: float) -> void:
 		var npc := player_state.npc_near(player_id) if player_state else null
 		if npc:
 			talk_requested.emit(npc)
+		elif player_state and player_state.chest_near(player_id):
+			player_state.request_open_chest()
 		else:
 			target.request_gather()
 	if Input.is_action_just_pressed(&"use_potion") and player_state:
