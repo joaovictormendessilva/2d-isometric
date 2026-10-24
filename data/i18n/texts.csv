@@ -35,6 +35,7 @@ NET_HOSTING_LOCAL,Host (só este PC) na porta %d,Host (this PC only) on port %d
 NET_HOSTING_LAN,Host (rede local) %s · porta %d · código %s,Host (local network) %s · port %d · code %s
 NET_CONNECTED,Conectado ao host,Connected to host
 NET_CONNECT_FAILED,Não foi possível conectar,Could not connect
+NET_HOST_NOT_FOUND,Host não encontrado (endereço errado ou firewall?),Host not found (wrong address or firewall?)
 NET_HOST_LOST,Conexão com o host perdida,Lost connection to host
 NET_PLAYERS,%s · %d jogador(es),%s · %d player(s)
 NET_PING,%s · ping %d ms,%s · ping %d ms

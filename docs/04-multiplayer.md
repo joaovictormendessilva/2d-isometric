@@ -59,16 +59,18 @@ comando: `Godot --path . -- --host` e `Godot --path . -- --join=127.0.0.1`.
 - Acerto decidido com posições ~0,1 s atrasadas do outro lado: ok no LAN; o online pede
   compensação de atraso.
 - O host valida velocidade e paredes (H4); quem inunda o host de pedidos é desconectado (H4).
-  Na rede local só entra quem digitar o código da partida (I1; o código não trafega). Pendente
-  antes de abrir para a LAN (Etapa I): criptografia (ADR-013).
+  Na rede local só entra quem digitar o código da partida (I1; o código não trafega). Tudo
+  criptografado (I2, DTLS): o cliente pega o certificado do host na porta da frente (porta + 1,
+  selado com o código) e só conecta confiando nele (ADR-013). O firewall precisa liberar as
+  duas portas UDP (24680 e 24681).
 - Vida das criaturas não é recalculada quando alguém entra no meio da luta.
-- Identidade por segredo do perfil (ADR-019) trafega sem criptografia na LAN (ver ADR-013).
 - Aparências (G3c, ADR-030): a escolhida em cada espaço vai a todos com o equipamento; a coleção
   só ao dono. O cliente confere as aparências dos outros só pelo tipo do espaço (a coleção deles
   não chega); o host confere cada pedido com a coleção oficial.
 - Tráfego ~0,9 KB/s por entidade em movimento por cliente (parada ~0,1). Coop com 4 na mesma
   região (H3): o host envia ~3,7 KB/s a cada cliente andando e ~10 KB/s em combate (31 KB/s no
-  total); recebe ~1 KB/s de cada um andando, ~3 em combate. Cabe com folga na LAN; online, o
+  total); recebe ~1 KB/s de cada um andando, ~3 em combate. Com a criptografia (I2): ~6,3 KB/s
+  andando (~29 bytes a mais por pacote), combate igual. Cabe com folga na LAN; online, o
   envio do host (~250 kbit/s com 4 em combate) ainda cabe numa conexão doméstica comum. Muitas
   criaturas online pedem agrupamento.
 - Regiões no coop (F2c): o host simula toda região com jogador (até uma por jogador); cada

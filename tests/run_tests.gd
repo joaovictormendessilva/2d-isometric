@@ -70,7 +70,9 @@ func _run_all() -> void:
 			test.tree = self
 			await test.call(method_name)
 			test.cleanup()
-			test.failures.append_array(_errors.take())
+			for error in _errors.take():
+				if not test.is_expected_error(error):
+					test.failures.append(error)
 			total += 1
 			if test.failures.is_empty():
 				print("  ok    %s" % method_name)
