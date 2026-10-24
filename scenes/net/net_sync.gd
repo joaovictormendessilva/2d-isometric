@@ -8,8 +8,8 @@ extends Node
 ##
 ## Segurança (ADR-013): todo estado vem do host. O dono de um personagem só envia AO HOST
 ## a própria posição e pedidos de ataque; o host confere remetente, valores, frequência e
-## velocidade antes de aceitar e repassar. Vida, dano, morte, renascimento e efeitos (buffs e
-## debuffs) são decididos só pelo host.
+## velocidade antes de aceitar e repassar. Vida, dano, morte, renascimento, efeitos (buffs e
+## debuffs) e montaria (a pé, subindo, montado) são decididos só pelo host.
 
 ## Dono: o host recusou uma posição e devolveu o corpo (cada vez é um tranco para quem joga).
 signal corrected
@@ -90,6 +90,8 @@ func _ready() -> void:
 		_body.health.immunity_changed.connect(_on_immunity_changed)
 	if _body.status_effects:
 		_body.status_effects.effects.changed.connect(_on_effects_changed)
+	if _body.rider:
+		_body.rider.state.changed.connect(_on_ride_changed)
 	if _body.gatherer:
 		_body.gatherer.started.connect(_on_gather_started.unbind(1))
 		_body.gatherer.stopped.connect(_on_gather_stopped)
@@ -420,6 +422,15 @@ func _effects_snapshot() -> Dictionary:
 	return _body.status_effects.effects.snapshot() if _body.status_effects else {}
 
 
+func _on_ride_changed() -> void:
+	if multiplayer.is_server():
+		_send_to_clients(&"_ride", [_ride_phase()], true)
+
+
+func _ride_phase() -> int:
+	return _body.rider.state.phase if _body.rider else RideState.Phase.ON_FOOT
+
+
 func _on_revived() -> void:
 	_snapshots.clear()
 	_accepted_position = _body.position
@@ -464,6 +475,14 @@ func _effects(state: Dictionary) -> void:
 		_body.status_effects.effects.replicate(state, EffectDatabase.shared())
 
 
+## Host → clientes: a pé, subindo ou montado (subindo: a barra usa o tempo da montaria vestida,
+## que cada computador conhece pelo equipamento).
+@rpc("authority", "call_remote", "reliable")
+func _ride(phase: int) -> void:
+	if _body.rider and phase >= 0 and phase < RideState.Phase.size():
+		_body.rider.state.replicate(phase, _body.mount.mount_time if _body.mount else 0.0)
+
+
 @rpc("authority", "call_remote", "reliable")
 func _revived(at: Vector2) -> void:
 	if NetRules.is_valid_vector(at):
@@ -487,13 +506,15 @@ func _request_full_state() -> void:
 	if not multiplayer.is_server() or not _broadcast.add_peer(peer):
 		return
 	_full_state.rpc_id(peer, _body.position, _body.health.current, _body.health.is_immune(),
-		_effects_snapshot())
+		_effects_snapshot(), _ride_phase())
 
 
 @rpc("authority", "call_remote", "reliable")
-func _full_state(position: Vector2, current: int, immune: bool, effects: Dictionary) -> void:
+func _full_state(position: Vector2, current: int, immune: bool, effects: Dictionary,
+		ride: int) -> void:
 	if not is_simulating() and NetRules.is_valid_vector(position):
 		_teleport(position)
 	_body.health.replicate_current(current)
 	_body.health.set_immune(immune)
 	_effects(effects)
+	_ride(ride)

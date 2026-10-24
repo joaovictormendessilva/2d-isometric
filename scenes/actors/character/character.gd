@@ -4,7 +4,7 @@ extends CharacterBody2D
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
 ## Componentes opcionais (filhos): Footprint, Health, Attacker, SlamAttacker, Gatherer,
-## StatusEffects, AbilityCaster, NetSync ("Net").
+## StatusEffects, AbilityCaster, Rider, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
 
@@ -38,6 +38,8 @@ var bonuses := StatBonuses.new()
 var on_hit_effects: Array[StatusEffectData] = []
 ## Auras em volta do ator (só aparência, ADR-029): as do equipamento vestido.
 var auras: Array[AuraData] = []
+## Montaria vestida (jogadores; ver `apply_equipment` e Rider), ou null.
+var mount: MountData
 
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
@@ -47,6 +49,7 @@ var slammer: SlamAttacker
 var gatherer: Gatherer
 var status_effects: StatusEffects
 var caster: AbilityCaster
+var rider: Rider
 var net: NetSync
 
 var _footprint: Footprint
@@ -65,6 +68,7 @@ func _enter_tree() -> void:
 	gatherer = get_node_or_null("Gatherer")
 	status_effects = get_node_or_null("StatusEffects")
 	caster = get_node_or_null("AbilityCaster")
+	rider = get_node_or_null("Rider")
 	net = get_node_or_null("Net")
 	_footprint = get_node_or_null("Footprint")
 
@@ -97,9 +101,12 @@ func apply_equipment(equipment: Equipment) -> void:
 	_equipment_bonuses = StatBonuses.total(equipment.equipped())
 	var weapon := equipment.weapon()
 	_weapon_attack = weapon.attack if weapon else null
+	mount = equipment.item_of_type(EquipmentData.Slot.MOUNT) as MountData
 	_update_bonuses()
 	if is_node_ready() and attacker:
 		attacker.set_attack(_weapon_attack if _weapon_attack else stats.unarmed_attack)
+	if is_node_ready() and rider:
+		rider.mount_changed()
 	var shown: Array[AuraData] = []
 	for item in equipment.shown_items():
 		if item.aura and item.aura not in shown:
@@ -125,7 +132,8 @@ func _total_bonuses() -> StatBonuses:
 
 
 func move_speed() -> float:
-	return stats.move_speed * maxf(1.0 + bonuses.move_speed_percent / 100.0, MIN_SPEED_FACTOR)
+	return stats.move_speed * maxf(1.0 + bonuses.move_speed_percent / 100.0, MIN_SPEED_FACTOR) \
+		* (rider.speed_factor() if rider else 1.0)
 
 
 ## Raio do ímã de itens no chão (ver `Pickup`).
@@ -151,15 +159,22 @@ func set_move_intent(direction: Vector2) -> void:
 	_move_intent = direction.limit_length(1.0)
 
 
-## Livre para agir: vivo, sem atordoamento e sem outro ataque, salto ou lançamento em andamento.
+## Livre para agir: vivo, sem atordoamento, a pé e sem outro ataque, salto ou lançamento em
+## andamento.
 func can_act() -> bool:
 	return is_alive() and _stun_left == 0.0 and not (attacker and attacker.is_attacking()) \
-		and not (slammer and slammer.is_slamming()) and not (caster and caster.is_casting())
+		and not (slammer and slammer.is_slamming()) and not (caster and caster.is_casting()) \
+		and not _riding()
+
+
+## Subindo na montaria ou montado: não ataca, não coleta nem lança habilidades (ADR-035).
+func _riding() -> bool:
+	return rider != null and rider.is_busy()
 
 
 ## Pede um ataque na direção dada (plano do chão). Retorna se o ataque começou.
 func request_attack(direction: Vector2) -> bool:
-	if attacker == null or not is_alive() or _stun_left > 0.0 \
+	if attacker == null or not is_alive() or _stun_left > 0.0 or _riding() \
 			or (slammer and slammer.is_slamming()) or (caster and caster.is_casting()):
 		return false
 	if not attacker.try_attack(direction):
@@ -181,7 +196,7 @@ func request_cast(ability: AbilityData, aim: Vector2) -> bool:
 ## Lançamento decidido em outro computador (host ou dono que previu): como `play_remote_attack`,
 ## ignora o atordoamento, que pode diferir por milissegundos entre computadores.
 func play_remote_cast(ability: AbilityData, aim: Vector2) -> void:
-	if caster and is_alive() and caster.try_cast(ability, aim):
+	if caster and is_alive() and not _riding() and caster.try_cast(ability, aim):
 		facing = aim.normalized()
 
 
@@ -195,7 +210,7 @@ func request_slam(landing: Vector2) -> bool:
 
 ## Pede para coletar o ponto de coleta mais próximo ao alcance. Retorna se começou.
 func request_gather() -> bool:
-	if gatherer == null or not is_alive() or _stun_left > 0.0 \
+	if gatherer == null or not is_alive() or _stun_left > 0.0 or _riding() \
 			or (attacker and attacker.is_attacking()):
 		return false
 	if not gatherer.try_gather(gatherer.find_node()):
@@ -214,7 +229,7 @@ func face_towards(screen_point: Vector2) -> void:
 ## Ataque decidido em outro computador (ver NetSync): ignora atordoamento, que pode diferir
 ## por alguns milissegundos entre computadores.
 func play_remote_attack(direction: Vector2, tolerance: float) -> void:
-	if attacker and is_alive() and attacker.try_attack(direction, tolerance):
+	if attacker and is_alive() and not _riding() and attacker.try_attack(direction, tolerance):
 		facing = direction.normalized()
 
 
@@ -271,6 +286,8 @@ func _physics_process(delta: float) -> void:
 		speed *= slammer.move_multiplier()
 	if caster:
 		speed *= caster.move_multiplier()
+	if rider:
+		speed *= rider.move_multiplier()
 	var rate := stats.acceleration if intent != Vector2.ZERO else stats.friction
 	ground_velocity = ground_velocity.move_toward(intent * speed, rate * delta)
 	velocity = Iso.ground_to_screen(ground_velocity)

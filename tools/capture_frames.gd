@@ -7,10 +7,11 @@ extends SceneTree
 ## Rodar (com janela; `--fixed-fps 60` = 1 passo de física por quadro, tempo exato):
 ##   G --path . --fixed-fps 60 -s res://tools/capture_frames.gd -- --out=<arquivo.png> [opções]
 ## Opções:
-##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop | chest
+##   --scenario=<nome>  idle | walk | attack | gather | inventory | boss | cast | drop | chest | mount
 ##                      (padrão: attack)
 ##                      chest: na caverna dos slimes, o chefe morre; o jogador abre o baú
 ##                      (a saída rápida aparece perto); use um recorte maior (ex.: 160x100)
+##                      mount: sobe na montaria (--equip=riding_slime) e sai andando
 ##                      attack: com arma à distância (--equip=bow), o alvo fica mais longe
 ##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
@@ -127,6 +128,8 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 				target.position = character.position + Iso.ground_to_screen(
 					ATTACK_DIRECTION * CAST_DISTANCE)
 				target.reset_physics_interpolation()
+		"mount":
+			_player_state = game.player_state
 		"chest":
 			game._travel(game.local_player_id(), &"slime_cave", &"to_forest")
 			await physics_frame
@@ -174,6 +177,11 @@ func _act(character: Character, scenario: String) -> void:
 			character.request_gather()
 		"chest":
 			_player_state.request_open_chest()  # depois de aberto, o host não faz nada
+		"mount":
+			if character.rider.is_mounted():
+				character.set_move_intent(WALK_DIRECTION)
+			elif not character.rider.is_busy():
+				_player_state.request_toggle_mount()
 		"cast":
 			_abilities.request_cast(character.player_id, 0, ATTACK_DIRECTION * CAST_DISTANCE)
 

@@ -6,6 +6,8 @@ extends Node
 ## Interagir (E / botão A): falar com o NPC ao alcance (abre a loja; ver Main); sem NPC, abrir o
 ## baú de dungeon ao alcance; sem nenhum dos dois, coletar o ponto de coleta mais próximo.
 ## Poção (Q / LB): bebe a primeira poção de vida do inventário (o host confere).
+## Montaria (R / direcional para baixo): sobe na montaria vestida ou desce (o host decide).
+## Montado, apertar o ataque desce em vez de atacar.
 ## Habilidades (1–4 / RB, B, direcional): lança a do espaço, com a mesma mira do ataque.
 ## Ataque: segurar repete o golpe; um clique que começou na interface não ataca. Mira no
 ## mouse se o último dispositivo de mira foi o mouse; com o controle, na direção em que o
@@ -70,12 +72,17 @@ func _physics_process(_delta: float) -> void:
 			target.request_gather()
 	if Input.is_action_just_pressed(&"use_potion") and player_state:
 		player_state.request_quick_heal()
+	# Um clique que começou na interface não é ataque (nem desce da montaria).
+	var attack_free := not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) or _mouse_press_is_free
+	var riding := target.rider != null and target.rider.is_busy()
+	if player_state and (Input.is_action_just_pressed(&"mount")
+			or riding and attack_free and Input.is_action_just_pressed(&"attack")):
+		player_state.request_toggle_mount()
 	if abilities:
 		for index in AbilityBook.SLOTS:
 			if Input.is_action_just_pressed(ABILITY_ACTIONS[index]):
 				abilities.request_cast(player_id, index, _aim())
-	var mouse_attack := Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-	if Input.is_action_pressed(&"attack") and (not mouse_attack or _mouse_press_is_free):
+	if Input.is_action_pressed(&"attack") and attack_free and not riding:  # descer não ataca junto
 		target.request_attack(_aim())
 
 
