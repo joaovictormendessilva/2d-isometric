@@ -252,6 +252,17 @@ const BOW := [
 	"oWlo....",
 	".oo.....",
 ]
+## Cajado (J2b): haste de madeira na diagonal com uma gema azul na ponta.
+const STAFF := [
+	".....oo.",
+	"....obBo",
+	"....oBNo",
+	"...owoo.",
+	"..owo...",
+	".owo....",
+	"oWo.....",
+	"oo......",
+]
 const SHIELD := [
 	".oooooo.",
 	"owwWwwWo",
@@ -457,6 +468,7 @@ const ICONS := {
 	"sword": [SWORD, {}],
 	"wooden_shield": [SHIELD, {}],
 	"bow": [BOW, {}],
+	"staff": [STAFF, {}],
 	"copper_helmet": [HELMET, {}],
 	"simple_backpack": [BACKPACK, {}],
 	"magnet_ring": [RING, {}],

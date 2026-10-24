@@ -1,9 +1,11 @@
 extends TestCase
 ## Armas à distância (J2, ADR-033): o golpe do arco solta uma flecha que fere o primeiro inimigo
-## no caminho; no coop, só a flecha do host fere e todos a veem.
+## no caminho; o do cajado, um orbe que explode em volta de onde acerta. No coop, só o projétil do
+## host fere e todos o veem.
 
 const PORT := 24820
 const BOW := &"bow"
+const STAFF := &"staff"
 
 
 func test_bow_is_a_two_handed_ranged_weapon_made_at_the_workbench() -> void:
@@ -68,6 +70,42 @@ func test_arrow_flies_the_same_on_screen_in_every_direction() -> void:
 	check_near(flown[0], flown[1], 1.0, "mesma distância na tela (%s)" % [flown])
 
 
+func test_staff_is_a_two_handed_weapon_whose_orb_explodes() -> void:
+	var staff := ItemDatabase.load_all().get_item(STAFF) as WeaponData
+	check(staff != null and staff.icon != null, "o cajado existe e tem ícone")
+	check(staff.grip == WeaponData.Grip.TWO_HAND and staff.off_hand_kinds.is_empty(),
+		"de 2 mãos; nada na outra mão")
+	var orb := staff.attack.projectile
+	check(orb != null and orb.look == ProjectileData.Look.ORB
+		and orb.splash_radius > orb.hit_radius, "o golpe é um orbe que explode")
+	var recipe := RecipeDatabase.load_all().get_recipe(STAFF)
+	check(recipe != null and recipe.result == staff
+		and recipe.station == RecipeData.Station.WORKBENCH, "receita na bancada")
+
+
+## O orbe explode em quem tocou e fere quem está em volta; quem está longe da explosão, não.
+func test_staff_orb_hurts_everyone_around_the_impact() -> void:
+	var game := start_game()
+	var player := _wielding(game, STAFF)
+	var staff := player.attacker.attack
+	var slimes := _slimes(game, 3)
+	var hit := slimes[0]
+	var beside := slimes[1]
+	var far := slimes[2]
+	_place(hit, player.position + Iso.ground_to_screen(Vector2(60, 0)))
+	_place(beside, player.position + Iso.ground_to_screen(Vector2(64, 14)))
+	_place(far, player.position + Iso.ground_to_screen(Vector2(60, 60)))
+	await physics_frames(2)
+	check(player.request_attack(Vector2.RIGHT), "lançou o orbe")
+	check(await wait_until(func() -> bool: return hit.health.current < hit.health.max_health,
+		roundi((staff.windup + 60.0 / staff.projectile.speed) * 60.0) + 6), "o orbe acertou")
+	await physics_frames(2)
+	check(hit.health.max_health - hit.health.current == staff.damage, "dano do cajado")
+	check(beside.health.max_health - beside.health.current == staff.damage,
+		"quem estava ao lado levou a explosão")
+	check(far.health.current == far.health.max_health, "quem estava longe não levou")
+
+
 ## Coop: o cliente veste o arco (o host decide) e atira; a flecha do host fere o slime, e o host
 ## e o cliente veem a flecha voar.
 func test_client_shoots_through_host() -> void:
@@ -103,13 +141,19 @@ func test_client_shoots_through_host() -> void:
 		"a flecha do host feriu o slime")
 
 
-## Jogo local com as criaturas paradas e o jogador de arco vestido (o host decide, como no jogo).
+## Jogo local com as criaturas paradas e o jogador de arco vestido.
 func _archer(game: Node) -> Character:
+	return _wielding(game, BOW)
+
+
+## Jogo local com as criaturas paradas e a arma `weapon_id` vestida (o host decide, como no jogo).
+func _wielding(game: Node, weapon_id: StringName) -> Character:
 	calm_monsters(game)
 	var session := game.session as GameSession
 	var inventory := session.get_inventory(1)
-	inventory.add(BOW, 1)
-	EquipmentRules.equip_from_inventory(inventory, session.get_equipment(1), slot_of(inventory, BOW))
+	inventory.add(weapon_id, 1)
+	EquipmentRules.equip_from_inventory(inventory, session.get_equipment(1),
+		slot_of(inventory, weapon_id))
 	return session.get_player_entity(1) as Character
 
 

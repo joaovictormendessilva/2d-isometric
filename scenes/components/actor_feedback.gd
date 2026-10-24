@@ -2,7 +2,7 @@ class_name ActorFeedback
 extends Node
 ## Retorno visual genérico de qualquer ator (só apresentação): flash ao ser atingido, brilho
 ## verde ao curar, piscar durante invulnerabilidade, tom avermelhado na preparação de ataques lentos
-## (telegrafia: o jogador vê o ataque vindo), transparência enquanto imune e desaparecer
+## das criaturas (telegrafia: o jogador vê o ataque vindo; os dele não avermelham), transparência enquanto imune e desaparecer
 ## ao morrer.
 
 const FLASH_COLOR := Color(2.5, 2.5, 2.5)
@@ -66,7 +66,7 @@ func _on_immunity_changed(_immune: bool) -> void:
 
 
 func _on_attack_started(_direction: Vector2, attack: AttackData) -> void:
-	if attack.windup >= TELEGRAPH_MIN_WINDUP:
+	if attack.windup >= TELEGRAPH_MIN_WINDUP and _body.faction != Character.PLAYER_FACTION:
 		_telegraphing = true
 		_tween_modulate(_rest_color(false), _rest_color(), attack.windup)
 

@@ -12,6 +12,9 @@ enum Look { ORB, ARROW }
 @export var max_range: float = 160.0
 ## Raio (chão) em que o projétil acerta uma pegada.
 @export var hit_radius: float = 4.0
+## Ao acertar, explode: fere todos os inimigos neste raio (chão; a pegada conta) em volta do
+## impacto, não só quem foi tocado (orbe do cajado). 0 = só quem foi tocado.
+@export var splash_radius: float = 0.0
 
 @export_group("Apresentação")
 @export var look := Look.ORB

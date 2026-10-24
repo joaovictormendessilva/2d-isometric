@@ -28,6 +28,10 @@ const TRAIL_LIFETIME := 0.25
 const IMPACT_PARTICLES := 8
 const IMPACT_SPEED := 40.0
 const IMPACT_LIFETIME := 0.3
+## Explosão (orbe do cajado): faíscas na cor do brilho, mais e mais rápidas que as do impacto.
+const SPLASH_PARTICLES := 14
+const SPLASH_SPEED := 80.0
+const SPLASH_LIFETIME := 0.35
 
 ## Imagens dos projéteis (sombra + corpo), pintadas na primeira vez que cada uma aparece: orbe, uma
 ## por dado; flecha, uma por dado e direção. Três círculos desenhados por projétil viravam 3
@@ -114,14 +118,35 @@ func _physics_process(delta: float) -> void:
 
 func _hit(caster: Character, target: Character) -> void:
 	if multiplayer.is_server():
-		var info := DamageInfo.create(_damage, _direction, _knockback, caster.entity_id,
-			caster.player_id)
-		if target.health.apply_damage(info):
-			caster.apply_effects(target, _effects)
+		if _data.splash_radius > 0.0:
+			# Explosão: o tocado está no raio (ele foi achado pelo raio de acerto, menor).
+			for hurt in AreaStrike.hit(caster, position, maxf(_data.splash_radius, _data.hit_radius),
+					_damage, _knockback):
+				caster.apply_effects(hurt, _effects)
+		else:
+			var info := DamageInfo.create(_damage, _direction, _knockback, caster.entity_id,
+				caster.player_id)
+			if target.health.apply_damage(info):
+				caster.apply_effects(target, _effects)
+	if _data.splash_radius > 0.0:
+		_show_splash()
 	# Faíscas no ponto do impacto (ficam na região depois que o projétil some).
 	SparkBurst.spawn(get_parent(), position + Vector2(0, -HEIGHT), _data.color,
 		IMPACT_PARTICLES, IMPACT_SPEED, IMPACT_LIFETIME)
 	queue_free()
+
+
+## Explosão: estouro de faíscas e onda clara no chão do tamanho da área (somem sozinhas).
+func _show_splash() -> void:
+	SparkBurst.spawn(get_parent(), position + Vector2(0, -HEIGHT), _data.glow_color,
+		SPLASH_PARTICLES, SPLASH_SPEED, SPLASH_LIFETIME)
+	var region := Region.of(self)
+	if region == null:
+		return
+	var wave := GroundTelegraph.new()
+	wave.setup(position, _data.splash_radius)
+	region.ground_effects.add_child(wave)
+	wave.burst()
 
 
 func _draw() -> void:

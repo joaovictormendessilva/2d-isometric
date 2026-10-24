@@ -1006,3 +1006,25 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   demais: os slimes nem chegavam perto (João).
 - **Limitações**: a flecha ainda atravessa árvores e pedras (pendência da ADR-026); o
   personagem não mostra a arma na mão (vem com a arte definitiva).
+
+## ADR-034 — Cajado: orbe que explode
+
+- **Status**: Hipótese (J2b, aguardando validação do João)
+- **Contexto**: J2b. Identidade escolhida pelo João (2026-10-24) entre quatro opções: orbe que
+  explode (as outras eram orbe que atravessa, rajada em leque e "arco mágico").
+- **Decisões**:
+  - **Explosão em dados**: `ProjectileData.splash_radius` (plano do chão). Ao tocar um inimigo,
+    o projétil fere todos os inimigos no raio em volta do impacto, empurrando cada um para fora
+    do centro (o mesmo `AreaStrike` do salto dos chefes e da explosão arcana). 0 = só quem foi
+    tocado (flecha, projétil arcano). Qualquer projétil (de arma ou de habilidade) pode usar.
+  - **Apresentação**: no impacto, estouro de faíscas na cor do orbe e uma onda clara no chão do
+    tamanho da área (a mesma onda dos avisos de área).
+  - **Cajado de 2 mãos, nada na outra mão** (ADR-018). Cajado de 1 mão com tomo fica para
+    depois (o "tomo" de hoje é o livro que ensina habilidades, não um item de mão).
+  - **Correção junto**: o tom vermelho de "ataque vindo" (telegrafia, `ActorFeedback`) agora só
+    aparece nas criaturas; com preparação longa (cajado), o jogador ficava vermelho.
+- **Rede e segurança (ADR-013)**: nada novo; a explosão só fere no host, como o resto do
+  projétil. Protocolo continua **18** (ainda não publicado na `main`; o cajado entra junto).
+- **Conteúdo de teste**: cajado feito na bancada com 8 madeiras, 4 minérios de cobre e 5 gosmas.
+  Orbe azul, 9 de dano, explosão de raio 20, recuo 40, velocidade 170 e alcance 150 px de tela,
+  preparação 0,3 s, recuperação 0,7 s (~9 de dano por segundo num alvo; mais num grupo).

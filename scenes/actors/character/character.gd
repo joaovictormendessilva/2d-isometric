@@ -15,10 +15,12 @@ signal auras_changed
 
 ## Lentidão nunca para o ator de vez: no mínimo esta fração da velocidade.
 const MIN_SPEED_FACTOR := 0.2
+## Facção dos jogadores (o padrão; criaturas definem a delas).
+const PLAYER_FACTION := &"players"
 
 @export var stats: ActorStats
 ## Atores da mesma facção não se ferem.
-@export var faction: StringName = &"players"
+@export var faction: StringName = PLAYER_FACTION
 
 var entity_id := 0
 var player_id := 0
