@@ -6,11 +6,24 @@ extends RefCounted
 const MAIN_SCENE := preload("res://scenes/main/main.tscn")
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const SLIME_SCENE := preload("res://scenes/actors/monsters/slime.tscn")
+## Tempo real mínimo de qualquer espera antes de desistir (ver wait_until).
+const MIN_WAIT_MS := 2000
 
 var tree: SceneTree
 var failures := PackedStringArray()
 var _owned_nodes: Array[Node] = []
 var _multiplayer_roots: Array[NodePath] = []
+## Trechos de erros da engine que ESTE teste provoca de propósito (ex.: lixo chegando à
+## conexão criptografada); qualquer outro erro continua reprovando.
+var _expected_errors := PackedStringArray()
+
+
+func expect_errors(fragment: String) -> void:
+	_expected_errors.append(fragment)
+
+
+func is_expected_error(error: String) -> bool:
+	return Array(_expected_errors).any(func(fragment: String) -> bool: return error.contains(fragment))
 
 
 func check(condition: bool, message: String) -> void:
@@ -124,12 +137,18 @@ func _new_game(save_path: String) -> Node:
 	return game
 
 
-## Espera até `condition` ser verdadeira (no máximo `max_frames` passos de física).
+## Espera até `condition` ser verdadeira: no máximo `max_frames` passos de física, mas nunca
+## desiste antes de MIN_WAIT_MS de tempo real. Com `--fixed-fps` os quadros correm bem mais
+## rápido que o relógio, e a rede conta tempo real (entrar numa partida criptografada leva
+## ~0,6 s: o ENet reenvia o primeiro pacote, perdido enquanto a criptografia se acerta).
 func wait_until(condition: Callable, max_frames: int = 300) -> bool:
-	for i in max_frames:
+	var give_up_at := Time.get_ticks_msec() + MIN_WAIT_MS
+	var frames := 0
+	while frames < max_frames or Time.get_ticks_msec() < give_up_at:
 		if condition.call():
 			return true
 		await tree.physics_frame
+		frames += 1
 	return condition.call()
 
 

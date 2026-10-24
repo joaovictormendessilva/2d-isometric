@@ -82,8 +82,14 @@ func _ready() -> void:
 	VfxQuality.shared().apply_command_line(OS.get_cmdline_user_args())
 	if configure_network_from_command_line:
 		network.configure_from_command_line(OS.get_cmdline_user_args())
-	network.start()
 	_net_status.network = network
+	# O cliente espera a porta da frente do host; sem conseguir entrar, fica só o aviso na
+	# tela (nunca um mundo próprio no lugar do mundo do host).
+	if await network.start() != OK and network.role == Network.Role.CLIENT:
+		if _is_screenshot_run():
+			await get_tree().create_timer(NetStatus.REFRESH_INTERVAL * 2).timeout  # aviso na tela
+			_capture_and_quit(_screenshot_path())
+		return
 	worlds.catalog = regions
 
 	_spawner.structures = DataCatalog.new(STRUCTURES_DIR)
@@ -300,12 +306,25 @@ func detach_local_input() -> void:
 
 
 static func _is_screenshot_run() -> bool:
-	return Array(OS.get_cmdline_user_args()).any(
-		func(arg: String) -> bool: return arg.begins_with("--screenshot="))
+	return not _screenshot_path().is_empty()
+
+
+static func _screenshot_path() -> String:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--screenshot="):
+			return arg.trim_prefix("--screenshot=")
+	return ""
+
+
+func _capture_and_quit(path: String) -> void:
+	await RenderingServer.frame_post_draw
+	get_viewport().get_texture().get_image().save_png(path)
+	print("[main] screenshot: %s" % path)
+	get_tree().quit()
 
 
 func _handle_command_line() -> void:
-	var screenshot_path := ""
+	var screenshot_path := _screenshot_path()
 	var move := Vector2.ZERO
 	var open_inventory := false
 	var open_shop := false
@@ -318,8 +337,6 @@ func _handle_command_line() -> void:
 			equip = arg.trim_prefix("--equip=")
 		elif arg.begins_with("--look="):
 			looks = arg.trim_prefix("--look=")
-		elif arg.begins_with("--screenshot="):
-			screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--move="):
 			var parts := arg.trim_prefix("--move=").split(",")
 			move = Vector2(parts[0].to_float(), parts[1].to_float())
@@ -350,10 +367,7 @@ func _handle_command_line() -> void:
 		_inventory_panel.set_open(true)
 	if open_shop:
 		_talk_to_first_npc(shop_npc)
-	await RenderingServer.frame_post_draw
-	get_viewport().get_texture().get_image().save_png(screenshot_path)
-	print("[main] screenshot: %s" % screenshot_path)
-	get_tree().quit()
+	_capture_and_quit(screenshot_path)
 
 
 ## Capturas (tela e folha de quadros): veste itens novos de `ids` (separados por vírgula) direto

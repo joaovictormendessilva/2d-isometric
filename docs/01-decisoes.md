@@ -234,7 +234,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
 - **Decisões (Etapa D+)**:
   - **Porta só quando pedida**: offline não abre porta. `--host` escuta só em 127.0.0.1
     (invisível para a rede); só `--host-lan` escuta na rede local (Etapa I). Porta UDP
-    padrão 24680; portas < 1024 recusadas.
+    padrão 24680 (jogo) e 24681 (porta da frente, I2); portas < 1024 recusadas.
   - **Aperto de mão**: identificação do jogo + versão do protocolo, comparada byte a byte
     (nada é interpretado). Errou ou não respondeu em 3 s: desconectado.
   - **Sem repasse entre clientes** (`server_relay = false`): cliente só fala com o host,
@@ -256,18 +256,42 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     Cada cliente só recebe a própria região. Custo aceito: o host simula até uma região por
     jogador (medido na F2b).
 - **Pendências registradas** (antes do coop pela internet — não aceitar sem resolver):
-  - ✅ **Código da partida** (I1, `MatchCode`): o host da rede local sorteia 6 letras (sem
-    0/O, 1/I/L) e as mostra na tela; só entra quem as digitar. O código nunca trafega: o host
-    manda um desafio aleatório de 16 bytes e o cliente responde com HMAC-SHA256 do desafio,
-    tendo o código como chave (comparação em tempo constante). 5 erros seguidos do mesmo
-    endereço bloqueiam esse endereço por 1 minuto (adivinhar ~900 milhões de códigos fica
-    inviável). O cliente só conclui o aperto de mão quando o host diz "aceito"; recusado, o host
-    diz o motivo (versão, código, bloqueio, perfil repetido) e desconecta 0,25 s depois. O host
-    só deste computador (`--host`) não pede código. Limite: sem criptografia, quem já está no
-    meio da rede (intermediário ativo) poderia repassar o aperto de mão; resolve junto com a
-    criptografia.
-  - **Criptografia** (DTLS do ENet) — obrigatória antes da internet; na LAN, protege o segredo
-    do perfil (abaixo). Próximo incremento (I2).
+  - ✅ **Código da partida** (I1, `MatchCode`): o host da rede local sorteia 8 letras (sem
+    0/O, 1/I/L; 6 na I1, ver abaixo) e as mostra na tela; só entra quem as digitar. O código
+    nunca trafega: já dentro da conexão criptografada, o host manda um desafio aleatório de
+    16 bytes e o cliente responde com HMAC-SHA256 do desafio, tendo o código como chave
+    (comparação em tempo constante). 5 provas erradas seguidas do mesmo endereço bloqueiam
+    esse endereço por 1 minuto. O cliente só conclui o aperto de mão quando o host diz
+    "aceito"; recusado, o host diz o motivo (versão, código, bloqueio, perfil repetido) e
+    desconecta 0,25 s depois. O host só deste computador (`--host`) não pede código.
+  - ✅ **Criptografia** (I2, DTLS do ENet; `HostIdentity`, `DoorProtocol`): todo o tráfego do
+    jogo é criptografado, inclusive o segredo do perfil e a prova do código. Na Godot 4.7 o
+    cliente DTLS só conecta se já tiver o certificado do host (até o modo "sem conferir" confere
+    a cadeia; medido), então:
+    1. O host cria chave RSA 2048 e certificado próprio a cada execução (~250 ms, nada em
+       disco) e abre a **porta da frente** (UDP, porta do jogo + 1).
+    2. O cliente pede o certificado ali; o host responde certificado + selo HMAC-SHA256 do
+       desafio do cliente e do certificado, com chave derivada do código. O cliente confere o
+       selo antes de confiar: sem o código, um intermediário não troca o certificado. Código
+       errado é detectado aqui (o cliente nem conecta).
+    3. Conexão DTLS confiando só nesse certificado (nome conferido); cliente sem DTLS ou com
+       outro certificado não conecta (testado).
+    - Contra **adivinhar o código** a partir do selo (que é público: qualquer um pode pedir):
+      8 letras (31^8 ≈ 850 bilhões), chave lenta (65 536 SHA-256 por tentativa, ~70 ms) e
+      "sal" com o certificado (novo a cada execução: nenhuma tabela pronta serve). Estimativa:
+      meses numa placa de vídeo por código, e o código muda a cada vez que se hospeda.
+    - **Porta da frente sem amplificação**: pedido de 1400 bytes, resposta ~1200 (ninguém a usa
+      para multiplicar tráfego contra outro computador); uma resposta por endereço a cada 0,1 s;
+      lê no máximo 32 pedidos por quadro.
+    - **Correção sobre a I1**: sem criptografia, o desafio e a resposta HMAC trafegavam abertos
+      e o código tinha 6 letras; quem gravasse a conversa poderia testar códigos no próprio
+      computador em segundos. A I2 resolve: a prova vai criptografada, e o único valor aberto (o
+      selo) tem chave lenta e 8 letras. A I1 nunca foi usada fora deste PC.
+    - Custo (teste de carga, 4 jogadores): CPU do host +0,1–0,25 ms; ~29 bytes a mais por pacote
+      (andando, 3,7 → 6,3 KB/s por cliente; combate igual). Entrar leva ~0,6 s: o ENet reenvia o
+      primeiro pacote, perdido enquanto a criptografia se acerta.
+    - Pendente para a internet (não para a LAN): o código é a única prova de identidade do host;
+      bom para amigos que trocam o código por voz/mensagem.
   - ✅ Detecção de atravessar paredes (H4): o host refaz o caminho desde a última posição aceita
     deslizando nas paredes como o `move_and_slide` do dono (mesma pegada, 4 deslizes); parou a
     mais de 3 px do ponto recebido = parede no caminho, e o dono volta para onde o deslize parou
@@ -280,8 +304,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     personagem). Conta ações e pedidos que fazem o host responder muito; os "uma vez por
     computador" ao receber entidades (centenas ao entrar numa região) ficam de fora, e repetidos
     não custam nada. Um jogador em combate fica bem abaixo (teste de carga H3 sem desconexões).
-  - **Segredo do perfil sem criptografia** (ADR-019): na LAN, quem escuta a rede poderia
-    copiá-lo e entrar como outro jogador. Resolve junto com a criptografia (DTLS).
+  - ✅ **Segredo do perfil** (ADR-019): trafega só dentro da conexão criptografada (I2).
   - **Espera da poção não vai no save** (ADR-022): sair e voltar zera a espera (10 s). Risco
     pequeno; se incomodar, guardar o tempo restante no personagem.
 - **Ferramentas de desenvolvimento** (kit de testes, mercador de testes que dá tudo por 0): só

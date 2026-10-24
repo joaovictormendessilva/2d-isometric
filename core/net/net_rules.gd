@@ -7,8 +7,12 @@ extends RefCounted
 ## Identifica o jogo e a versão do protocolo no aperto de mão. Mudou o formato de alguma
 ## mensagem? Aumente a versão: computadores com versões diferentes não se conectam.
 const PROTOCOL_ID := "2d-isometric"
-const PROTOCOL_VERSION := 15
+const PROTOCOL_VERSION := 16
 const DEFAULT_PORT := 24680
+## Porta da frente (DoorProtocol) = porta do jogo + isto.
+const DOOR_PORT_OFFSET := 1
+## Quanto o cliente espera a porta da frente responder antes de desistir (s).
+const DOOR_TIMEOUT := 3.0
 ## Coop de até 4 jogadores: o host e mais 3.
 const MAX_CLIENTS := 3
 ## Tempo para um computador concluir o aperto de mão antes de ser desconectado (s).
@@ -39,6 +43,16 @@ static func clean_aim(value: Vector2) -> Vector2:
 ## Conectado de fato (host ou cliente)? Offline o jogo usa o OfflineMultiplayerPeer.
 static func is_online(api: MultiplayerAPI) -> bool:
 	return api.has_multiplayer_peer() and not api.multiplayer_peer is OfflineMultiplayerPeer
+
+
+## Host: o computador ainda recebe mensagens? Saindo (desconexão pedida, à espera da
+## confirmação) não recebe mais: o ENet já desfez os canais dele.
+static func is_reachable(api: MultiplayerAPI, peer: int) -> bool:
+	var enet := api.multiplayer_peer as ENetMultiplayerPeer
+	if enet == null:
+		return true
+	var connection := enet.get_peer(peer)
+	return connection != null and connection.get_state() == ENetPacketPeer.STATE_CONNECTED
 
 
 ## Relógio de jogo deste computador (s), em passos de física: estável e igual em todos.

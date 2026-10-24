@@ -36,7 +36,7 @@ func send(method: StringName, args: Array, except_peer: int = 0) -> void:
 	if not NetRules.is_online(_node.multiplayer) or not _node.multiplayer.is_server():
 		return
 	for peer in _peers:
-		if peer != except_peer:
+		if peer != except_peer and NetRules.is_reachable(_node.multiplayer, peer):
 			_node.callv(&"rpc_id", [peer, method] + args)
 
 

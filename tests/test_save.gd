@@ -239,12 +239,12 @@ func test_same_player_twice_is_refused() -> void:
 	var host := start_network_game("Host", Network.Role.HOST, PORT)
 	await _join("Client")
 	var twin := start_network_game("Twin", Network.Role.CLIENT, PORT)  # mesmo perfil
-	await physics_frames(120)
+	var refusal := Texts.get_text(&"NET_REFUSED_SAME_PLAYER")
+	check(await wait_until(func() -> bool: return (twin.network as Network).status_text() == refusal),
+		"repetido vê o motivo (\"%s\")" % (twin.network as Network).status_text())
 	check((host.session as GameSession).get_player_count() == 2, "host recusou o repetido")
 	check((twin.session as GameSession).get_player_entity(twin.local_player_id()) == null,
 		"repetido não recebeu o mundo")
-	check((twin.network as Network).status_text() == Texts.get_text(&"NET_REFUSED_SAME_PLAYER"),
-		"repetido vê o motivo (\"%s\")" % (twin.network as Network).status_text())
 
 
 # --- Auxiliares ------------------------------------------------------------------------------

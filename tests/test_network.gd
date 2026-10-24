@@ -84,9 +84,12 @@ func test_client_movement_reaches_host() -> void:
 	client_player.set_move_intent(Vector2.LEFT)
 	await physics_frames(MOVE_FRAMES)
 	client_player.set_move_intent(Vector2.ZERO)
-	await physics_frames(30)
+	# Acelerados (--fixed-fps), os quadros duram menos que a variação de entrega da rede: o
+	# host pode descartar um estado "rápido demais" e só acertar na repetição do corpo parado.
+	var same_place := func() -> bool: return on_host.position.distance_to(client_player.position) < 1.0
+	await wait_until(same_place, 60)
 	check(client_player.position.distance_to(_spawn(games[0])) > 50.0, "o cliente andou")
-	check(on_host.position.distance_to(client_player.position) < 1.0,
+	check(same_place.call(),
 		"host vê o cliente no mesmo lugar (diferença %.1f px)" % on_host.position.distance_to(client_player.position))
 
 
@@ -190,7 +193,7 @@ func test_wandering_client_is_never_corrected() -> void:
 ## O cliente não decide dano nem move o que não é dele.
 func test_client_cannot_damage_or_move_others() -> void:
 	var games := await _start_pair()
-	var monster := first_monster(games[0])
+	var monster := _pinned_monster(games[0])  # sem passear sozinha durante o teste
 	var replica := _replica(games[1], monster)
 	var start := monster.position
 	replica.health.apply_damage(DamageInfo.create(9999, Vector2.RIGHT, 0, 0, 0))  # só local
@@ -534,7 +537,9 @@ func test_wrong_protocol_is_refused() -> void:
 	network._hello = "outro-jogo:1".to_utf8_buffer()
 	viewport.add_child(client)
 	client.detach_local_input()
-	await physics_frames(120)
+	var refusal := Texts.get_text(&"NET_REFUSED_VERSION")
+	check(await wait_until(func() -> bool: return network.status_text() == refusal),
+		"estranho vê o motivo (\"%s\")" % network.status_text())
 	check((host.session as GameSession).get_player_count() == 1, "host não aceitou o estranho")
 	check(_local_player(client) == null, "estranho não recebeu o mundo")
 	tree.set_multiplayer(null, viewport.get_path())
@@ -596,6 +601,7 @@ func _gap(obstacle: StaticBody2D, walker: Character) -> float:
 func _pinned_monster(game: Node) -> Monster:
 	var monster := first_monster(game)
 	monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
+	monster.set_move_intent(Vector2.ZERO)  # parada, mesmo se o cérebro desligou no meio de um passo
 	return monster
 
 

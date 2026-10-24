@@ -5,13 +5,16 @@ extends Node
 ##
 ## Argumentos de linha de comando (depois de `--`):
 ##   --host            hospeda só para este computador (127.0.0.1): testes locais.
-##   --host-lan        hospeda para a rede local (abre a porta UDP para a LAN) e mostra o
+##   --host-lan        hospeda para a rede local (abre as portas UDP para a LAN) e mostra o
 ##                     código da partida (MatchCode), sorteado a cada vez.
 ##   --join=<ip>       entra na partida de um host (só endereço IP).
 ##   --code=<código>   código da partida do host (cliente); no host, fixa o código.
-##   --port=<n>        porta UDP (padrão NetRules.DEFAULT_PORT).
+##   --port=<n>        porta UDP do jogo (padrão NetRules.DEFAULT_PORT); a porta da frente
+##                     é a seguinte.
 ##
-## Segurança (ADR-013): aperto de mão com identificação e versão do protocolo (quem não
+## Segurança (ADR-013): tudo criptografado (DTLS). O cliente primeiro pega o certificado do
+## host na porta da frente (DoorProtocol, selado com o código da partida) e só conecta
+## confiando nele. Aperto de mão com identificação e versão do protocolo (quem não
 ## responde certo é desconectado), sem repasse direto entre clientes (tudo passa pelo host,
 ## que valida), sem decodificação de objetos, limite de jogadores e de tamanho de pacote.
 ## Aperto de mão: o host manda identificação + desafio; o cliente responde identificação +
@@ -55,6 +58,12 @@ var _challenges: Dictionary[int, PackedByteArray] = {}  # host: peer -> desafio 
 var _refusing: Dictionary[int, bool] = {}  # host: avisados, à espera da desconexão
 var _failures: Dictionary[String, int] = {}  # host: endereço -> códigos errados seguidos
 var _locked_until: Dictionary[String, float] = {}  # host: endereço -> fim do bloqueio
+var _door: HostDoor  # host: porta da frente (certificado selado)
+
+
+func _process(_delta: float) -> void:
+	if _door != null:
+		_door.poll(NetRules.now())
 
 
 func configure_from_command_line(args: PackedStringArray) -> void:
@@ -72,12 +81,30 @@ func configure_from_command_line(args: PackedStringArray) -> void:
 			port = arg.trim_prefix("--port=").to_int()
 
 
-## Abre a conexão conforme `role`. Retorna OK ou o erro (porta em uso, IP inválido...).
+## Abre a conexão conforme `role`. Retorna OK ou o erro (porta em uso, IP inválido, host não
+## encontrado, código errado...). Corrotina: o cliente espera a porta da frente (DoorProtocol)
+## antes de conectar.
 func start() -> Error:
 	if role == Role.OFFLINE:
 		return OK
-	if port < 1024 or port > 65535:
+	if port < 1024 or port + NetRules.DOOR_PORT_OFFSET > 65535:
 		return _fail(ERR_INVALID_PARAMETER, Texts.format(&"NET_BAD_PORT", [port]))
+	_configure_api()
+	var peer := ENetMultiplayerPeer.new()
+	var error := await _open_client(peer) if role == Role.CLIENT else _open_host(peer)
+	if error != OK:
+		return error
+	multiplayer.multiplayer_peer = peer
+	_local_id = multiplayer.get_unique_id()
+	multiplayer.peer_connected.connect(_on_peer_connected)
+	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
+	multiplayer.connected_to_server.connect(_set_status.bind(&"NET_CONNECTED"))
+	multiplayer.connection_failed.connect(_set_status.bind(&"NET_CONNECT_FAILED"))
+	multiplayer.server_disconnected.connect(_set_status.bind(&"NET_HOST_LOST"))
+	return OK
+
+
+func _configure_api() -> void:
 	var api := multiplayer as SceneMultiplayer
 	api.server_relay = false  # clientes não falam entre si: o host valida e repassa
 	api.allow_object_decoding = false
@@ -88,34 +115,61 @@ func start() -> Error:
 	api.peer_authenticating.connect(_on_peer_authenticating)
 	api.peer_authentication_failed.connect(_on_peer_authentication_failed)
 
-	var peer := ENetMultiplayerPeer.new()
-	var error: Error
-	if role == Role.CLIENT:
-		if not address.is_valid_ip_address():
-			return _fail(ERR_INVALID_PARAMETER, Texts.format(&"NET_BAD_ADDRESS", [address]))
-		error = peer.create_client(address, port)
-		_status = Texts.format(&"NET_CONNECTING", [address, port])
-	elif role == Role.HOST:
-		peer.set_bind_ip(LOOPBACK)
-		error = peer.create_server(port, NetRules.MAX_CLIENTS)
+
+## Host: jogo criptografado na porta e a porta da frente na seguinte, ambos só neste computador
+## (`--host`) ou na rede local (`--host-lan`, com código sorteado se não veio um).
+func _open_host(peer: ENetMultiplayerPeer) -> Error:
+	var bind_ip := LOOPBACK if role == Role.HOST else "*"
+	if role == Role.HOST_LAN and match_code.is_empty():
+		match_code = MatchCode.generate()
+	var identity := HostIdentity.shared()
+	peer.set_bind_ip(bind_ip)
+	var error := peer.create_server(port, NetRules.MAX_CLIENTS)
+	if error == OK:
+		error = peer.host.dtls_server_setup(identity.server_options())
+	if error == OK:
+		_door = HostDoor.new()
+		error = _door.open(bind_ip, port + NetRules.DOOR_PORT_OFFSET,
+			MatchCode.door_key(match_code, identity.certificate_pem), identity.certificate_pem)
+	if error != OK:
+		peer.close()
+		_door = null
+		return _fail(error, Texts.format(&"NET_OPEN_FAILED", [port]))
+	if role == Role.HOST:
 		_status = Texts.format(&"NET_HOSTING_LOCAL", [port])
 	else:
-		peer.set_bind_ip("*")
-		error = peer.create_server(port, NetRules.MAX_CLIENTS)
-		if match_code.is_empty():
-			match_code = MatchCode.generate()
 		var addresses := ", ".join(lan_addresses())
-		_status = Texts.format(&"NET_HOSTING_LAN", [addresses, port, match_code])
-		print("[net] rede local: %s, porta %d, código %s" % [addresses, port, match_code])
+		var shown := MatchCode.display(match_code)
+		_status = Texts.format(&"NET_HOSTING_LAN", [addresses, port, shown])
+		print("[net] rede local: %s, porta %d, código %s" % [addresses, port, shown])
+	return OK
+
+
+## Cliente: pega o certificado do host na porta da frente (selado com o código) e só então
+## conecta, criptografado e confiando só nesse certificado.
+func _open_client(peer: ENetMultiplayerPeer) -> Error:
+	if not address.is_valid_ip_address():
+		return _fail(ERR_INVALID_PARAMETER, Texts.format(&"NET_BAD_ADDRESS", [address]))
+	_status = Texts.format(&"NET_CONNECTING", [address, port])
+	var knock := DoorKnock.new()
+	var error := knock.start(address, port + NetRules.DOOR_PORT_OFFSET, match_code)
+	var deadline := NetRules.now() + NetRules.DOOR_TIMEOUT
+	var result := DoorKnock.Result.WAITING
+	while error == OK and result == DoorKnock.Result.WAITING and NetRules.now() < deadline:
+		await get_tree().physics_frame
+		result = knock.poll(NetRules.now())
+	knock.close()
+	if error != OK or result == DoorKnock.Result.WAITING:
+		return _fail(ERR_CANT_CONNECT, Texts.get_text(&"NET_HOST_NOT_FOUND"))
+	if result == DoorKnock.Result.WRONG_CODE:
+		_refused = true
+		return _fail(ERR_UNAUTHORIZED, Texts.get_text(&"NET_REFUSED_CODE"))
+	error = peer.create_client(address, port)
+	if error == OK:  # antes do primeiro envio: a conexão já nasce criptografada
+		error = peer.host.dtls_client_setup(HostIdentity.COMMON_NAME,
+			TLSOptions.client(knock.certificate))
 	if error != OK:
-		return _fail(error, Texts.format(&"NET_OPEN_FAILED", [port]))
-	multiplayer.multiplayer_peer = peer
-	_local_id = multiplayer.get_unique_id()
-	multiplayer.peer_connected.connect(_on_peer_connected)
-	multiplayer.peer_disconnected.connect(_on_peer_disconnected)
-	multiplayer.connected_to_server.connect(_set_status.bind(&"NET_CONNECTED"))
-	multiplayer.connection_failed.connect(_set_status.bind(&"NET_CONNECT_FAILED"))
-	multiplayer.server_disconnected.connect(_set_status.bind(&"NET_HOST_LOST"))
+		return _fail(error, Texts.get_text(&"NET_CONNECT_FAILED"))
 	return OK
 
 
@@ -277,12 +331,16 @@ func _set_status(key: StringName) -> void:
 		_status = Texts.get_text(key)
 
 
+## Situação que o jogador resolve (endereço, código, porta em uso): aviso na tela e no log,
+## não erro do programa.
 func _fail(error: Error, message: String) -> Error:
 	_status = message
-	push_warning("[net] %s" % message)
+	print("[net] %s" % message)
 	return error
 
 
 func _exit_tree() -> void:
+	if _door != null:
+		_door.close()
 	if is_online():
 		multiplayer.multiplayer_peer.close()
