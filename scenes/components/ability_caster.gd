@@ -62,7 +62,6 @@ func _release(ability: AbilityData) -> void:
 				_body.position + Iso.ground_to_screen(ability.area_offset(_aim)))
 			region.ground_effects.add_child(blast)
 		_:
-			var projectile := Projectile.new()
-			projectile.setup(ability, _body, _aim)
-			region.entities.add_child(projectile)
+			Projectile.launch(ability.projectile, _body, _aim, ability.damage, ability.knockback,
+				ability.hit_effects)
 	cast_released.emit(ability, _aim)

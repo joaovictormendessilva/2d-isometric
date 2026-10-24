@@ -1,7 +1,7 @@
 class_name ActorQuery
 extends RefCounted
 ## Quem um ataque atinge: personagens vivos de outra facção perto de um ponto, medindo no plano
-## do chão. Usado pelo golpe (MeleeAttacker) e pelos golpes em área (AreaStrike: salto e habilidades).
+## do chão. Usado pelo golpe (Attacker) e pelos golpes em área (AreaStrike: salto e habilidades).
 
 ## Maior raio de pegada esperado num alvo; amplia a busca física inicial.
 const MAX_TARGET_RADIUS := 16.0
@@ -37,7 +37,7 @@ static func _query() -> PhysicsShapeQueryParameters2D:
 	return _shared_query
 
 
-## O mesmo filtro sem física, para quem já tem os candidatos (investida: ver MeleeAttacker).
+## O mesmo filtro sem física, para quem já tem os candidatos (investida: ver Attacker).
 static func is_hit(attacker: Character, target: Character, center: Vector2, inner_radius: float,
 		reach: float) -> bool:
 	if not is_instance_valid(target) or target == attacker or target.faction == attacker.faction \

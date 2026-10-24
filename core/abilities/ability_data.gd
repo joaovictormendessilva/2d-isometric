@@ -18,16 +18,14 @@ enum Shape { PROJECTILE, AREA }
 @export_group("Golpe")
 @export var damage: int = 10
 @export var knockback: float = 60.0
-## Projétil: distância máxima (chão), depois some. Área: até onde o ponto de queda alcança.
+## Área: até onde o ponto de queda alcança (o projétil tem o próprio alcance).
 @export var max_range: float = 160.0
 ## Efeitos aplicados em quem é acertado (ex.: queimadura), como os golpes das criaturas.
 @export var hit_effects: Array[StatusEffectData] = []
 
 @export_group("Projétil")
-## Pixels por segundo no plano do chão.
-@export var speed: float = 220.0
-## Raio (chão) em que o projétil acerta uma pegada.
-@export var hit_radius: float = 4.0
+## Voo e aparência do projétil (forma PROJECTILE).
+@export var projectile: ProjectileData
 
 @export_group("Área")
 ## Raio (chão) do impacto; a pegada do alvo conta.
@@ -36,8 +34,9 @@ enum Shape { PROJECTILE, AREA }
 @export var area_delay: float = 0.6
 
 @export_group("Apresentação")
+## Cores da área (o projétil tem as próprias).
 @export var vfx_color := Color.WHITE
-## Cor do brilho em volta do miolo (e do aviso no chão da área).
+## Borda do aviso no chão e brilho do impacto da área.
 @export var vfx_glow_color := Color.WHITE
 
 

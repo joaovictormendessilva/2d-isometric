@@ -171,8 +171,8 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     (teclado/mouse/controle) ou `MonsterBrain` (IA). No coop, um terceiro controlador vai
     receber intenções pela rede — sem mudar o corpo.
   - **Componentes reutilizáveis** na cena base `scenes/actors/actor.tscn`: `Footprint`,
-    `Health`, `MeleeAttacker`, `ActorFeedback`. Jogador e slime são cenas herdadas.
-  - **Dano só na autoridade**: `MeleeAttacker` só aplica dano se `is_multiplayer_authority()`;
+    `Health`, `Attacker`, `ActorFeedback`. Jogador e slime são cenas herdadas.
+  - **Dano só na autoridade**: `Attacker` só aplica dano se `is_multiplayer_authority()`;
     `DamageInfo` carrega `source_player_id` para drops pessoais.
   - **Ataques em fases** (preparação → golpe → recuperação), definidos em dados. Preparação
     ≥ 0,2 s é telegrafada automaticamente (tom avermelhado) — regra testada.
@@ -186,7 +186,7 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
     ser pego depois de pousar, passando por cima. O "ímã" (16 px) é `ActorStats.pickup_radius`,
     para equipamentos futuros aumentarem por jogador.
   - Apresentação (números de dano em pool, rastro, flash, HUD) só **lê** sinais.
-  - **Bote comprometido** (`MeleeAttackData.interruptible = false` no slime): levar dano não
+  - **Bote comprometido** (`AttackData.interruptible = false` no slime): levar dano não
     cancela a preparação do inimigo. Sem isso, segurar o ataque travava o slime para sempre
     (stun-lock, apontado pelo João). Teste `test_holding_attack_does_not_stun_lock_slime`.
   - **Coleira com evasão** (padrão de MMOs): ao passar da coleira, a criatura volta até casa
@@ -969,3 +969,62 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   minérios de cobre e 50% de uma poção de rapidez.
 - **Limitações**: quem entrar depois do chefe morto também pode abrir o baú (uma instância por
   dungeon, ADR-031); a saída não tem rótulo (entrar nela já leva para fora).
+
+## ADR-033 — Armas à distância: o golpe da arma pode ser um projétil
+
+- **Status**: Aceita (J2a validada pelo João, 2026-10-24)
+- **Contexto**: J2, variedade de armas (escolha do João, 2026-10-24). As regras de mão (arco de 2
+  mãos com aljava, cajados) existem desde o E4 (ADR-018); faltava o comportamento.
+- **Decisões**:
+  - **Ataque genérico**: `MeleeAttackData`/`MeleeAttacker` viraram `AttackData`/`Attacker`. Um
+    ataque com `projectile` (dados) solta o projétil no instante do golpe, na direção da mira,
+    em vez de acertar quem está no arco; preparação, recuperação, segurar para repetir e
+    lentidão ao atacar continuam iguais. Serve também para criaturas que atiram, no futuro.
+  - **`ProjectileData`** (voo e aparência: velocidade, alcance, raio de acerto, aparência orbe
+    ou flecha, cores) saiu da `AbilityData`: o projétil arcano e as armas usam o mesmo
+    `Projectile`. Dano, recuo e efeitos vêm de quem soltou (habilidade ou arma).
+  - **Voo igual na tela** (ajuste após o teste do João): velocidade e alcance dos projéteis
+    (flechas e magias) contam em pixels de TELA, não no plano do chão. No plano do chão a flecha
+    para cima aparecia com metade da velocidade e do alcance; quem mira com o mouse vê a tela.
+    O acerto continua pela pegada no plano do chão. (O andar segue no plano do chão, ADR-006.)
+  - **Flecha** em pixel art sem girar sprite: uma imagem pintada pixel a pixel para cada uma de
+    64 direções na tela (com 16 o desenho ficava até 11° fora do voo, "torta"), em degraus
+    regulares; penas claras atrás e ponta escura na frente para se ver para onde aponta (guardada após a primeira vez, como o orbe). Projéteis nascem na borda da
+    pegada de quem solta (não atravessam o próprio corpo).
+  - **Sem munição** (decisão do João, 2026-10-24): o arco não gasta flechas; a aljava é só o item
+    da mão secundária que o arco aceita.
+  - **Apresentação**: arma à distância não mostra o rastro da espada; na preparação o corpo recua
+    1 px (puxar a corda) e no disparo sai um sopro de faíscas na boca da arma.
+- **Rede e segurança (ADR-013)**: nenhuma mensagem nova. O ataque já é pedido ao host e
+  retransmitido (NetSync); cada computador sabe a arma de cada jogador (equipamento vindo do
+  host) e solta a flecha para mostrar; só a flecha do host fere. Protocolo **18** (catálogo de
+  itens novo: computadores de versões diferentes recusariam o equipamento um do outro).
+- **Conteúdo de teste**: arco (2 mãos, aceita aljava; feito na bancada com 10 madeiras e 3
+  gosmas): flecha de 6 de dano, recuo 20, alcance 170 px de tela, preparação 0,25 s,
+  recuperação 0,55 s, 40% da velocidade ao atirar (~7,5 de dano por segundo à distância; a
+  espada faz ~21 corpo a corpo). Primeira versão (7 de dano a cada 0,54 s, recuo 50) era rápida
+  demais: os slimes nem chegavam perto (João).
+- **Limitações**: a flecha ainda atravessa árvores e pedras (pendência da ADR-026); o
+  personagem não mostra a arma na mão (vem com a arte definitiva).
+
+## ADR-034 — Cajado: orbe que explode
+
+- **Status**: Aceita (J2b validada pelo João, 2026-10-24)
+- **Contexto**: J2b. Identidade escolhida pelo João (2026-10-24) entre quatro opções: orbe que
+  explode (as outras eram orbe que atravessa, rajada em leque e "arco mágico").
+- **Decisões**:
+  - **Explosão em dados**: `ProjectileData.splash_radius` (plano do chão). Ao tocar um inimigo,
+    o projétil fere todos os inimigos no raio em volta do impacto, empurrando cada um para fora
+    do centro (o mesmo `AreaStrike` do salto dos chefes e da explosão arcana). 0 = só quem foi
+    tocado (flecha, projétil arcano). Qualquer projétil (de arma ou de habilidade) pode usar.
+  - **Apresentação**: no impacto, estouro de faíscas na cor do orbe e uma onda clara no chão do
+    tamanho da área (a mesma onda dos avisos de área).
+  - **Cajado de 2 mãos, nada na outra mão** (ADR-018). Cajado de 1 mão com tomo fica para
+    depois (o "tomo" de hoje é o livro que ensina habilidades, não um item de mão).
+  - **Correção junto**: o tom vermelho de "ataque vindo" (telegrafia, `ActorFeedback`) agora só
+    aparece nas criaturas; com preparação longa (cajado), o jogador ficava vermelho.
+- **Rede e segurança (ADR-013)**: nada novo; a explosão só fere no host, como o resto do
+  projétil. Protocolo continua **18** (ainda não publicado na `main`; o cajado entra junto).
+- **Conteúdo de teste**: cajado feito na bancada com 8 madeiras, 4 minérios de cobre e 5 gosmas.
+  Orbe azul, 9 de dano, explosão de raio 20, recuo 40, velocidade 170 e alcance 150 px de tela,
+  preparação 0,3 s, recuperação 0,7 s (~9 de dano por segundo num alvo; mais num grupo).

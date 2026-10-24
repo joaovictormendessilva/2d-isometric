@@ -1,9 +1,13 @@
-class_name MeleeAttackData
+class_name AttackData
 extends Resource
-## Um ataque corpo a corpo (espada do jogador, bote do slime...). Fases: preparação
-## (telegrafia) → golpe (instante do acerto) → recuperação. Valores em `data/`.
+## Um ataque: corpo a corpo (espada do jogador, bote do slime...) ou à distância (arco, cajado:
+## ADR-033). Fases: preparação (telegrafia) → golpe (instante do acerto ou do disparo) →
+## recuperação. Valores em `data/`.
 
 @export var damage: int = 10
+## À distância: no golpe sai este projétil na direção do ataque, em vez de acertar quem está no
+## arco (`reach` e `arc_degrees` não valem). Null = corpo a corpo.
+@export var projectile: ProjectileData
 ## Alcance a partir da borda da pegada do atacante, no plano do chão (px).
 @export var reach: float = 24.0
 ## Abertura do arco do golpe, em graus (360 = em volta toda).

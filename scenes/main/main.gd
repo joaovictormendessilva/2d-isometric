@@ -379,12 +379,17 @@ func _handle_command_line() -> void:
 
 
 ## Capturas (tela e folha de quadros): veste itens novos de `ids` (separados por vírgula) direto
-## no equipamento do jogador, onde couberem. Não é ação de jogo: só ferramentas chamam.
+## no equipamento do jogador, onde couberem (sem espaço livre do tipo, substitui o primeiro: ex.
+## o arco no lugar da espada inicial). Não é ação de jogo: só ferramentas chamam.
 func dev_equip(player_id: int, ids: String) -> void:
 	var equipment := session.get_equipment(player_id)
 	for id in ids.split(",", false):
 		var item := equipment.data_of(StringName(id))
-		if item == null or not EquipmentRules.give_equipped(equipment, item):
+		var worn := item != null and EquipmentRules.give_equipped(equipment, item)
+		if item and not worn and equipment.index_of_type(item.get_slot()) >= 0:
+			equipment.replicate_slot(equipment.index_of_type(item.get_slot()), Equipment.EMPTY)
+			worn = EquipmentRules.give_equipped(equipment, item)
+		if not worn:
 			push_warning("[main] --equip: %s não é equipamento ou não coube" % id)
 
 

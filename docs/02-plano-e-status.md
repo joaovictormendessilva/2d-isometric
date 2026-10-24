@@ -17,7 +17,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
 | I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
-| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) concluída |
+| J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | 🟡 J1 (dungeon) e J2 (arco e cajado) concluídas |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
 mínimo logo após o combate básico), para descobrir cedo problemas de autoridade e
@@ -93,9 +93,9 @@ aparecer já na Etapa C/D para validar a técnica visual cedo.
 ## Etapa D — checklist (branch `stage-d/combat`)
 
 - [x] Núcleo de combate em dados: `ActorStats` (vida, defesa, invulnerabilidade, recuo),
-      `MeleeAttackData` (dano, alcance, arco, recuo, bote, preparação/recuperação),
+      `AttackData` (dano, alcance, arco, recuo, bote, preparação/recuperação),
       `CombatRules` (defesa com retorno decrescente, escala de vida por nº de jogadores)
-- [x] Componentes reutilizáveis: `Health`, `MeleeAttacker`, `ActorFeedback` (flash,
+- [x] Componentes reutilizáveis: `Health`, `Attacker`, `ActorFeedback` (flash,
       telegrafia, piscar, sumir)
 - [x] Espada: golpe em arco na direção do mouse (ou do olhar no teclado/controle), segurar
       repete, recuo no alvo, rastro do golpe, números de dano
@@ -414,12 +414,29 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
   (poções de vida, cobre, às vezes poção de rapidez) salta em volta, só para ele. Entrar no
   círculo leva para a frente da boca da caverna, na floresta. O Rei Slime da floresta continua
   sem baú. 230 testes (6 novos); protocolo de rede 17.
+- **J2a – Arco** ✅ (validada pelo João, 2026-10-24; branch `stage-j/weapons`, ADR-033). Novo item
+  **Arco** (2 mãos, aceita aljava), feito na bancada com 10 madeiras e 3 gosmas. Vestido, o
+  clique esquerdo solta uma flecha na direção do mouse: acerta o primeiro inimigo no caminho
+  (6 de dano) ou some no alcance. Na preparação o personagem recua 1 px e no disparo sai um
+  sopro de faíscas. Magias e armas agora usam o mesmo projétil. 234 testes (4 novos);
+  protocolo de rede 18.
+  - Ajustes após o teste do João: flechas e magias voam igual em todas as direções na tela
+    (antes, para cima/baixo, iam com metade da velocidade e do alcance); arco mais lento (puxar
+    0,25 s, recarregar 0,55 s, menos recuo; antes os slimes nem chegavam perto); flecha com 64
+    direções em degraus regulares e ponta escura (antes parecia torta). 235 testes.
+- **J2b – Cajado** ✅ (validada pelo João, 2026-10-24; branch `stage-j/weapons`, ADR-034). Novo item
+  **Cajado** (2 mãos), feito na bancada com 8 madeiras, 4 cobres e 5 gosmas. O clique solta um
+  orbe azul mais lento que a flecha; ao acertar, ele **explode** e fere todos em volta (9 de dano,
+  com onda no chão e faíscas). Ritmo mais lento que o arco. Correção junto: o personagem não fica
+  mais vermelho ao preparar ataques lentos (o aviso vermelho é só das criaturas). 237 testes.
 
 ## Funcionalidades
 
 - Dungeon (J1a): boca de caverna na floresta leva à caverna dos slimes (temporária).
 - Fim da dungeon (J1b): o chefe morto deixa um baú (E abre; recompensa de cada jogador) e uma
   saída rápida para a entrada.
+- Arco (J2a): feito na bancada; o golpe vira flecha na direção do mouse.
+- Cajado (J2b): feito na bancada; o golpe vira um orbe que explode em volta de onde acerta.
 - Tela de partida ao abrir o jogo: Jogar sozinho, Hospedar na rede local, Entrar numa partida
   (IP + código) ou Sair. Setas/Enter ou controle também escolhem; Esc volta do formulário.
 - Andar pela região inicial (WASD, setas ou analógico esquerdo); F3 liga/desliga o debug.
@@ -569,6 +586,9 @@ aleatórios, montarias, portais/atalhos desbloqueáveis, variedade de armas (arc
 
 Ideias do João para considerar nas etapas certas — não são compromissos ainda.
 
+- **Energia e mana** (João, 2026-10-24): energia para ataques físicos e mana para magia, como
+  dificuldade. Antes, analisar os custos (quanto gasta cada ataque, como recupera, interface).
+  Hoje armas não gastam nada e habilidades só têm recarga.
 - **Escolher em que mão segurar** (escudo/tomo à direita ou à esquerda, mudando a animação):
   adiado (ADR-018) — com o personagem espelhado ao virar, dobraria a arte de combate por 2–3 px
   de diferença. Reavaliar se os sprites crescerem.

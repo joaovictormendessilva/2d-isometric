@@ -21,7 +21,7 @@ extends Resource
 ## 0 = sofre todo o recuo; 1 = imune a recuo.
 @export_range(0.0, 1.0) var knockback_resistance: float = 0.0
 ## Golpe sem arma (jogadores: a arma vestida o substitui; ver `Character.apply_equipment`).
-@export var unarmed_attack: MeleeAttackData
+@export var unarmed_attack: AttackData
 
 @export_group("Equipamento")
 ## Vestido ao entrar na partida pela primeira vez (jogadores).

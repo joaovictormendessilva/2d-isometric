@@ -3,7 +3,7 @@ extends CharacterBody2D
 ## Corpo simulado de QUALQUER ator — jogador ou criatura. A origem fica nos PÉS (Y-sort).
 ## Recebe apenas INTENÇÕES (mover, atacar) de um controlador: LocalPlayerInput para o
 ## jogador, MonsterBrain para criaturas. Quem aplica a física e o dano é a autoridade.
-## Componentes opcionais (filhos): Footprint, Health, MeleeAttacker, SlamAttacker, Gatherer,
+## Componentes opcionais (filhos): Footprint, Health, Attacker, SlamAttacker, Gatherer,
 ## StatusEffects, AbilityCaster, NetSync ("Net").
 ## Na rede, só quem SIMULA o corpo roda a física; nos outros computadores o NetSync move
 ## o corpo pelos estados recebidos.
@@ -15,10 +15,12 @@ signal auras_changed
 
 ## Lentidão nunca para o ator de vez: no mínimo esta fração da velocidade.
 const MIN_SPEED_FACTOR := 0.2
+## Facção dos jogadores (o padrão; criaturas definem a delas).
+const PLAYER_FACTION := &"players"
 
 @export var stats: ActorStats
 ## Atores da mesma facção não se ferem.
-@export var faction: StringName = &"players"
+@export var faction: StringName = PLAYER_FACTION
 
 var entity_id := 0
 var player_id := 0
@@ -40,7 +42,7 @@ var auras: Array[AuraData] = []
 ## Componentes. Resolvidos em `_enter_tree` (antes do `_ready` dos filhos), para que
 ## componentes visuais filhos já os encontrem no próprio `_ready`.
 var health: Health
-var attacker: MeleeAttacker
+var attacker: Attacker
 var slammer: SlamAttacker
 var gatherer: Gatherer
 var status_effects: StatusEffects
@@ -50,7 +52,7 @@ var net: NetSync
 var _footprint: Footprint
 var _move_intent := Vector2.ZERO
 var _stun_left := 0.0
-var _weapon_attack: MeleeAttackData
+var _weapon_attack: AttackData
 var _equipment_bonuses := StatBonuses.new()
 
 @onready var _collision_layer := collision_layer
@@ -58,7 +60,7 @@ var _equipment_bonuses := StatBonuses.new()
 
 func _enter_tree() -> void:
 	health = get_node_or_null("Health")
-	attacker = get_node_or_null("MeleeAttacker")
+	attacker = get_node_or_null("Attacker")
 	slammer = get_node_or_null("SlamAttacker")
 	gatherer = get_node_or_null("Gatherer")
 	status_effects = get_node_or_null("StatusEffects")

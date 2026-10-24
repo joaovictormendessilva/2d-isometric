@@ -106,7 +106,7 @@ func test_death_cancels_pending_attack() -> void:
 	await physics_frames(1)
 	check(slime.request_attack(Vector2.RIGHT), "bote começou")
 	var struck := [false]
-	slime.attacker.attack_struck.connect(func(_d: Vector2, _a: MeleeAttackData) -> void: struck[0] = true)
+	slime.attacker.attack_struck.connect(func(_d: Vector2, _a: AttackData) -> void: struck[0] = true)
 	await physics_frames(5)
 	slime.health.apply_damage(DamageInfo.create(9999, Vector2.LEFT, 0, 0, 1))
 	var at_death := slime.position

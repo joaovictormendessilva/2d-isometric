@@ -1,23 +1,24 @@
-class_name MeleeAttacker
+class_name Attacker
 extends Node
-## Executa ataques corpo a corpo do Character pai: preparação (telegrafia) → golpe → recuperação.
-## No instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
+## Executa os ataques do Character pai: preparação (telegrafia) → golpe → recuperação. Ataque à
+## distância (`AttackData.projectile`): no golpe sai o projétil, que acerta sozinho. Corpo a corpo:
+## no instante do golpe, procura alvos de outra facção dentro do arco, no plano do chão; numa
 ## investida (`lunge_hit_time`), continua acertando quem o avanço tocar, uma vez cada.
 ## Só o HOST aplica o dano (`multiplayer.is_server()`; offline também é host). Nos outros
 ## computadores o ataque roda igual, só para a apresentação e o bote.
 
-signal attack_started(direction: Vector2, attack: MeleeAttackData)  ## Início da preparação.
-signal attack_struck(direction: Vector2, attack: MeleeAttackData)  ## Instante do golpe.
+signal attack_started(direction: Vector2, attack: AttackData)  ## Início da preparação.
+signal attack_struck(direction: Vector2, attack: AttackData)  ## Instante do golpe.
 signal attack_finished
 
 enum Phase { READY, WINDUP, RECOVERY }
 
-@export var attack: MeleeAttackData
+@export var attack: AttackData
 
 var _phase := Phase.READY
 var _time_left := 0.0
 var _direction := Vector2.DOWN
-var _next_attack: MeleeAttackData
+var _next_attack: AttackData
 ## Investida: tempo que o avanço ainda acerta, quem pode ser acertado (uma consulta de física no
 ## golpe, larga o bastante para o avanço; depois, só distância) e quem já foi acertado.
 var _hit_left := 0.0
@@ -81,6 +82,12 @@ func _physics_process(delta: float) -> void:
 func _strike() -> void:
 	_phase = Phase.RECOVERY
 	_time_left = attack.recovery
+	if attack.projectile:
+		# À distância: em todo computador a flecha voa (apresentação); só a do host fere.
+		Projectile.launch(attack.projectile, _body, _direction, attack.damage, attack.knockback,
+			_body.on_hit_effects)
+		attack_struck.emit(_direction, attack)
+		return
 	_body.add_ground_impulse(_direction * attack.lunge)
 	_hit.clear()
 	_hit_left = attack.lunge_hit_time
@@ -103,7 +110,7 @@ func _hit_targets() -> void:
 
 
 ## Troca o golpe (ex.: arma vestida). No meio de um ataque, vale a partir do próximo.
-func set_attack(value: MeleeAttackData) -> void:
+func set_attack(value: AttackData) -> void:
 	if is_attacking():
 		_next_attack = value
 	else:

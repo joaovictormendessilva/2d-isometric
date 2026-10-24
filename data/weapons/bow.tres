@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AttackData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://core/combat/attack_data.gd" id="1_attack"]
+[ext_resource type="Script" path="res://core/combat/projectile_data.gd" id="2_projectile"]
+
+[sub_resource type="Resource" id="Arrow"]
+script = ExtResource("2_projectile")
+speed = 300.0
+max_range = 170.0
+hit_radius = 4.0
+look = 1
+color = Color(0.85, 0.69, 0.48, 1)
+glow_color = Color(0.94, 0.94, 0.97, 1)
+tip_color = Color(0.36, 0.36, 0.44, 1)
+
+[resource]
+script = ExtResource("1_attack")
+damage = 6
+projectile = SubResource("Arrow")
+knockback = 20.0
+windup = 0.25
+recovery = 0.55
+move_multiplier = 0.4

@@ -11,6 +11,7 @@ extends SceneTree
 ##                      (padrão: attack)
 ##                      chest: na caverna dos slimes, o chefe morre; o jogador abre o baú
 ##                      (a saída rápida aparece perto); use um recorte maior (ex.: 160x100)
+##                      attack: com arma à distância (--equip=bow), o alvo fica mais longe
 ##                      cast: aprende a habilidade (--ability) e a lança num slime à frente
 ##                      boss: o jogador fica parado a meia distância do Rei Slime (salto)
 ##                      drop: a criatura à frente morre; os itens saltam e balançam no chão
@@ -33,7 +34,7 @@ const WALK_DIRECTION := Vector2(1, 0.5)
 const TARGET_DISTANCE := 22.0
 ## Onde o jogador fica no cenário do chefe (chão): a meia distância, para ele saltar.
 const BOSS_DISTANCE := Vector2(100, 0)
-## Cenário "cast": distância (chão) do alvo, onde a habilidade mira (a área cai nele).
+## Cenários "cast" e "attack" à distância: distância (chão) do alvo (a área cai nele).
 const CAST_DISTANCE := 70.0
 ## Cenário "chest": onde o jogador fica em relação ao baú (tela), ao lado dele e ao alcance.
 const CHEST_OFFSET := Vector2(22, 4)
@@ -71,8 +72,8 @@ func _run() -> void:
 	var character := (game.session as GameSession).get_player_entity(game.local_player_id()) as Character
 	game.detach_local_input()
 	var scenario: String = _options["scenario"]
+	game.dev_equip(game.local_player_id(), _options["equip"])  # antes: o cenário olha a arma
 	character = await _prepare(game, character, scenario)
-	game.dev_equip(game.local_player_id(), _options["equip"])
 	for id in (_options["effects"] as String).split(",", false):
 		var effect := EffectDatabase.shared().get_effect(StringName(id))
 		if effect:
@@ -104,7 +105,7 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 			if monster:
 				monster.get_node("Brain").process_mode = Node.PROCESS_MODE_DISABLED
 				monster.position = character.position + Iso.ground_to_screen(
-					ATTACK_DIRECTION * TARGET_DISTANCE)
+					ATTACK_DIRECTION * _target_distance(character))
 				monster.reset_physics_interpolation()
 				if scenario == "drop":
 					monster.health.apply_damage(DamageInfo.create(monster.health.current,
@@ -155,6 +156,11 @@ func _prepare(game: Node, character: Character, scenario: String) -> Character:
 			character.position = boss.position + Iso.ground_to_screen(BOSS_DISTANCE)
 			character.reset_physics_interpolation()
 	return character
+
+
+## Ataque: o alvo fica ao alcance do golpe; com arma à distância, mais longe (a flecha voa).
+func _target_distance(character: Character) -> float:
+	return CAST_DISTANCE if character.attacker.attack.projectile else TARGET_DISTANCE
 
 
 ## Intenções a cada passo (como o jogador segurando a tecla).
