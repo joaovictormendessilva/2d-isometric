@@ -1057,3 +1057,38 @@ Para mudar uma decisão aceita, crie uma nova ADR que a substitua — não apagu
   de velocidade, 1 s para subir; feito na bancada com 12 gosmas e 10 madeiras.
 - **Limitações**: um tipo de montaria; o desenho não tem animação própria (balança com o
   passo); andar sobre a água (backlog) fica para uma montaria futura.
+
+## ADR-036 — Evento de chefe errante
+
+- **Status**: Hipótese (J4a, aguardando validação do João)
+- **Contexto**: J4, eventos de chefe aleatórios. Formato escolhido pelo João (2026-10-24):
+  **chefe errante** (as outras opções eram invasão e aparição rara sem aviso). Ideia dele para
+  depois: paredes que fecham a luta ("arena"); combinamos deixar para a J4b, depois de ele
+  sentir o chefe errante sem paredes.
+- **Decisões**:
+  - **Evento em dados** (`BossEventData`, `data/boss_events/`): cena do chefe, regiões possíveis
+    (só abertas), intervalo sorteado entre eventos, tempo que o chefe fica e baú de recompensa.
+  - **Agendador no host** (`BossEvents`): um evento por vez. No fim do intervalo, sorteia uma das
+    regiões do evento que está carregada e tem jogadores (se nenhuma, tenta de novo em 30 s) e
+    põe o chefe num ponto livre perto de um ponto de criatura sorteado. O ponto é escolhido em
+    tempo de jogo, sem mexer nos mapas gerados (que o save usa).
+  - **Aviso para todos**, em todas as regiões: "Rei Slime apareceu!" + "Região: Campina" no alto
+    da tela (abaixo da barra do chefe); também "foi embora" e "foi derrotado".
+  - **Seta** na borda da tela apontando para o chefe do evento enquanto ele está na região do
+    jogador e fora da tela.
+  - **Vai embora** depois de `stay_time` se não estiver lutando (lutando, espera mais).
+  - **Derrotado**: drops normais para quem está na região e, depois que o corpo some, um **baú
+    só para quem o feriu** (cada um abre o seu uma vez, como o da dungeon). O baú passou a ter
+    lista de quem pode abrir (vazia = todos, como na dungeon).
+  - O chefe de evento não renasce; se a região é liberada (todos saem), o evento acaba em silêncio.
+- **Rede e segurança (ADR-013)**: protocolo **20**. Tipo de entidade novo "chefe de evento"
+  (dados: id do evento, conferido no catálogo local, posição e multiplicador de vida, conferidos)
+  e o baú de evento leva o id do evento e a lista de quem abre (1 a 4 ids válidos); cena do
+  chefe e tabela do baú vêm do catálogo, nunca da rede. Aviso do evento: host → todos,
+  conferido (tipo, evento e região conhecidos). Abrir o baú continua sem argumentos: o host
+  confere a lista dele.
+- **Conteúdo de teste**: Rei Slime errante na campina ou na floresta, a cada 10–20 min de jogo,
+  fica 5 min; baú com 2–3 poções de vida, 6–10 cobres e uma poção de rapidez.
+  `-- --boss-event-in=<s>` adianta o primeiro evento (testes).
+- **Limitações**: quem entra na partida durante um evento não vê o aviso (vê o chefe e a seta);
+  um evento só de cada vez.

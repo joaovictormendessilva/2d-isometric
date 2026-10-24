@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="BossEventData" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://core/events/boss_event_data.gd" id="1_event"]
+[ext_resource type="PackedScene" path="res://scenes/actors/monsters/king_slime.tscn" id="2_boss"]
+[ext_resource type="Resource" path="res://data/chests/boss_event_chest.tres" id="3_chest"]
+
+[resource]
+script = ExtResource("1_event")
+id = &"wandering_king_slime"
+monster_scene = ExtResource("2_boss")
+regions = Array[StringName]([&"meadow", &"forest"])
+interval_min = 600.0
+interval_max = 1200.0
+stay_time = 300.0
+reward_chest = ExtResource("3_chest")

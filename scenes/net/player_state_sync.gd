@@ -211,13 +211,14 @@ func npc_near(player_id: int) -> Npc:
 	return _nearest(_in_reach(Npc.GROUP, player_id), player_id) as Npc
 
 
-## Baú de dungeon mais próximo ao alcance do jogador que ele ainda não abriu, ou null. No host,
-## quem já abriu é o oficial; num cliente, o que ele sabe do próprio jogador (prévia).
+## Baú de recompensa mais próximo ao alcance que o jogador pode abrir e ainda não abriu, ou null.
+## No host, quem já abriu é o oficial; num cliente, o que ele sabe do próprio jogador (prévia).
 func chest_near(player_id: int) -> RewardChest:
 	var closed := _in_reach(RewardChest.GROUP, player_id).filter(func(node: Node2D) -> bool:
 		var chest := node as RewardChest
-		return not (chest.was_opened_by(player_id) if multiplayer.is_server()
-			else chest.is_open_here()))
+		var opened := chest.was_opened_by(player_id) if multiplayer.is_server() \
+			else chest.is_open_here()
+		return chest.can_open(player_id) and not opened)
 	return _nearest(closed, player_id) as RewardChest
 
 

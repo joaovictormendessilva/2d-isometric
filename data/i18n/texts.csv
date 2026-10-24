@@ -149,3 +149,10 @@ MONSTER_POISON_SLIME,Slime venenoso,Poison slime
 EFFECT_SWIFTNESS,Rapidez,Swiftness
 BOSS_ENRAGED,%s se enfurece!,%s is enraged!
 PROMPT_OPEN_CHEST,[%s] Abrir o baú,[%s] Open the chest
+REGION_MEADOW,Campina,Meadow
+REGION_FOREST,Floresta,Forest
+REGION_SLIME_CAVE,Caverna dos slimes,Slime cave
+EVENT_BOSS_APPEARED,%s apareceu!,%s has appeared!
+EVENT_BOSS_LEFT,%s foi embora.,%s has left.
+EVENT_BOSS_DEFEATED,%s foi derrotado!,%s was defeated!
+EVENT_WHERE,Região: %s,Region: %s

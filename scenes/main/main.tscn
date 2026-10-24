@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=20 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://scenes/camera/game_camera.gd" id="2_camera"]
@@ -12,6 +12,7 @@
 [ext_resource type="Script" path="res://scenes/ui/player_feedback.gd" id="10_feedback"]
 [ext_resource type="Script" path="res://scenes/ui/interaction_prompt.gd" id="11_prompt"]
 [ext_resource type="Script" path="res://scenes/net/player_state_sync.gd" id="12_player_state"]
+[ext_resource type="Script" path="res://scenes/main/boss_events.gd" id="19_boss_events"]
 [ext_resource type="Script" path="res://scenes/ui/inventory_panel.gd" id="13_inventory"]
 [ext_resource type="Script" path="res://scenes/building/placement_preview.gd" id="14_placement"]
 [ext_resource type="Script" path="res://scenes/save/save_service.gd" id="15_saves"]
@@ -33,6 +34,9 @@ script = ExtResource("12_player_state")
 
 [node name="Abilities" type="Node" parent="."]
 script = ExtResource("18_abilities")
+
+[node name="BossEvents" type="Node" parent="."]
+script = ExtResource("19_boss_events")
 
 [node name="Regions" type="Node" parent="."]
 script = ExtResource("16_regions")

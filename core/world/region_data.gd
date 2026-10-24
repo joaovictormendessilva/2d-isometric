@@ -14,3 +14,8 @@ extends Resource
 ## Dungeon (ADR-032): quando um chefe morre aqui, surgem este baú (um para cada jogador abrir) e
 ## a saída rápida para `exit_region`/`exit_passage`. Null = sem recompensa de fim.
 @export var reward_chest: RewardChestData
+
+
+## Nome no idioma atual (chave `REGION_<ID>` em `data/i18n/texts.csv`).
+func get_display_name() -> String:
+	return Texts.name_of("REGION", id)

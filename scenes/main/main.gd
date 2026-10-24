@@ -21,6 +21,8 @@ extends Node
 ##                                captura.
 ##   --look=<ids>                 coleciona esses equipamentos e os mostra como aparência
 ##                                (transmog) no primeiro espaço do tipo de cada um.
+##   --boss-event-in=<s>          o primeiro evento de chefe errante acontece em <s> segundos
+##                                (host; para testar sem esperar o intervalo sorteado).
 
 ## O jogador local chegou ao mundo (primeira vez nesta partida).
 signal match_started
@@ -65,10 +67,13 @@ var _traveling: Dictionary[int, bool] = {}
 ## quando o personagem local chega: um cliente recusado antes disso não deixa nós soltos.
 var _boss_bar: BossBar
 var _ability_bar: AbilityBar
+var _event_banner := EventBanner.new()
+var _event_arrow := EventArrow.new()
 
 @onready var network: Network = $Network
 @onready var player_state: PlayerStateSync = $PlayerState
 @onready var abilities: AbilitySync = $Abilities
+@onready var boss_events: BossEvents = $BossEvents
 @onready var saves: SaveService = $Saves
 @onready var worlds: RegionWorlds = $Regions
 @onready var _camera: GameCamera = $Camera
@@ -126,6 +131,13 @@ func _ready() -> void:
 	# Avisos só depois de o estado do jogador chegar: o que veio do save ou do host não é novidade.
 	_spawner.local_player_prepared.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
 	abilities.full_state_received.connect(_player_feedback.start_announcing, CONNECT_ONE_SHOT)
+	boss_events.spawner = _spawner
+	boss_events.worlds = worlds
+	boss_events.regions = regions
+	_event_banner.regions = regions
+	$UI.add_child(_event_arrow)
+	$UI.add_child(_event_banner)
+	boss_events.announced.connect(_event_banner.show_event)
 	_debug_overlay.session = session
 	_debug_overlay.player_id = local_player_id()
 	if multiplayer.is_server():
@@ -133,12 +145,21 @@ func _ready() -> void:
 		_arrive(local_player_id())
 		network.player_joined.connect(_arrive)
 		network.player_left.connect(_on_player_left)
+		boss_events.start(_first_boss_event_delay())
 
 	_handle_command_line()
 
 
 func local_player_id() -> int:
 	return network.local_player_id()
+
+
+## Host: `--boss-event-in=<s>` adianta o primeiro evento de chefe; sem ele, -1 (sorteado).
+func _first_boss_event_delay() -> float:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--boss-event-in="):
+			return maxf(float(arg.trim_prefix("--boss-event-in=")), 0.0)
+	return -1.0
 
 
 # --- Host: quem está em que região -------------------------------------------------------------
@@ -272,6 +293,7 @@ func _on_local_player_spawned(character: Character) -> void:
 		_boss_bar = BossBar.new()
 		$UI.add_child(_boss_bar)
 	_boss_bar.set_character(character)
+	_event_arrow.set_character(character)
 	_player_feedback.set_character(character)
 	_interaction_prompt.setup(character)
 	_placement_preview.setup(inventory, items, character)

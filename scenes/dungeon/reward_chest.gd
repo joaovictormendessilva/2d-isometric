@@ -1,7 +1,8 @@
 class_name RewardChest
 extends StaticBody2D
-## Baú de recompensa de uma dungeon (ADR-032). Criado pelo host via EntitySpawner, igual em todos
-## os computadores. Cada jogador abre o seu uma vez: o host guarda quem já abriu e manda ao dono
+## Baú de recompensa de uma dungeon (ADR-032) ou de um evento de chefe (ADR-036). Criado pelo host
+## via EntitySpawner, igual em todos os computadores. Cada jogador abre o seu uma vez (no evento,
+## só quem feriu o chefe: `allowed`): o host guarda quem já abriu e manda ao dono
 ## o baú aberto (cada computador mostra o baú como o jogador LOCAL o deixou). Quem sorteia e
 ## solta a recompensa é o host (PlayerStateSync).
 
@@ -15,6 +16,8 @@ const SPARK_TIME := 0.5
 const SPARK_HEIGHT := 8.0
 
 var data: RewardChestData
+## Quem pode abrir (ids de jogador); vazio = todos (dungeon). Vem dos dados de criação.
+var allowed := PackedInt32Array()
 
 ## Host: jogadores que já abriram.
 var _opened_by: Dictionary[int, bool] = {}
@@ -34,6 +37,11 @@ func _ready() -> void:
 ## Os pés em `at` estão perto o bastante para abrir?
 func reaches(at: Vector2) -> bool:
 	return Iso.ground_distance(position, at) <= data.interact_range
+
+
+## O jogador pode abrir este baú (está na lista, se houver)?
+func can_open(player_id: int) -> bool:
+	return allowed.is_empty() or player_id in allowed
 
 
 ## Host: o jogador já abriu este baú?

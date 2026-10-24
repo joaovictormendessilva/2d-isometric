@@ -9,13 +9,13 @@ extends Node
 ## sem propriedades) cuja visibilidade, decidida no host, controla a quem ela é enviada.
 ## Em todos os computadores: registro na sessão e apresentação (números de dano).
 ## Só no host: morte, renascimento, drops pessoais, filhotes dos chefes, IA das criaturas e o fim
-## das dungeons (baú e saída rápida, ADR-032).
+## das dungeons (baú e saída rápida, ADR-032) e os chefes de evento (ADR-036).
 
 signal local_player_spawned(character: Character)
 ## Host: o jogador local chegou ao mundo com o save (ou o equipamento inicial) já aplicado.
 signal local_player_prepared
 
-enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION, CHEST, EXIT_PORTAL }
+enum Kind { PLAYER, MONSTER, PICKUP, STRUCTURE, MINION, CHEST, EXIT_PORTAL, EVENT_BOSS }
 
 const PLAYER_SCENE := preload("res://scenes/actors/character/player.tscn")
 const PICKUP_SCENE := preload("res://scenes/pickups/pickup.tscn")
@@ -23,6 +23,7 @@ const STRUCTURE_SCENE := preload("res://scenes/building/structure.tscn")
 const CHEST_SCENE := preload("res://scenes/dungeon/reward_chest.tscn")
 const EXIT_PORTAL_SCENE := preload("res://scenes/dungeon/exit_portal.tscn")
 const PLAYER_SCALING := preload("res://data/balance/player_scaling.tres")
+const BOSS_EVENTS_DIR := "res://data/boss_events/"
 const PLAYER_RESPAWN_TIME := 2.5
 ## Tempo que o corpo da criatura fica sumindo antes de ser removido.
 const CORPSE_TIME := 0.6
@@ -54,6 +55,8 @@ const OTHER_PLAYER_TINT := Color(0.6, 1.0, 0.75)
 ## Limites dos dados de criação recebidos do host (nada maior é legítimo).
 const MAX_HEALTH_MULTIPLIER := 100.0
 const MAX_PICKUP_AMOUNT := 999
+## Baú de evento: no máximo um id por jogador da partida (o host e os clientes).
+const MAX_CHEST_ALLOWED := NetRules.MAX_CLIENTS + 1
 const REPLICATOR_NAME := "Replicator"
 const GATE_NAME := "RegionGate"
 
@@ -70,6 +73,9 @@ var structures: DataCatalog
 var starter_kit: ItemBundle
 ## Save do mundo (host): devolve o progresso de quem volta. Null = sem save.
 var saves: SaveService
+## Eventos de chefe (`data/boss_events/`): o tipo do chefe e do baú de evento vem daqui, nunca da
+## rede.
+var boss_events := DataCatalog.new(BOSS_EVENTS_DIR)
 
 var _next_pickup_id := 1
 var _next_structure_id := 1
@@ -167,6 +173,23 @@ func spawn_monster(region: Region, point_index: int) -> Monster:
 
 
 ## Filhote de um chefe (fase 2), em `at`. Não deixa drops nem renasce.
+## Chefe de evento (ADR-036) em `at` (ponto livre escolhido pelo BossEvents). Não renasce.
+func spawn_event_boss(region: Region, event: BossEventData, at: Vector2) -> Monster:
+	return _replicator(region).spawn({"kind": Kind.EVENT_BOSS,
+		"entity_id": session.allocate_entity_id(), "event": String(event.id), "position": at,
+		"health_multiplier": CombatRules.monster_health_multiplier(
+			maxi(players_in(region), 1), PLAYER_SCALING)})
+
+
+## Baú do evento onde o chefe caiu (`at`): só os jogadores de `allowed` (quem o feriu) abrem.
+func spawn_event_chest(region: Region, event: BossEventData, at: Vector2,
+		allowed: Array[int]) -> void:
+	var space := region.get_world_2d().direct_space_state
+	_replicator(region).spawn({"kind": Kind.CHEST, "reward_id": _allocate_reward_id(),
+		"position": GroundQuery.find_drop_spot(space, at, _rng, 0.0, CHEST_DISTANCE_MAX,
+			REWARD_CLEARANCE), "event": String(event.id), "allowed": PackedInt32Array(allowed)})
+
+
 func spawn_minion(region: Region, summoner: Monster, at: Vector2) -> Monster:
 	return _replicator(region).spawn({"kind": Kind.MINION,
 		"entity_id": session.allocate_entity_id(), "summoner": summoner.entity_id, "position": at,
@@ -271,6 +294,8 @@ func _instantiate(data: Variant, region: Region) -> Node:
 			node = _instantiate_chest(data, region)
 		Kind.EXIT_PORTAL:
 			node = _instantiate_exit_portal(data, region)
+		Kind.EVENT_BOSS:
+			node = _instantiate_event_boss(data, region)
 		_:
 			push_warning("[spawner] dados de criação inválidos recebidos")
 			var inert := Node.new()  # o Replicator exige um nó; este não faz nada
@@ -361,11 +386,26 @@ func _fit_inventory(player_id: int) -> void:
 
 func _instantiate_monster(data: Dictionary, region: Region) -> Monster:
 	var point := region.get_monster_spawn_points()[data["point"]]
-	var monster: Monster = point.monster_scene.instantiate()
-	monster.position = point.position
+	var monster := _setup_monster(point.monster_scene, point.position, data, region)
+	monster.died.connect(_on_monster_died.bind(data["point"], weakref(region)))
+	return monster
+
+
+## Chefe de evento: a cena vem do catálogo de eventos, nunca da rede.
+func _instantiate_event_boss(data: Dictionary, region: Region) -> Monster:
+	var event := _event_of(data)
+	var monster := _setup_monster(event.monster_scene, data["position"], data, region)
+	monster.died.connect(_on_event_boss_died.bind(weakref(region)))
+	monster.add_to_group(BossEvents.BOSS_GROUP)  # a seta do evento o acha em qualquer computador
+	return monster
+
+
+## Criatura de ponto ou de evento: posição, vida, registro e (host) IA e filhotes.
+func _setup_monster(scene: PackedScene, at: Vector2, data: Dictionary, region: Region) -> Monster:
+	var monster: Monster = scene.instantiate()
+	monster.position = at
 	monster.max_health_multiplier = data["health_multiplier"]
 	_register(monster, data["entity_id"])
-	monster.died.connect(_on_monster_died.bind(data["point"], weakref(region)))
 	monster.phase_changed.connect(_on_boss_phase_changed.bind(monster))
 	if multiplayer.is_server():
 		(monster.get_node("Brain") as MonsterBrain).session = session  # IA só no host
@@ -454,11 +494,15 @@ func _instantiate_structure(data: Dictionary) -> Structure:
 	return structure
 
 
-## Baú da dungeon: o tipo vem do catálogo da região, nunca da rede.
+## Baú da dungeon ou de um evento: o tipo vem do catálogo da região ou do evento, nunca da rede.
 func _instantiate_chest(data: Dictionary, region: Region) -> RewardChest:
 	var chest: RewardChest = CHEST_SCENE.instantiate()
 	chest.name = "R%d" % data["reward_id"]
-	chest.data = region.data.reward_chest
+	if data.has("event"):
+		chest.data = _event_of(data).reward_chest
+		chest.allowed = data["allowed"]
+	else:
+		chest.data = region.data.reward_chest
 	chest.position = data["position"]
 	return chest
 
@@ -524,14 +568,36 @@ func _valid_kind(data: Variant, region: Region) -> int:
 					and structures.get_entry(StringName(structure)) is StructureData:
 				return Kind.STRUCTURE
 		Kind.CHEST:
-			if _is_id(d, "reward_id") and _is_position(d, "position") and region.data \
-					and region.data.reward_chest:
+			var known := _is_event_chest(d) if d.has("event") \
+				else region.data != null and region.data.reward_chest != null
+			if _is_id(d, "reward_id") and _is_position(d, "position") and known:
 				return Kind.CHEST
 		Kind.EXIT_PORTAL:
 			if _is_id(d, "reward_id") and _is_position(d, "position") and region.data \
 					and not region.data.exit_region.is_empty():
 				return Kind.EXIT_PORTAL
+		Kind.EVENT_BOSS:
+			var multiplier: Variant = d.get("health_multiplier")
+			if _is_id(d, "entity_id") and _is_position(d, "position") and _event_of(d) != null \
+					and multiplier is float and is_finite(multiplier) and multiplier > 0.0 \
+					and multiplier <= MAX_HEALTH_MULTIPLIER:
+				return Kind.EVENT_BOSS
 	return -1
+
+
+## Evento do catálogo nomeado nos dados de criação, ou null.
+func _event_of(data: Dictionary) -> BossEventData:
+	var event: Variant = data.get("event")
+	return boss_events.get_entry(StringName(event)) as BossEventData if event is String else null
+
+
+## Baú de evento: evento conhecido, com baú, e de 1 a MAX_CHEST_ALLOWED jogadores válidos.
+func _is_event_chest(data: Dictionary) -> bool:
+	var event := _event_of(data)
+	var allowed: Variant = data.get("allowed")
+	return event != null and event.reward_chest != null and allowed is PackedInt32Array \
+		and not allowed.is_empty() and allowed.size() <= MAX_CHEST_ALLOWED \
+		and Array(allowed).all(func(player_id: int) -> bool: return player_id > 0)
 
 
 static func _is_id(data: Dictionary, key: String) -> bool:
@@ -600,12 +666,9 @@ func _revive_player(player_id: int) -> void:
 ## Em todos os computadores a criatura morta sai do registro; no host, ela também deixa
 ## drops, some e agenda o renascimento (menos em dungeon).
 func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef) -> void:
-	session.unregister_entity(monster.entity_id)
-	var region := region_ref.get_ref() as Region
-	if not multiplayer.is_server() or region == null:
+	var region := _fall(monster, region_ref)
+	if region == null:
 		return
-	_spawn_drops(monster as Monster, region)
-	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
 	if (monster as Monster).data.is_boss and region.data and region.data.reward_chest:
 		# Depois que o corpo some: o baú surge onde o chefe caiu, não em cima dele.
 		get_tree().create_timer(CORPSE_TIME).timeout.connect(
@@ -614,6 +677,24 @@ func _on_monster_died(monster: Character, point_index: int, region_ref: WeakRef)
 		return
 	get_tree().create_timer(region.get_monster_spawn_points()[point_index].respawn_time) \
 		.timeout.connect(_respawn_monster.bind(point_index, region_ref))
+
+
+## Chefe de evento morto: drops e corpo como qualquer criatura, sem renascer (o baú e o aviso são
+## do BossEvents, que sabe quem o feriu).
+func _on_event_boss_died(monster: Character, region_ref: WeakRef) -> void:
+	_fall(monster, region_ref)
+
+
+## Criatura morta: sai do registro e, no host, solta os drops e o corpo some. Retorna a região
+## (host, ainda carregada) para quem chamou continuar, ou null.
+func _fall(monster: Character, region_ref: WeakRef) -> Region:
+	session.unregister_entity(monster.entity_id)
+	var region := region_ref.get_ref() as Region
+	if not multiplayer.is_server() or region == null:
+		return null
+	_spawn_drops(monster as Monster, region)
+	get_tree().create_timer(CORPSE_TIME).timeout.connect(monster.queue_free)
+	return region
 
 
 ## Filhote morto: sai do registro e, no host, some (sem drops nem renascimento).
