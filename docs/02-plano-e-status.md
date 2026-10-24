@@ -16,7 +16,7 @@ Legenda: ✅ concluído e validado · 🟡 em andamento · ⬜ pendente
 | F | Região jogável com progressão, NPCs e mini boss | ✅ (save, 2 regiões, NPC, Rei Slime, coroa do núcleo) |
 | G | Efeitos mágicos, auras, buffs, debuffs, cosméticos | ✅ (buffs e debuffs; habilidades: projétil e explosão arcanos, ameaça; auras e cosméticos: qualidade dos efeitos, aura da coroa, transmog, carga de auras) |
 | H | Testes de desempenho e riscos da arquitetura multiplayer | ✅ (carga de projéteis, itens no chão, coop com 4 jogadores, riscos de rede: paredes e inundação) |
-| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ |
+| I | Primeiro coop LAN | 🟡 I1 ✅ (código da partida) · I2 ✅ (criptografia) · I3 ✅ (tela de partida) · I4 ⬜ (adiada para o final: falta o 2º PC; com jogo exportado) |
 | J | Expansão: mapas, dungeons, chefes, montarias, eventos, progressão | ⬜ |
 
 Reorganização em relação ao plano original: foi incluída a etapa **D+** (teste de rede
@@ -389,6 +389,9 @@ João antes da próxima:
   clientes em processos continua entrando.
 - **I4 – Teste em dois computadores** ⬜: firewall do Windows e partida de verdade na rede local.
   Fica para o fim da Etapa I (João, 2026-10-23): I1–I3 se validam no mesmo PC, com duas janelas.
+  Adiada (João, 2026-10-24): ainda não há o segundo computador; fica para o final, e será feita
+  com o **jogo exportado** (.exe copiado para o outro PC, sem Godot nem repositório lá). Até
+  lá o projeto segue para as próximas etapas.
 
 ## Funcionalidades
 
